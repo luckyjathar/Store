@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>लाईव्ह डिजिटल कॅटलॉग | Persistent Store</title>
+    <!-- XLSX Library (एक्सेल हवेतल्या हवेत वाचण्यासाठी) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <style>
+        :root {
+            --bajaj-blue: #0059A3;
+            --bajaj-green: #00A34F;
+            --bg-page: #f1f5f9;
+            --card-bg: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-page); margin: 0; padding: 10px;
+            color: #334155; padding-bottom: 60px;
+        }
+
+        /* STRICT MOBILE VIEW */
+        .app-container {
+            max-width: 440px; margin: 0 auto;
+        }
+
+        /* HEADER */
+        .store-header {
+            background: linear-gradient(135deg, var(--bajaj-blue) 0%, #003a6b 100%);
+            color: white; padding: 16px 14px; border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 89, 163, 0.25);
+            margin-bottom: 16px; position: relative;
+        }
+        .store-header h1 { margin: 0; font-size: 20px; font-weight: 900; letter-spacing: 0.5px; }
+        .store-header p { margin: 4px 0 0 0; font-size: 12px; opacity: 0.9; }
+        
+        .live-pill {
+            position: absolute; top: 16px; right: 14px;
+            background: #ef4444; color: white; font-size: 10px; font-weight: 900;
+            padding: 3px 8px; border-radius: 20px; animation: pulse 2s infinite;
+        }
+
+        /* SEARCH BAR */
+        .search-box {
+            position: sticky; top: 10px; z-index: 100; margin-bottom: 16px;
+        }
+        .search-box input {
+            width: 100%; padding: 14px 16px; border-radius: 14px;
+            border: 2px solid #e2e8f0; background: white; font-size: 15px; font-weight: 700;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05); box-sizing: border-box; outline: none;
+            transition: border 0.2s;
+        }
+        .search-box input:focus { border-color: var(--bajaj-blue); }
+
+        /* LOADER */
+        #loader {
+            text-align: center; padding: 40px 20px; color: var(--bajaj-blue);
+            font-weight: 800; font-size: 15px; background: white; border-radius: 16px;
+            border: 2px dashed #cbd5e1; margin-top: 20px;
+        }
+
+        /* CATALOG GRID */
+        .catalog-list { display: flex; flex-direction: column; gap: 12px; }
+
+        .phone-card {
+            background: var(--card-bg); border-radius: 16px;
+            padding: 14px; border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+            display: flex; gap: 14px; align-items: center; position: relative;
+            overflow: hidden; transition: transform 0.2s;
+        }
+        .phone-card:active { transform: scale(0.98); }
+
+        .phone-img-box {
+            width: 75px; height: 85px; background: #f8fafc;
+            border-radius: 12px; display: flex; align-items: center; justify-content: center;
+            padding: 4px; flex-shrink: 0; border: 1px solid #f1f5f9;
+        }
+        .phone-img-box img { max-width: 100%; max-height: 100%; object-fit: contain; }
+
+        .phone-details { flex-grow: 1; min-width: 0; }
+        .phone-details h3 { margin: 0 0 4px 0; font-size: 15px; font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .mrp-tag { font-size: 12px; color: #94a3b8; font-weight: 600; text-decoration: line-through; }
+
+        .price-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+            background: #f8fafc; padding: 8px 10px; border-radius: 10px; margin-top: 8px;
+            border: 1px solid #f1f5f9;
+        }
+        .price-col { display: flex; flex-direction: column; }
+        .price-col small { font-size: 10px; font-weight: 800; color: #64748b; }
+        .price-col b { font-size: 14px; font-weight: 950; color: var(--bajaj-blue); }
+        .price-col.green b { color: var(--bajaj-green); }
+
+        .btn-lock-mini {
+            width: 100%; background: #fffbeb; color: #d97706; border: 1.5px solid #fcd34d;
+            padding: 8px; border-radius: 8px; font-size: 12px; font-weight: 900;
+            margin-top: 10px; cursor: pointer; text-align: center; display: block;
+        }
+
+        /* BOTTOM LOCK MODAL */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(4px);
+            z-index: 1000; display: none; align-items: flex-end; justify-content: center;
+        }
+        .modal-sheet {
+            background: white; width: 100%; max-width: 440px;
+            border-radius: 24px 24px 0 0; padding: 24px; box-sizing: border-box;
+            box-shadow: 0 -10px 25px rgba(0,0,0,0.2); animation: slideUp 0.3s ease-out;
+        }
+
+        .modal-sheet h2 { margin: 0 0 16px 0; font-size: 18px; color: var(--bajaj-blue); font-weight: 900; }
+        .form-group { margin-bottom: 14px; }
+        .form-group label { display: block; font-size: 11px; font-weight: 800; color: #64748b; margin-bottom: 4px; }
+        .form-group input {
+            width: 100%; padding: 12px; border-radius: 10px; border: 1.5px solid #cbd5e1;
+            font-size: 15px; font-weight: 700; box-sizing: border-box; outline: none;
+        }
+
+        .btn-whatsapp-big {
+            width: 100%; background: #25D366; color: white; border: none;
+            padding: 14px; border-radius: 12px; font-size: 16px; font-weight: 900; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px;
+        }
+
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <div class="store-header">
+        <span class="live-pill">● LIVE</span>
+        <h1>श्री महालक्ष्मी मोबाईल्स</h1>
+        <p>हवे तो फोन निवडा, जागेवर हप्ता चेक करा!</p>
+    </div>
+
+    <div class="search-box">
+        <input type="text" id="searchInput" oninput="onSearchDebounced()" placeholder="🔍 फोनचे नाव शोधा (उदा. Vivo, iPhone)...">
+    </div>
+
+    <div id="loader">
+        📊 "master_data.xlsx" मधून प्राईज-लिस्ट आणत आहे... कृपया २ सेकंद थांबा ⏳
+    </div>
+
+    <div class="catalog-list" id="catalogContainer"></div>
+</div>
+
+<!-- LOCK OFFER MODAL -->
+<div class="modal-overlay" id="offerSheet" onclick="closeModal(event)">
+    <div class="modal-sheet" onclick="event.stopPropagation()">
+        <h2>🎉 ही ऑफर तुमच्या नावावर लॉक करा</h2>
+        <div id="modalOfferDetails" style="background:#f8fafc; padding:10px; border-radius:10px; margin-bottom:16px; font-size:13px; font-weight:700; color:#334155; border:1px solid #e2e8f0;"></div>
+        
+        <div class="form-group">
+            <label>तुमचे संपूर्ण नाव (Customer Name)</label>
+            <input type="text" id="custName" placeholder="उदा. संतोष सुर्वे">
+        </div>
+        <div class="form-group">
+            <label>पॅन कार्ड नंबर (PAN Number - सक्तीचा नाही)</label>
+            <input type="text" id="custPan" placeholder="ABCDE1234F" maxlength="10" style="text-transform: uppercase;">
+        </div>
+
+        <button class="btn-whatsapp-big" onclick="sendToWhatsApp()">
+            💬 ऑफर लॉक करा व WhatsApp पाठवा ↗
+        </button>
+        <div style="text-align:center; font-size:10px; color:#94a3b8; margin-top:12px; font-weight:700;">
+            कोणतेही ऑनलाईन पेमेंट करायची गरज नाही. पेमेंट दुकानात फोन ताब्यात घेतानाच करा.
+        </div>
+    </div>
+</div>
+
+<script>
+    // =========================================================================
+    // ⚙️ THE EXCEL PARSER ENGINE
+    // =========================================================================
+
+    // फाईलचे नाव "master_data.xlsx" verbatim ठेवले आहे.
+    // (जेव्हा गिटहबवर टाकशील, तेव्हा ही लिंक बदलून तुझी Raw Github Link टाक)
+    const EXCEL_PATH = "./master_data.xlsx"; 
+
+    let globalCatalog = [];
+    let searchTimeout = null;
+    let selectedItemForLock = null;
+
+    window.onload = function() {
+        loadExcelData();
+    };
+
+    async function loadExcelData() {
+        try {
+            let res = await fetch(EXCEL_PATH);
+            if (!res.ok) throw new Error("Excel file not found in current directory.");
+            
+            let buffer = await res.arrayBuffer();
+            let wb = XLSX.read(buffer, { type: 'array' });
+
+            // आपण शीट नंबर 1 (Index 0) वाचत आहोत
+            let rawRows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: "" });
+
+            let processed = [];
+
+            rawRows.forEach(row => {
+                let item = cleanAndMapRow(row);
+                if (item && item.mrp > 1000) { // १००० रुपयांपेक्षा स्वस्त कचरा डेटा गाळण्यासाठी
+                    processed.push(item);
+                }
+            });
+
+            if (processed.length > 0) {
+                globalCatalog = processed;
+                document.getElementById('loader').style.display = 'none';
+                renderCatalog(globalCatalog.slice(0, 30)); // सुरुवातीला फोन हँग होऊ नये म्हणून फक्त टॉप ३० दाखवा
+            } else {
+                throw new Error("Excel sheet looks blank or column names didn't match.");
+            }
+
+        } catch(err) {
+            console.error("Excel Read Error:", err);
+            document.getElementById('loader').innerHTML = `
+                <span style="color:red; font-size:28px;">⚠️</span><br>
+                <b>एरर:</b> "master_data.xlsx" फाईल सापडली नाही.<br>
+                <small style="color:#64748b;">तुम्ही ही 'store.html' फाईल आणि एक्सेल फाईल एकाच फोल्डरमध्ये ठेवली आहे का ते तपासा.</small>
+            `;
+        }
+    }
+
+    // 🧠 'JARGON SHIELD' MAPPER (एजंटचे किचकट शब्द गाडणारा इंजिन)
+    function cleanAndMapRow(r) {
+        if (!r) return null;
+
+        let model = String(r['MODEL'] || r['Model'] || r['BrandModel'] || r['BRAND MODEL'] || '').trim();
+        if (!model || model.toUpperCase() === 'NON TIEUP') return null;
+
+        let mrp = parseFloat(r['MRP'] || r['Price'] || r['M.R.P'] || r['mrp']) || 0;
+        let tenure = parseInt(r['TOTALTENURE'] || r['Tenure'] || r['TA'] || r['tenure']) || 0;
+        let adv = parseInt(r['ADVANCEEMI'] || r['Adv'] || r['ADV'] || r['adv']) || 0;
+        let fixedEmi = parseFloat(r['FIXEDEMI'] || r['Fixed'] || r['fixedemi']) || 0;
+
+        // 💡 कडक जुगाड: जर तुझ्या एक्सेलमध्ये 'DP' आणि 'EMI' नावाचे थेट कॉलम्स असतील तर तेच उचलेल
+        let emi = parseFloat(r['EMI'] || r['Emi'] || r['MonthlyEMI']) || 0;
+        let dp = parseFloat(r['DP'] || r['Dp'] || r['Downpayment'] || r['Net DP']) || 0;
+
+        // जर एक्सेलमध्ये थेट DP/EMI नसेल, तर सिस्टीम स्वतः अंदाजे गणित करेल:
+        if (emi === 0 && tenure > 0) {
+            emi = fixedEmi > 0 ? fixedEmi : Math.round(mrp / tenure);
+        }
+        if (dp === 0 && emi > 0) {
+            // कोकणातला स्टँडर्ड नियम: (हप्ता * अ‍ॅडव्हान्स) + साधारण ८५० रुपये फाईल चार्ज
+            dp = Math.round((emi * adv) + 850);
+        }
+
+        let monthsToPay = tenure - adv;
+        if (monthsToPay < 1) monthsToPay = 1;
+
+        // Auto Slug for Photo (उदा. 'SAMSUNG S24' -> 'samsung-s24.png')
+        let cleanSlug = model.split(' ')[0].toLowerCase().replace(/[^a-z0-9]/g, '-');
+        let imgUrl = `https://raw.githubusercontent.com/luckyjathar/CALCULATOR/main/models/${cleanSlug}.png`;
+
+        return {
+            model, mrp, dp, emi, tenure, adv, monthsToPay, imgUrl
+        };
+    }
+
+    function renderCatalog(list) {
+        let container = document.getElementById('catalogContainer');
+        container.innerHTML = list.map((item, index) => `
+            <div class="phone-card">
+                <div class="phone-img-box">
+                    <img src="${item.imgUrl}" onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/luckyjathar/CALCULATOR/main/models/default-phone.png';" alt="Phone">
+                </div>
+                <div class="phone-details">
+                    <h3>${item.model}</h3>
+                    <span class="mrp-tag">MRP: ₹${item.mrp.toLocaleString('en-IN')}</span>
+                    
+                    <div class="price-grid">
+                        <div class="price-col green">
+                            <small>आज भरा (DP)</small>
+                            <b>₹${item.dp.toLocaleString('en-IN')}</b>
+                        </div>
+                        <div class="price-col">
+                            <small>महिन्याचा हप्ता</small>
+                            <b>₹${item.emi.toLocaleString('en-IN')} <span style="font-size:10px; color:#64748b;">× ${item.monthsToPay} महिने</span></b>
+                        </div>
+                    </div>
+
+                    <button class="btn-lock-mini" onclick="openLockSheet(${index})">
+                        🔒 ही ऑफर लॉक करा ↗
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // ⚡ DEBOUNCED SEARCH (जुना फोन हँग होऊ नये म्हणून)
+    function onSearchDebounced() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            let q = document.getElementById('searchInput').value.toLowerCase().trim();
+            if (!q) {
+                renderCatalog(globalCatalog.slice(0, 30)); return;
+            }
+            let filtered = globalCatalog.filter(p => p.model.toLowerCase().includes(q));
+            renderCatalog(filtered.slice(0, 50));
+        }, 250);
+    }
+
+    // =========================================================================
+    // 💬 THE WHATSAPP DISPATCHER
+    // =========================================================================
+    function openLockSheet(catalogIndex) {
+        // UI मधून सध्या स्क्रीनवर रेंडर झालेल्या आयटमचा खरा डेटा शोधा
+        let displayedModels = document.querySelectorAll('.phone-card h3');
+        let targetModelName = displayedModels[catalogIndex].innerText;
+        
+        selectedItemForLock = globalCatalog.find(x => x.model === targetModelName);
+        
+        document.getElementById('modalOfferDetails').innerHTML = `
+            📱 <b>${selectedItemForLock.model}</b><br>
+            💰 रोख भरा: <b style="color:var(--bajaj-green);">₹${selectedItemForLock.dp.toLocaleString()}</b> | 
+            🗓️ हप्ता: <b style="color:var(--bajaj-blue);">₹${selectedItemForLock.emi.toLocaleString()} × ${selectedItemForLock.monthsToPay}</b>
+        `;
+        document.getElementById('offerSheet').style.display = 'flex';
+        setTimeout(() => document.getElementById('custName').focus(), 100);
+    }
+
+    function closeModal(e) {
+        if(e.target.id === 'offerSheet') document.getElementById('offerSheet').style.display = 'none';
+    }
+
+    function sendToWhatsApp() {
+        let cName = document.getElementById('custName').value.trim();
+        let cPan = document.getElementById('custPan').value.trim().toUpperCase();
+
+        if(!cName) { alert("⚠️ सर, कृपया तुमचे नाव टाका."); return; }
+
+        let p = selectedItemForLock;
+        let text = `नमस्कार श्री महालक्ष्मी मोबाईल्स,\nमला तुमच्या कॅटलॉगवरून खालील फोन घ्यायचा आहे:\n\n📱 मॉडेल: *${p.model}*\n💰 आज भरायचे: ₹${p.dp.toLocaleString()}\n🗓️ महिन्याचा हप्ता: ₹${p.emi.toLocaleString()} x ${p.monthsToPay}\n\n👤 माझे नाव: *${cName}*\n💳 पॅन नंबर: ${cPan || "दिलेला नाही"}\n\nमी दुकानात येत आहे, माझा फोन बाजूला काढून ठेवा.`;
+
+        // लक्ष्म्या तुझा किंवा दुकानाचा खरा नंबर इथे टाक:
+        let shopWhatsAppNumber = "918087313624"; 
+        
+        window.open(`https://wa.me/${shopWhatsAppNumber}?text=${encodeURIComponent(text)}`, '_blank');
+        document.getElementById('offerSheet').style.display = 'none';
+    }
+</script>
+</body>
+</html>
