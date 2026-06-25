@@ -1065,7 +1065,11 @@
             if(!seen.has(key)) { seen.add(key); uniqueS.push(s); }
         });
 
-        list.innerHTML = uniqueS.map(s => {
+        uniqueS.sort((a, b) => (a.advEmi || 0) - (b.advEmi || 0) || (a.tenure || 0) - (b.tenure || 0));
+
+        let html = "";
+        
+        uniqueS.forEach((s, index) => {
             let schemeTextForMessage = s.fixedEmi > 0 ? `FIXED EMI: ₹${s.fixedEmi}` : `TENURE: ${s.tenure} MONTHS | ADVANCE: ${s.advEmi}`;
             
             let displayEmiHtml = `<span style="background:#e3f2fd; color:var(--primary); padding:4px 8px; border-radius:4px; font-size:12px; font-weight:bold;">EMI: किमतीनुसार</span>`;
@@ -1074,7 +1078,6 @@
             let advEmiAmt = 0;
             let canCalcExact = false;
 
-            // If MRP is available, calculate precise EMI and Advance amount
             if (s.mrp > 0 && s.tenure > 0) {
                 let calcEmi = Math.round(s.mrp / s.tenure);
                 advEmiAmt = calcEmi * s.advEmi;
@@ -1086,8 +1089,6 @@
                 displayEmiHtml = `<span style="background:#e3f2fd; color:var(--primary); padding:4px 8px; border-radius:4px; font-size:12px; font-weight:bold;">EMI: ₹${s.fixedEmi}</span>`;
             }
 
-            // If we can calculate exact DP based on User's Formula:
-            // Estimated DP = Advance EMI Amount + (MRP * (DBD + 18% GST)) + PF
             if (canCalcExact) {
                 let dbdAmt = s.mrp > 0 ? (s.mrp * ((s.dbd || 0) * 1.18 / 100)) : 0;
                 let pfAmt = s.pf || 0;
@@ -1096,15 +1097,45 @@
                 displayDpHtml = `<span style="background:#e8f5e9; color:var(--success); padding:4px 8px; border-radius:4px; font-size:12px; font-weight:bold;">Est. DP: ~ ₹${estDp.toLocaleString('en-IN')}</span>`;
             }
             
-            return `
-            <div onclick="selectCfScheme('${schemeTextForMessage}', this)" class="cf-scheme-card" style="padding:15px; border:2px solid #ccc; border-radius:8px; cursor:pointer; background:#fff; transition:0.3s;">
-                <div style="font-weight:900; color:var(--bajaj-blue); font-size:15px; margin-bottom:8px;">💳 Scheme: ${s.tenure} Months / ${s.advEmi} Advance</div>
+            let displayStyle = index < 3 ? 'block' : 'none';
+            let extraClass = index < 3 ? 'cf-top-scheme' : 'cf-hidden-scheme';
+            let extraBadge = index === 0 ? `<span style="background:var(--warning); color:#000; font-size:10px; padding:2px 6px; border-radius:10px; float:right;">🔥 BEST</span>` : ``;
+
+            html += `
+            <div onclick="selectCfScheme('${schemeTextForMessage}', this)" class="cf-scheme-card ${extraClass}" style="display:${displayStyle}; padding:15px; border:2px solid #ccc; border-radius:8px; cursor:pointer; background:#fff; transition:0.3s;">
+                <div style="font-weight:900; color:var(--bajaj-blue); font-size:15px; margin-bottom:8px;">💳 Scheme: ${s.tenure} Months / ${s.advEmi} Advance ${extraBadge}</div>
                 <div style="display:flex; gap:8px; flex-wrap:wrap;">
                     ${displayEmiHtml}
                     ${displayDpHtml}
                 </div>
             </div>`;
-        }).join('');
+        });
+
+        if (uniqueS.length > 3) {
+            html += `<button id="cfShowMoreSchemesBtn" onclick="toggleCfSchemes()" style="background:#f1f2f6; color:var(--primary); border:1px dashed var(--primary); padding:10px; width:100%; border-radius:6px; font-weight:bold; cursor:pointer; margin-top:5px; text-transform:uppercase;">⬇️ View ${uniqueS.length - 3} More Schemes</button>`;
+        }
+
+        list.innerHTML = html;
+    }
+
+    function toggleCfSchemes() {
+        let hiddenEls = document.querySelectorAll('.cf-hidden-scheme');
+        let btn = document.getElementById('cfShowMoreSchemesBtn');
+        if(!hiddenEls || hiddenEls.length === 0) return;
+        
+        let isHidden = hiddenEls[0].style.display === 'none';
+        
+        hiddenEls.forEach(el => {
+            el.style.display = isHidden ? 'block' : 'none';
+        });
+        
+        if (isHidden) {
+            btn.innerHTML = `⬆️ Hide Extra Schemes`;
+            btn.style.background = '#e3f2fd';
+        } else {
+            btn.innerHTML = `⬇️ View ${hiddenEls.length} More Schemes`;
+            btn.style.background = '#f1f2f6';
+        }
     }
 
     function selectCfScheme(schemeText, element) {
@@ -1123,67 +1154,67 @@
     // MULTILINGUAL TEMPLATES & DISCLAIMERS
     const langTemplates = {
         mr: {
-            header: "🎉 *नवीन चौकशी (Flyer मधून)* 🚀\n\nनमस्कार! मला खालील मॉडेल फायनान्सवर घेण्याबाबत माहिती हवी आहे:\n",
+            header: "🎉 *नवीन चौकशी (Flyer मधून)* 🚀\n\nनमस्कार! मी नवीन फोन घेण्याचा विचार करत आहे आणि खालील मॉडेल फायनान्सवर घेण्यासाठी खूप उत्सुक आहे. कृपया मला लवकरात लवकर माहिती द्या:\n\n",
             name: "👤 *नाव:*",
             mobile: "📞 *मोबाईल:*",
             dealer: "🏪 *डीलर:*",
             model: "📱 *मॉडेल:*",
             scheme: "💳 *स्कीम:*",
-            footer: "\n_कृपया मला बुकिंग आणि फायनान्स प्रक्रियेबद्दल माहिती सांगा._"
+            footer: "\n_कृपया बुकिंग प्रोसेस आणि फायनान्सचे डिटेल्स सांगा. मी तुमच्या रिप्लायची वाट पाहत आहे! 🤩_"
         },
         hi: {
-            header: "🎉 *नई पूछताछ (Flyer से)* 🚀\n\nनमस्ते! मुझे निम्नलिखित मॉडल फाइनेंस पर लेने के बारे में जानकारी चाहिए:\n",
+            header: "🎉 *नई पूछताछ (Flyer से)* 🚀\n\nनमस्ते! मैं नया फोन लेने का सोच रहा हूँ और नीचे दिए गए मॉडल को फाइनेंस पर लेने के लिए बहुत उत्सुक हूँ। कृपया मुझे जल्द से जल्द जानकारी दें:\n\n",
             name: "👤 *नाम:*",
             mobile: "📞 *मोबाइल:*",
             dealer: "🏪 *डीलर:*",
             model: "📱 *मॉडल:*",
             scheme: "💳 *स्कीम:*",
-            footer: "\n_कृपया मुझे बुकिंग और फाइनेंस प्रक्रिया के बारे में जानकारी दें।_"
+            footer: "\n_कृपया मुझे बुकिंग और फाइनेंस प्रक्रिया की जानकारी दें। मुझे आपके रिप्लाई का इंतज़ार है! 🤩_"
         },
         en: {
-            header: "🎉 *New Inquiry (via Flyer)* 🚀\n\nHello! I would like to get more details about financing the following model:\n",
+            header: "🎉 *New Inquiry (via Flyer)* 🚀\n\nHello! I am planning to buy a new phone and I'm very excited to get the following model on finance. Please provide the details at the earliest:\n\n",
             name: "👤 *Name:*",
             mobile: "📞 *Mobile:*",
             dealer: "🏪 *Dealer:*",
             model: "📱 *Model:*",
             scheme: "💳 *Scheme:*",
-            footer: "\n_Please provide me with the booking and finance details._"
+            footer: "\n_Please share the booking and finance process. Looking forward to your reply! 🤩_"
         },
         gu: {
-            header: "🎉 *નવી પૂછપરછ (Flyer થી)* 🚀\n\nનમસ્તે! મારે નીચેના મોડેલ માટે ફાઇનાન્સ વિશે માહિતી જોઈએ છે:\n",
+            header: "🎉 *નવી પૂછપરછ (Flyer થી)* 🚀\n\nનમસ્તે! હું નવો ફોન લેવાનું વિચારી રહ્યો છું અને નીચેના મોડેલને ફાઇનાન્સ પર લેવા માટે ખૂબ જ ઉત્સાહિત છું. કૃપા કરીને મને જલ્દી માહિતી આપો:\n\n",
             name: "👤 *નામ:*",
             mobile: "📞 *મોબાઇલ:*",
             dealer: "🏪 *ડીલર:*",
             model: "📱 *મોડેલ:*",
             scheme: "💳 *સ્કીમ:*",
-            footer: "\n_કૃપા કરીને મને બુકિંગ અને ફાઇનાન્સ પ્રક્રિયા વિશે માહિતી આપો._"
+            footer: "\n_કૃપા કરીને બુકિંગ અને ફાઇનાન્સ પ્રક્રિયા વિશે જણાવો. હું તમારા જવાબની રાહ જોઉં છું! 🤩_"
         },
         kn: {
-            header: "🎉 *ಹೊಸ ವಿಚಾರಣೆ (Flyer ನಿಂದ)* 🚀\n\nನಮಸ್ಕಾರ! ನಾನು ಕೆಳಗಿನ ಮಾಡೆಲ್ ಅನ್ನು ಫೈನಾನ್ಸ್ ಮೂಲಕ ಖರೀದಿಸಲು ಬಯಸುತ್ತೇನೆ:\n",
+            header: "🎉 *ಹೊಸ ವಿಚಾರಣೆ (Flyer ನಿಂದ)* 🚀\n\nನಮಸ್ಕಾರ! ನಾನು ಹೊಸ ಫೋನ್ ಖರೀದಿಸಲು ಯೋಚಿಸುತ್ತಿದ್ದೇನೆ ಮತ್ತು ಕೆಳಗಿನ ಮಾಡೆಲ್ ಅನ್ನು ಫೈನಾನ್ಸ್ ಮೂಲಕ ಪಡೆಯಲು ತುಂಬಾ ಉತ್ಸುಕನಾಗಿದ್ದೇನೆ. ದಯವಿಟ್ಟು ಬೇಗ ವಿವರಗಳನ್ನು ನೀಡಿ:\n\n",
             name: "👤 *ಹೆಸರು:*",
             mobile: "📞 *ಮೊಬೈಲ್:*",
             dealer: "🏪 *ಡೀಲರ್:*",
             model: "📱 *ಮಾಡೆಲ್:*",
             scheme: "💳 *ಸ್ಕೀಮ್:*",
-            footer: "\n_ದಯವಿಟ್ಟು ನನಗೆ ಬುಕಿಂಗ್ ಮತ್ತು ಫೈನಾನ್ಸ್ ವಿವರಗಳನ್ನು ನೀಡಿ._"
+            footer: "\n_ದಯವಿಟ್ಟು ಬುಕಿಂಗ್ ಮತ್ತು ಫೈನಾನ್ಸ್ ವಿವರಗಳನ್ನು ತಿಳಿಸಿ. ನಿಮ್ಮ ಪ್ರತಿಕ್ರಿಯೆಗಾಗಿ ಕಾಯುತ್ತಿದ್ದೇನೆ! 🤩_"
         },
         te: {
-            header: "🎉 *కొత్త విచారణ (Flyer నుండి)* 🚀\n\nనమస్కారం! నేను ఈ క్రింది మోడల్‌ను ఫైనాన్స్‌లో కొనుగోలు చేయాలనుకుంటున్నాను:\n",
+            header: "🎉 *కొత్త విచారణ (Flyer నుండి)* 🚀\n\nనమస్కారం! నేను కొత్త ఫోన్ తీసుకోవాలని అనుకుంటున్నాను మరియు ఈ క్రింది మోడల్‌ను ఫైనాన్స్‌లో తీసుకోవడానికి చాలా ఉత్సాహంగా ఉన్నాను. దయచేసి నాకు త్వరగా వివరాలు అందించండి:\n\n",
             name: "👤 *పేరు:*",
             mobile: "📞 *మొబైల్:*",
             dealer: "🏪 *డీలర్:*",
             model: "📱 *మోడల్:*",
             scheme: "💳 *స్కీమ్:*",
-            footer: "\n_దయచేసి నాకు బుకింగ్ మరియు ఫైనాన్స్ వివరాలు అందించండి._"
+            footer: "\n_దయచేసి బుకింగ్ మరియు ఫైనాన్స్ విధానాన్ని తెలపండి. మీ రిప్లై కోసం ఎదురుచూస్తున్నాను! 🤩_"
         },
         ta: {
-            header: "🎉 *புதிய விசாரணை (Flyer மூலம்)* 🚀\n\nவணக்கம்! கீழே உள்ள மாடலை பைனான்ஸ் மூலம் வாங்குவது பற்றி அறிய விரும்புகிறேன்:\n",
+            header: "🎉 *புதிய விசாரணை (Flyer மூலம்)* 🚀\n\nவணக்கம்! நான் புதிய போன் வாங்க திட்டமிட்டுள்ளேன், கீழே உள்ள மாடலை பைனான்ஸ் மூலம் வாங்க மிகவும் ஆர்வமாக உள்ளேன். தயவுசெய்து விரைவில் விவரங்களை வழங்கவும்:\n\n",
             name: "👤 *பெயர்:*",
             mobile: "📞 *மொபைல்:*",
             dealer: "🏪 *டீலர்:*",
             model: "📱 *மாடல்:*",
             scheme: "💳 *திட்டம்:*",
-            footer: "\n_புக்கிங் மற்றும் பைனான்ஸ் பற்றிய தகவல்களை வழங்கவும்._"
+            footer: "\n_புக்கிங் மற்றும் பைனான்ஸ் பற்றிய தகவல்களை வழங்கவும். உங்கள் பதிலுக்காக காத்திருக்கிறேன்! 🤩_"
         }
     };
 
