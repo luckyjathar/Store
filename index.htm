@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Persistent Portal V76.5 - Non Tie-up Double Fix Edition</title>
+    <title>Persistent Portal V76.5 (Dealer Edition)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
@@ -177,7 +177,6 @@
                 <b>Disclaimer:</b> GitHub smart stream activated. System will only download files if updates are detected. Original application ke saath verify zaroor karein.
             </div>
 
-            <!-- FAST CALC ON SURFACE LEVEL -->
             <div id="fastCalcContainer" style="background:#fdfdfd; padding:10px; border:1px solid #ccc; border-radius:6px; margin-bottom: 8px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--bajaj-blue); padding-bottom: 8px; margin-bottom: 12px;">
                     <h3 style="margin:0; color:var(--bajaj-blue); font-size:15px !important;"><span id="icon_fc">🧮</span> PRO ZATPAT CALCULATOR</h3>
@@ -280,7 +279,6 @@
         </div>
     </div>
 
-    <!-- FLYER GENERATOR MODAL (SALESMAN UI) -->
     <div id="flyerGenModal" class="modal">
         <div class="modal-content" style="max-width:400px; padding: 20px;">
             <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--bajaj-blue); padding-bottom: 8px; margin-bottom: 15px;">
@@ -313,7 +311,6 @@
         </div>
     </div>
 
-    <!-- Other Modals (Edit, Recycle, Add Product, etc.) -->
     <div id="editCustomerModal" class="modal">
         <div class="modal-content" style="max-width:300px;">
             <h3 style="margin-top:0; color:#8e44ad; border-bottom: 2px solid #ddd; padding-bottom: 6px;">✏️ Edit Customer Details</h3>
@@ -556,7 +553,6 @@
     </div>
 </footer>
 
-<!-- CUSTOMER FLYER VIEW (HIDDEN BY DEFAULT) -->
 <div id="customerFlyerView" style="display:none; padding:15px; max-width:600px; margin:0 auto; background:#f4f7f6; min-height:100vh; box-sizing: border-box;">
     <div style="background:#fff; border-radius:10px; padding:20px; box-shadow:0 4px 15px rgba(0,0,0,0.05); border: 2px solid var(--bajaj-blue);">
         <h2 style="color:var(--bajaj-blue); text-align:center; margin-top:0; border-bottom:2px dashed #eee; padding-bottom:10px;">✨ Device Selection & Lead Request</h2>
@@ -583,7 +579,7 @@
             
             <div style="margin-bottom:12px;">
                 <label>Preferred Language / संवादाची भाषा</label>
-                <select id="cfLang" style="background:#fff; font-weight:bold; color:var(--indigo);">
+                <select id="cfLang" onchange="changeCfLang()" style="background:#fff; font-weight:bold; color:var(--indigo);">
                     <option value="mr" selected>Marathi (मराठी)</option>
                     <option value="hi">Hindi (हिंदी)</option>
                     <option value="en">English</option>
@@ -601,6 +597,10 @@
             <div style="margin-bottom:15px;">
                 <label>Your Mobile Number</label>
                 <input type="text" id="cfCustMobile" placeholder="10 Digits" maxlength="10" style="background:#fff;">
+            </div>
+            
+            <div id="cfDisclaimerText" style="font-size:12px; color:#d35400; font-weight:bold; line-height:1.4; margin-bottom:12px; text-align:center; padding: 8px; background:#fff9e6; border-radius:6px; border:1px dashed #f39c12;">
+                * अंदाजे माहिती: प्रत्यक्ष फायनान्स अमाऊंट निवडलेल्या मॉडेलच्या किमतीनुसार बदलू शकते. (Subject to change)
             </div>
             
             <button onclick="submitCfLead()" style="width:100%; background:#25D366; color:white; font-size:15px !important; padding:12px; border-radius:6px; box-shadow: 0 4px 6px rgba(37, 211, 102, 0.3);">🟢 Send Inquiry To Dealer (WhatsApp)</button>
@@ -1066,15 +1066,27 @@
         list.innerHTML = uniqueS.map(s => {
             let schemeTextForMessage = s.fixedEmi > 0 ? `FIXED EMI: ₹${s.fixedEmi}` : `TENURE: ${s.tenure} MONTHS | ADVANCE: ${s.advEmi}`;
             
+            let displayEmiHtml = `<span style="background:#e3f2fd; color:var(--primary); padding:4px 8px; border-radius:4px; font-size:12px; font-weight:bold;">EMI: किमतीनुसार</span>`;
+            let displayDpHtml = `<span style="background:#e8f5e9; color:var(--success); padding:4px 8px; border-radius:4px; font-size:12px; font-weight:bold;">Downpayment: ~ ${s.advEmi} EMI</span>`;
+
+            if (s.mrp > 0 && s.tenure > 0) {
+                let calcEmi = Math.round(s.mrp / s.tenure);
+                let calcDp = calcEmi * s.advEmi;
+                displayEmiHtml = `<span style="background:#e3f2fd; color:var(--primary); padding:4px 8px; border-radius:4px; font-size:12px; font-weight:bold;">EMI: ~ ₹${calcEmi}</span>`;
+                displayDpHtml = `<span style="background:#e8f5e9; color:var(--success); padding:4px 8px; border-radius:4px; font-size:12px; font-weight:bold;">Downpayment: ~ ₹${calcDp}</span>`;
+            } else if (s.fixedEmi > 0) {
+                displayEmiHtml = `<span style="background:#e3f2fd; color:var(--primary); padding:4px 8px; border-radius:4px; font-size:12px; font-weight:bold;">EMI: ₹${s.fixedEmi}</span>`;
+                displayDpHtml = `<span style="background:#e8f5e9; color:var(--success); padding:4px 8px; border-radius:4px; font-size:12px; font-weight:bold;">Downpayment: ₹${s.fixedEmi * s.advEmi}</span>`;
+            }
+            
             return `
             <div onclick="selectCfScheme('${schemeTextForMessage}', this)" class="cf-scheme-card" style="padding:15px; border:2px solid #ccc; border-radius:8px; cursor:pointer; background:#fff; transition:0.3s;">
                 <div style="font-weight:900; color:var(--bajaj-blue); font-size:15px; margin-bottom:8px;">💳 Scheme: ${s.tenure} Months / ${s.advEmi} Advance</div>
-                <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px;">
-                    ${s.fixedEmi > 0 ? `<span style="background:#e3f2fd; color:var(--primary); padding:4px 8px; border-radius:4px; font-size:12px; font-weight:bold;">EMI: ₹${s.fixedEmi}</span>` : `<span style="background:#e3f2fd; color:var(--primary); padding:4px 8px; border-radius:4px; font-size:12px; font-weight:bold;">EMI: किमतीनुसार</span>`}
-                    <span style="background:#e8f5e9; color:var(--success); padding:4px 8px; border-radius:4px; font-size:12px; font-weight:bold;">Downpayment: ~ ${s.advEmi} EMI</span>
+                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                    ${displayEmiHtml}
+                    ${displayDpHtml}
                     <span style="background:#fff3e0; color:var(--warning); padding:4px 8px; border-radius:4px; font-size:12px; font-weight:bold;">PF: ₹${s.pf}</span>
                 </div>
-                <div style="font-size:11px; color:#d35400; font-weight:600; line-height:1.4;">* अंदाजे माहिती: प्रत्यक्ष फायनान्स अमाऊंट निवडलेल्या मॉडेलच्या किमतीनुसार बदलू शकते. (Subject to change)</div>
             </div>`;
         }).join('');
     }
@@ -1092,7 +1104,7 @@
         setTimeout(() => document.getElementById('cfFormSection').scrollIntoView({behavior:'smooth'}), 150);
     }
 
-    // MULTILINGUAL TEMPLATES
+    // MULTILINGUAL TEMPLATES & DISCLAIMERS
     const langTemplates = {
         mr: {
             header: "🎉 *नवीन चौकशी (Flyer मधून)* 🚀\n\nनमस्कार! मला खालील मॉडेल फायनान्सवर घेण्याबाबत माहिती हवी आहे:\n",
@@ -1158,6 +1170,24 @@
             footer: "\n_புக்கிங் மற்றும் பைனான்ஸ் பற்றிய தகவல்களை வழங்கவும்._"
         }
     };
+
+    const disclaimers = {
+        mr: "* अंदाजे माहिती: प्रत्यक्ष फायनान्स अमाऊंट निवडलेल्या मॉडेलच्या किमतीनुसार बदलू शकते. (Subject to change)",
+        hi: "* अनुमानित जानकारी: वास्तविक फाइनेंस राशि चुने गए मॉडल की कीमत के अनुसार बदल सकती है। (Subject to change)",
+        en: "* Estimated Info: Actual finance amount may vary based on the selected model's price. (Subject to change)",
+        gu: "* અંદાજિત માહિતી: પસંદ કરેલા મોડેલની કિંમતના આધારે વાસ્તવિક ફાઇનાન્સ રકમ બદલાઈ શકે છે. (Subject to change)",
+        kn: "* ಅಂದಾಜು ಮಾಹಿತಿ: ಆಯ್ಕೆಮಾಡಿದ ಮಾಡೆಲ್‌ನ ಬೆಲೆಗೆ ಅನುಗುಣವಾಗಿ ನಿಜವಾದ ಫೈನಾನ್ಸ್ ಮೊತ್ತ ಬದಲಾಗಬಹುದು. (Subject to change)",
+        te: "* అంచనా సమాచారం: ఎంచుకున్న మోడల్ ధర ఆధారంగా అసలు ఫైనాన్స్ మొత్తం మారవచ్చు. (Subject to change)",
+        ta: "* தோராயமான தகவல்: தேர்ந்தெடுக்கப்பட்ட மாடல் விலையைப் பொறுத்து உண்மையான நிதித் தொகை மாறலாம். (Subject to change)"
+    };
+
+    function changeCfLang() {
+        let langCode = document.getElementById('cfLang').value;
+        let discEl = document.getElementById('cfDisclaimerText');
+        if(discEl) {
+            discEl.innerText = disclaimers[langCode] || disclaimers['mr'];
+        }
+    }
 
     function submitCfLead() {
         let cName = document.getElementById('cfCustName').value.trim();
