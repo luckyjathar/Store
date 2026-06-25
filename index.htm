@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Persistent Portal V76.5 Dealer Edition</title>
+    <title>Persistent Portal V76.5 - Dealer Edition</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
@@ -177,7 +177,6 @@
                 <b>Disclaimer:</b> GitHub smart stream activated. System will only download files if updates are detected. Original application ke saath verify zaroor karein.
             </div>
 
-            <!-- FAST CALC ON SURFACE LEVEL -->
             <div id="fastCalcContainer" style="background:#fdfdfd; padding:10px; border:1px solid #ccc; border-radius:6px; margin-bottom: 8px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--bajaj-blue); padding-bottom: 8px; margin-bottom: 12px;">
                     <h3 style="margin:0; color:var(--bajaj-blue); font-size:15px !important;"><span id="icon_fc">🧮</span> PRO ZATPAT CALCULATOR</h3>
@@ -280,7 +279,6 @@
         </div>
     </div>
 
-    <!-- FLYER GENERATOR MODAL (SALESMAN UI) -->
     <div id="flyerGenModal" class="modal">
         <div class="modal-content" style="max-width:400px; padding: 20px;">
             <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--bajaj-blue); padding-bottom: 8px; margin-bottom: 15px;">
@@ -313,7 +311,6 @@
         </div>
     </div>
 
-    <!-- Other Modals (Edit, Recycle, Add Product, etc.) -->
     <div id="editCustomerModal" class="modal">
         <div class="modal-content" style="max-width:300px;">
             <h3 style="margin-top:0; color:#8e44ad; border-bottom: 2px solid #ddd; padding-bottom: 6px;">✏️ Edit Customer Details</h3>
@@ -556,7 +553,6 @@
     </div>
 </footer>
 
-<!-- CUSTOMER FLYER VIEW (HIDDEN BY DEFAULT) -->
 <div id="customerFlyerView" style="display:none; padding:15px; max-width:600px; margin:0 auto; background:#f4f7f6; min-height:100vh; box-sizing: border-box;">
     <div style="background:#fff; border-radius:10px; padding:20px; box-shadow:0 4px 15px rgba(0,0,0,0.05); border: 2px solid var(--bajaj-blue);">
         <h2 style="color:var(--bajaj-blue); text-align:center; margin-top:0; border-bottom:2px dashed #eee; padding-bottom:10px;">✨ Device Selection & Lead Request</h2>
@@ -1059,17 +1055,43 @@
             return;
         }
 
-        let uniqueS = []; let seen = new Set();
+        let uniqueMap = new Map();
         schemes.forEach(s => {
             let key = `${s.tenure}_${s.advEmi}_${s.fixedEmi}`;
-            if(!seen.has(key)) { seen.add(key); uniqueS.push(s); }
+            if(!uniqueMap.has(key)) { uniqueMap.set(key, s); }
         });
+        
+        let uniqueS = Array.from(uniqueMap.values());
 
-        uniqueS.sort((a, b) => (a.advEmi || 0) - (b.advEmi || 0) || (a.tenure || 0) - (b.tenure || 0));
+        // CUSTOM SORTING ALGORITHM FOR 3 BEST SCHEMES
+        let top3 = [];
+        let remaining = [...uniqueS];
+
+        function extractScheme(sortFn, tag) {
+            if (remaining.length === 0) return;
+            remaining.sort(sortFn);
+            let selected = remaining.shift();
+            selected.customTag = tag;
+            top3.push(selected);
+        }
+
+        // 1. KAMI DP, JAST MAHINE (Low AdvEmi, High Tenure)
+        extractScheme((a,b) => (a.advEmi - b.advEmi) || (b.tenure - a.tenure), "🔥 LOWEST DP");
+
+        // 2. JAST DP, JAST MAHINE (High AdvEmi, High Tenure -> Low EMI)
+        extractScheme((a,b) => (b.advEmi - a.advEmi) || (b.tenure - a.tenure), "⭐ LOWEST EMI");
+
+        // 3. JAST DP, KAMI MAHINE (High AdvEmi, Low Tenure -> Fast Clearance)
+        extractScheme((a,b) => (b.advEmi - a.advEmi) || (a.tenure - b.tenure), "⚡ FAST CLEARANCE");
+
+        // Remaining schemes sorting randomly or by Adv EMI
+        remaining.sort((a, b) => (a.advEmi - b.advEmi) || (a.tenure - b.tenure));
+
+        let allRenderedSchemes = [...top3, ...remaining];
 
         let html = "";
         
-        uniqueS.forEach((s, index) => {
+        allRenderedSchemes.forEach((s, index) => {
             let schemeTextForMessage = s.fixedEmi > 0 ? `FIXED EMI: ₹${s.fixedEmi}` : `TENURE: ${s.tenure} MONTHS | ADVANCE: ${s.advEmi}`;
             
             let displayEmiHtml = `<span style="background:#e3f2fd; color:var(--primary); padding:4px 8px; border-radius:4px; font-size:12px; font-weight:bold;">EMI: किमतीनुसार</span>`;
@@ -1097,9 +1119,10 @@
                 displayDpHtml = `<span style="background:#e8f5e9; color:var(--success); padding:4px 8px; border-radius:4px; font-size:12px; font-weight:bold;">Est. DP: ~ ₹${estDp.toLocaleString('en-IN')}</span>`;
             }
             
-            let displayStyle = index < 3 ? 'block' : 'none';
-            let extraClass = index < 3 ? 'cf-top-scheme' : 'cf-hidden-scheme';
-            let extraBadge = index === 0 ? `<span style="background:var(--warning); color:#000; font-size:10px; padding:2px 6px; border-radius:10px; float:right;">🔥 BEST</span>` : ``;
+            let isTop = index < top3.length;
+            let displayStyle = isTop ? 'block' : 'none';
+            let extraClass = isTop ? 'cf-top-scheme' : 'cf-hidden-scheme';
+            let extraBadge = s.customTag ? `<span style="background:var(--warning); color:#000; font-size:10px; padding:2px 6px; border-radius:10px; float:right;">${s.customTag}</span>` : ``;
 
             html += `
             <div onclick="selectCfScheme('${schemeTextForMessage}', this)" class="cf-scheme-card ${extraClass}" style="display:${displayStyle}; padding:15px; border:2px solid #ccc; border-radius:8px; cursor:pointer; background:#fff; transition:0.3s;">
@@ -1111,8 +1134,8 @@
             </div>`;
         });
 
-        if (uniqueS.length > 3) {
-            html += `<button id="cfShowMoreSchemesBtn" onclick="toggleCfSchemes()" style="background:#f1f2f6; color:var(--primary); border:1px dashed var(--primary); padding:10px; width:100%; border-radius:6px; font-weight:bold; cursor:pointer; margin-top:5px; text-transform:uppercase;">⬇️ View ${uniqueS.length - 3} More Schemes</button>`;
+        if (remaining.length > 0) {
+            html += `<button id="cfShowMoreSchemesBtn" onclick="toggleCfSchemes()" style="background:#f1f2f6; color:var(--primary); border:1px dashed var(--primary); padding:10px; width:100%; border-radius:6px; font-weight:bold; cursor:pointer; margin-top:5px; text-transform:uppercase;">⬇️ View ${remaining.length} More Schemes</button>`;
         }
 
         list.innerHTML = html;
