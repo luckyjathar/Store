@@ -264,7 +264,7 @@
 
     <!-- FLYER GENERATION MODAL -->
     <div id="flyerGenModal" class="modal">
-        <div class="modal-content" style="max-width:420px; padding: 20px;">
+        <div class="modal-content" style="max-width:440px; padding: 20px;">
             <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--bajaj-blue); padding-bottom: 8px; margin-bottom: 15px;">
                 <h3 style="margin:0; color:var(--bajaj-blue);">🔗 Generate Flyer Link</h3>
                 <button onclick="document.getElementById('flyerGenModal').style.display='none'" style="background:none; border:none; color:var(--danger); font-weight:bold; cursor:pointer; font-size:16px;">✖</button>
@@ -279,17 +279,19 @@
                 <input type="text" id="fgSalesMobile" placeholder="10 Digit Mobile Number" maxlength="10">
             </div>
             
-            <div style="margin-bottom:10px; background: #f8f9fa; padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
-                <label style="color:var(--indigo);">Select Dealer (Optional - Locks for customer)</label>
-                <input type="text" id="fgDealerSearch" placeholder="Search Dealer Name/ID..." oninput="searchFgDealer()">
-                <div id="fgDealerList" class="custom-scroll" style="max-height:100px; overflow-y:auto; margin-top:5px;"></div>
+            <!-- DEALER SEARCH BOX WITH COMPulsory BITLY AUTO FETCH -->
+            <div style="margin-bottom:10px; background: #f8f9fa; padding: 10px; border: 1.5px solid var(--bajaj-blue); border-radius: 6px;">
+                <label style="color:var(--bajaj-blue);">🏪 Select Dealer Shop (Code, Name & City)</label>
+                <input type="text" id="fgDealerSearch" placeholder="Search Dealer Name, City or Code..." oninput="searchFgDealer()">
+                <div id="fgDealerList" class="custom-scroll" style="max-height:120px; overflow-y:auto; margin-top:5px;"></div>
                 <div id="fgSelectedDealerBox" style="display:none; margin-top:8px; padding:8px; background:#e8f4f8; border:1px solid var(--primary); border-radius:4px; font-weight:bold; color:var(--bajaj-blue);"></div>
             </div>
 
-            <!-- NEW BITLY / BOOKING LINK FIELD -->
-            <div style="margin-bottom:10px; background: #e8f5e9; padding: 10px; border: 1px solid var(--success); border-radius: 6px;">
-                <label style="color:var(--success);">🔗 Add Dealer Bitly/Limit Check Link (Optional)</label>
-                <input type="url" id="fgBitlyLink" placeholder="https://bit.ly/bajaj-apply...">
+            <!-- COMPulsory BITLY FIELD -->
+            <div style="margin-bottom:10px; background: #e8f5e9; padding: 10px; border: 1.5px solid var(--success); border-radius: 6px;">
+                <label style="color:var(--success);">🔗 Dealer Bitly / Limit Check Link (Compulsory)</label>
+                <input type="url" id="fgBitlyLink" placeholder="Auto-fills when dealer selected or paste manually...">
+                <div style="font-size:10px; color:#555; margin-top:3px;">*टीप: डीलर सिलेक्ट केल्यावर मास्टर डेटामधून लिंक आपोआप येईल.</div>
             </div>
 
             <div style="margin-bottom:10px; background: #fff3e0; padding: 10px; border: 1.5px solid var(--warning); border-radius: 6px;">
@@ -364,7 +366,6 @@
 <div id="customerFlyerView" style="display:none; padding:15px; max-width:600px; margin:0 auto; background:#f4f7f6; min-height:100vh; box-sizing: border-box;">
     <div style="background:#fff; border-radius:10px; padding:20px; box-shadow:0 4px 15px rgba(0,0,0,0.05); border: 2px solid var(--bajaj-blue);">
         
-        <!-- PUNCHY SALES ORIENTED FLASH OFFER BANNER -->
         <div id="cfOfferBanner" style="display:none; background: linear-gradient(135deg, #ff0055 0%, #000066 100%); color:white; padding:16px; border-radius:10px; text-align:center; margin-bottom:18px; border:2px solid #ffcc00; box-shadow: 0 6px 20px rgba(255, 0, 85, 0.4); animation: offerFlash 3s ease infinite;">
             <div style="font-size:11px; color:#ffcc00; font-weight:900; letter-spacing:1.5px; margin-bottom:4px;">🔥 HURRY! EXCLUSIVE DEALER FLASH SALE 🔥</div>
             <div id="cfOfferText" style="font-size:18px; font-weight:950; letter-spacing:0.5px; text-transform:uppercase; text-shadow: 1px 1px 2px #000;"></div>
@@ -375,7 +376,6 @@
 
         <h2 style="color:var(--bajaj-blue); text-align:center; margin-top:0; border-bottom:2px dashed #eee; padding-bottom:10px;">✨ Device Selection & Lead Request</h2>
         
-        <!-- BITLY SELF BOOKING / LIMIT CHECK BUTTON SECTION -->
         <div id="cfSelfActionBox" style="display:none; margin-bottom:15px;"></div>
 
         <div id="cfDealerSection" style="margin-bottom:15px;">
@@ -400,14 +400,10 @@
             
             <div style="margin-bottom:12px;">
                 <label>Preferred Language / भाषा</label>
-                <select id="cfLang" onchange="changeCfLang()" style="background:#fff; font-weight:bold; color:var(--indigo);">
+                <select id="cfLang" style="background:#fff; font-weight:bold; color:var(--indigo);">
                     <option value="mr" selected>Marathi (मराठी)</option>
                     <option value="hi">Hindi (हिंदी)</option>
                     <option value="en">English</option>
-                    <option value="gu">Gujarati (ગુજરાતી)</option>
-                    <option value="kn">Kannada (ಕನ್ನಡ)</option>
-                    <option value="te">Telugu (తెలుగు)</option>
-                    <option value="ta">Tamil (தமிழ்)</option>
                 </select>
             </div>
 
@@ -420,7 +416,6 @@
                 <input type="text" id="cfCustMobile" placeholder="10 Digits" maxlength="10" style="background:#fff;">
             </div>
             
-            <!-- MANDATORY CHECKBOX WITH SPECIFIED DISCLAIMER -->
             <div style="display:flex; align-items:flex-start; gap:8px; margin-bottom:14px; padding: 10px; background:#fff9e6; border-radius:6px; border:1.5px solid #f39c12;">
                 <input type="checkbox" id="cfAgreeCheck" style="width:20px !important; height:20px !important; margin-top:1px; cursor:pointer; flex-shrink:0;">
                 <label for="cfAgreeCheck" style="font-size:12px !important; color:#d35400; font-weight:bold; line-height:1.4; text-transform:none; cursor:pointer;">
@@ -448,6 +443,28 @@
     function cleanPureShopName(raw) {
         if(!raw) return "";
         return raw.split('#')[0].split('|')[0].split('(')[0].trim().toUpperCase();
+    }
+
+    // 🏬 NEW ROBUST DEALER PARSER (EXTRACTS CODE, SHOP NAME, CITY & BITLY)
+    function parseDealerObj(d) {
+        if (!d) return { code: '', name: '', city: '', bitly: '' };
+        
+        let rawName = String(d['Dealer Name'] || d['dealer name'] || d['Shop Name'] || d['shop_name'] || d['Name'] || '').trim();
+        let code = String(d['DealerId'] || d['dealerid'] || d['Dealer Code'] || d['dealer_code'] || d['Code'] || d['ID'] || d['Bpes Rcd'] || '').trim();
+        let city = String(d['City'] || d['city'] || d['Location'] || d['Town'] || d['District'] || '').trim();
+        let bitly = String(d['Bitly Link'] || d['bitly'] || d['Bitly'] || d['Link'] || d['URL'] || d['Apply Link'] || d['Limit Link'] || d['Bitly_Link'] || '').trim();
+
+        if (rawName.includes('#')) {
+            let parts = rawName.split('#');
+            let shopPart = parts[0].trim();
+            if (!city && parts.length > 1) city = parts[1].split('|')[0].replace(/\(.*?\)/g, '').trim();
+            if (!code && parts.length > 2) {
+                for (let p of parts) if (/\d{5,}/.test(p)) { code = p.match(/\d{5,}/)[0]; break; }
+            }
+            rawName = shopPart;
+        }
+
+        return { code: code || '-', name: cleanPureShopName(rawName) || 'SHOP', city: city || '', bitly: bitly };
     }
 
     function isMobileDeviceCat(cat) {
@@ -514,13 +531,20 @@
             let rawCombined = [...filteredSheet1, ...parsedSheet2Data]; let uniqueDB = []; let seenDB = new Set();
             rawCombined.forEach(r => { let key = `${r.model}_${r.category}_${r.tenure}_${r.advEmi}_${r.fixedEmi}_${r.minLoan}_${r.maxLoan}`; if (!seenDB.has(key)) { seenDB.add(key); uniqueDB.push(r); } });
             if (uniqueDB.length > 0) { db_records = uniqueDB; await saveToDB("persistent_db", db_records); localStorage.setItem('persistent_master_sha', latestSha); renderImportSummary(); if (activeCustomerIndex !== -1) { loadCurrentProducts(); renderMatrix(); } }
+            
+            // Background check for bitly dynamic button trigger after excel loads
+            let params = new URLSearchParams(window.location.search);
+            if (params.get('flyer') === '1' && params.get('did') && !params.get('bl')) {
+                let dObj = dealer_records.find(d => parseDealerObj(d).code == params.get('did'));
+                if (dObj) showDynamicBitlyButton(parseDealerObj(dObj).bitly);
+            }
+
             setupCustomerFlyerIfNeeded();
         } catch(err) { setupCustomerFlyerIfNeeded(); }
     }
 
     window.onload = async function() {
         let params = new URLSearchParams(window.location.search);
-        
         if (params.get('master') === 'bajaj') {
             localStorage.setItem('persistent_admin_v76', 'true');
             window.history.replaceState(null, null, window.location.pathname); 
@@ -547,6 +571,7 @@
             document.querySelector('main').style.display = 'none'; 
             document.querySelector('footer').style.display = 'none'; 
             document.getElementById('customerFlyerView').style.display = 'block';
+            setupCustomerFlyerIfNeeded();
         } else { 
             applyFestivalTheme(); 
             generateStackCards(); 
@@ -555,28 +580,24 @@
         try {
             await initDB(); 
             let savedDB = await getFromDB("persistent_db"); 
-            if (savedDB && savedDB.length > 0) { 
-                db_records = savedDB; 
-                if(!isFlyer) renderImportSummary(); 
-            }
+            if (savedDB && savedDB.length > 0) { db_records = savedDB; if(!isFlyer) renderImportSummary(); }
             let savedDealers = await getFromDB("persistent_dealers"); 
             if (savedDealers && savedDealers.length > 0) dealer_records = savedDealers;
             
             await fetchFromMasterStream();
             
             if(!isFlyer) {
-                let savedQ = await getFromDB('persistent_queue'); 
-                if (savedQ) customerQueue = savedQ.map(c => ({ ...c, components: c.components || {}, products: c.products || [], sortConfigs: c.sortConfigs || [] }));
-                let savedRecycle = await getFromDB('persistent_recycle'); 
-                if (savedRecycle) recycleBin = savedRecycle;
-                let savedIdx = await getFromDB('persistent_active_idx'); 
-                if (savedIdx !== null) activeCustomerIndex = parseInt(savedIdx); 
-                if(activeCustomerIndex >= customerQueue.length) activeCustomerIndex = -1;
-                renderCustomerQueue(); 
-                updateUniversalActionButtons();
+                let savedQ = await getFromDB('persistent_queue'); if (savedQ) customerQueue = savedQ.map(c => ({ ...c, components: c.components || {}, products: c.products || [], sortConfigs: c.sortConfigs || [] }));
+                let savedRecycle = await getFromDB('persistent_recycle'); if (savedRecycle) recycleBin = savedRecycle;
+                let savedIdx = await getFromDB('persistent_active_idx'); if (savedIdx !== null) activeCustomerIndex = parseInt(savedIdx); if(activeCustomerIndex >= customerQueue.length) activeCustomerIndex = -1;
+                renderCustomerQueue(); updateUniversalActionButtons();
             }
         } catch(e) { console.error("DB fail", e); }
     };
+
+    // ==========================================
+    // FLYER GENERATOR LOGIC (SALESMAN)
+    // ==========================================
 
     function openFlyerGenModal() {
         document.getElementById('fgSalesName').value = ''; document.getElementById('fgSalesMobile').value = '';
@@ -601,10 +622,20 @@
 
     function searchFgDealer() {
         let q = document.getElementById('fgDealerSearch').value.toLowerCase().trim(); let list = document.getElementById('fgDealerList'); if(!q) { list.innerHTML = ''; return; }
-        let matches = dealer_records.filter(d => String(d['DealerId']||d['dealerid']||'').toLowerCase().includes(q) || String(d['Dealer Name']||d['dealer name']||'').toLowerCase().includes(q)).slice(0,10);
-        list.innerHTML = matches.map(m => `<div onclick="selectFgDealer('${m['DealerId']||m['dealerid']||'-'}', '${(m['Dealer Name']||m['dealer name']||'').replace(/'/g, "\\'")}')" style="padding:8px; border-bottom:1px solid #eee; cursor:pointer; background:#fff; font-size:12px;">🏪 ${cleanPureShopName(m['Dealer Name']||m['dealer name'])}</div>`).join('');
+        let matches = dealer_records.map(d => parseDealerObj(d)).filter(p => p.name.toLowerCase().includes(q) || p.code.toLowerCase().includes(q) || p.city.toLowerCase().includes(q)).slice(0, 10);
+        list.innerHTML = matches.map(p => {
+            let displayStr = `${p.name}${p.city ? ' - ' + p.city : ''} (${p.code})`;
+            return `<div onclick="selectFgDealer('${p.code}', '${p.name.replace(/'/g, "\\'")}', '${p.city.replace(/'/g, "\\'")}', '${encodeURIComponent(p.bitly||'')}')" style="padding:8px; border-bottom:1px solid #eee; cursor:pointer; background:#fff; font-size:12px; font-weight:bold; color:var(--bajaj-blue);">🏪 ${displayStr}</div>`;
+        }).join('');
     }
-    function selectFgDealer(id, name) { tempFgDealerId = id; tempFgDealerName = cleanPureShopName(name); document.getElementById('fgDealerSearch').value = ''; document.getElementById('fgDealerList').innerHTML = ''; document.getElementById('fgSelectedDealerBox').innerHTML = `✅ ${tempFgDealerName} <span onclick="clearFgDealer()" style="color:red; cursor:pointer; float:right;">✖</span>`; document.getElementById('fgSelectedDealerBox').style.display = 'block'; }
+    function selectFgDealer(code, name, city, bitlyEnc) {
+        tempFgDealerId = code; tempFgDealerName = `${name}${city ? ' - ' + city : ''}`;
+        let bitly = decodeURIComponent(bitlyEnc);
+        document.getElementById('fgDealerSearch').value = ''; document.getElementById('fgDealerList').innerHTML = '';
+        document.getElementById('fgSelectedDealerBox').innerHTML = `✅ ${tempFgDealerName} [Code: ${code}] <span onclick="clearFgDealer()" style="color:red; cursor:pointer; float:right;">✖</span>`;
+        document.getElementById('fgSelectedDealerBox').style.display = 'block';
+        if (bitly) document.getElementById('fgBitlyLink').value = bitly; // Auto fill Bitly
+    }
     function clearFgDealer() { tempFgDealerId = ""; tempFgDealerName = ""; document.getElementById('fgSelectedDealerBox').style.display = 'none'; }
 
     function searchFgModel() {
@@ -621,6 +652,7 @@
         let bLink = document.getElementById('fgBitlyLink').value.trim();
 
         if(!sName || !sMob || sMob.length !== 10) { alert("⚠️ Kripya Salesman Name ani 10-Digit Mobile Number barobar taka!"); return; }
+        if(!tempFgDealerId && !bLink) { alert("⚠️ कडक नियम: डीलर शॉप सिलेक्ट करणे किंवा त्याची Bitly Link टाकणे Compulsory (अनिवार्य) आहे!"); return; }
         if(oType !== "NONE" && !oVal) { alert("⚠️ Offer select केली आहे तर Amount किंवा Gift चे नाव टाका!"); return; }
 
         let baseUrl = window.location.href.split('?')[0];
@@ -640,6 +672,18 @@
         alert("✅ Link Copied! तुम्ही ही लिंक Customer ला WhatsApp वर पाठवू शकता.");
     }
 
+    // ==========================================
+    // CUSTOMER FLYER LOGIC (CUSTOMER VIEW)
+    // ==========================================
+
+    function showDynamicBitlyButton(linkUrl) {
+        let bBox = document.getElementById('cfSelfActionBox');
+        if (linkUrl && linkUrl.startsWith('http')) {
+            bBox.style.display = 'block';
+            bBox.innerHTML = `<a href="${linkUrl}" target="_blank" style="display:block; text-align:center; background:linear-gradient(135deg, #00A34F, #0059A3); color:#fff; padding:14px; border-radius:8px; font-weight:950; text-decoration:none; box-shadow:0 4px 12px rgba(0,0,0,0.25); font-size:14px; letter-spacing:0.5px; border:2px solid #fff;">💳 CHECK YOUR BAJAJ LIMIT / SELF BOOK ORDER 🚀</a>`;
+        } else { bBox.style.display = 'none'; }
+    }
+
     function setupCustomerFlyerIfNeeded() {
         let params = new URLSearchParams(window.location.search); if(params.get('flyer') !== '1') return;
         let did = params.get('did'), dn = params.get('dn'), ot = params.get('ot'), ov = params.get('ov'), fm = params.get('fm'), bl = params.get('bl');
@@ -652,16 +696,16 @@
             startOfferCountdownTimer();
         }
 
-        if(bl) {
-            let bBox = document.getElementById('cfSelfActionBox');
-            bBox.style.display = 'block';
-            bBox.innerHTML = `<a href="${decodeURIComponent(bl)}" target="_blank" style="display:block; text-align:center; background:linear-gradient(135deg, #00A34F, #0059A3); color:#fff; padding:12px; border-radius:8px; font-weight:950; text-decoration:none; box-shadow:0 4px 12px rgba(0,0,0,0.2); font-size:14px; letter-spacing:0.5px;">💳 CHECK YOUR BAJAJ LIMIT / SELF BOOK ORDER 🚀</a>`;
-        }
+        if(bl) showDynamicBitlyButton(decodeURIComponent(bl));
 
         if(did && dn) {
             cfSelectedDealer = cleanPureShopName(decodeURIComponent(dn));
             document.getElementById('cfDealerSection').innerHTML = `<div style="padding:12px; background:#e8f4f8; border-radius:6px; font-weight:bold; color:var(--bajaj-blue); border:1px solid var(--primary);">🏪 Dealer Shop: ${cfSelectedDealer}</div>`;
             document.getElementById('cfModelSection').style.display = 'block';
+            if (!bl && dealer_records.length > 0) {
+                let dObj = dealer_records.find(d => parseDealerObj(d).code == did);
+                if (dObj) showDynamicBitlyButton(parseDealerObj(dObj).bitly);
+            }
         } else { searchCfDealer(); }
 
         if(fm) {
@@ -688,14 +732,19 @@
     function searchCfDealer() {
         let q = document.getElementById('cfDealerSearch').value.toLowerCase().trim(); let list = document.getElementById('cfDealerList'); if(!q) { list.innerHTML = ''; return; }
         if(dealer_records.length === 0) { list.innerHTML = '<div style="color:var(--danger);">Loading dealers...</div>'; return; }
-        let matches = dealer_records.filter(d => String(d['DealerId']||d['dealerid']||'').toLowerCase().includes(q) || String(d['Dealer Name']||d['dealer name']||'').toLowerCase().includes(q)).slice(0, 15);
-        list.innerHTML = matches.map(m => {
-            let pName = cleanPureShopName(m['Dealer Name']||m['dealer name']);
-            return `<div onclick="selectCfDealer('${m['DealerId']||m['dealerid']||'-'}', '${pName.replace(/'/g, "\\'")}')" style="padding:12px; border-bottom:1px solid #ddd; cursor:pointer; background:#fff; font-weight:bold; color:var(--indigo);">🏪 ${pName}</div>`;
+        let matches = dealer_records.map(d => parseDealerObj(d)).filter(p => p.name.toLowerCase().includes(q) || p.code.toLowerCase().includes(q) || p.city.toLowerCase().includes(q)).slice(0, 15);
+        list.innerHTML = matches.map(p => {
+            let displayStr = `${p.name}${p.city ? ' - ' + p.city : ''}`;
+            return `<div onclick="selectCfDealer('${p.code}', '${p.name.replace(/'/g, "\\'")}', '${p.city.replace(/'/g, "\\'")}', '${encodeURIComponent(p.bitly||'')}')" style="padding:12px; border-bottom:1px solid #ddd; cursor:pointer; background:#fff; font-weight:bold; color:var(--indigo);">🏪 ${displayStr} <br><span style="font-size:11px; color:#777;">Code: ${p.code}</span></div>`;
         }).join('');
     }
-    function selectCfDealer(id, name) { cfSelectedDealer = cleanPureShopName(name); document.getElementById('cfDealerSection').innerHTML = `<div style="padding:12px; background:#e8f4f8; border-radius:6px; font-weight:bold; color:var(--bajaj-blue); border:1px solid var(--primary);">✅ Shop: ${cfSelectedDealer} <span onclick="resetCfDealer()" style="float:right; cursor:pointer; color:var(--danger);">✎ Edit</span></div>`; document.getElementById('cfModelSection').style.display = 'block'; }
-    function resetCfDealer() { cfSelectedDealer = ""; document.getElementById('cfDealerSection').innerHTML = `<label style="font-weight:bold; color:var(--indigo); margin-bottom:5px; display:block;">🏪 Search Dealer Shop</label><input type="text" id="cfDealerSearch" placeholder="Type Dealer Name or ID..." oninput="searchCfDealer()" style="width:100%; padding:10px; border:2px solid var(--primary); border-radius:6px;"><div id="cfDealerList" class="custom-scroll" style="max-height:200px; overflow-y:auto; margin-top:5px; border-radius:6px;"></div>`; document.getElementById('cfModelSection').style.display = 'none'; document.getElementById('cfSchemeSection').style.display = 'none'; document.getElementById('cfFormSection').style.display = 'none'; }
+    function selectCfDealer(code, name, city, bitlyEnc) {
+        cfSelectedDealer = `${cleanPureShopName(name)}${city ? ' - ' + city : ''}`;
+        document.getElementById('cfDealerSection').innerHTML = `<div style="padding:12px; background:#e8f4f8; border-radius:6px; font-weight:bold; color:var(--bajaj-blue); border:1px solid var(--primary);">✅ Shop: ${cfSelectedDealer} <span onclick="resetCfDealer()" style="float:right; cursor:pointer; color:var(--danger);">✎ Edit</span></div>`;
+        document.getElementById('cfModelSection').style.display = 'block';
+        showDynamicBitlyButton(decodeURIComponent(bitlyEnc)); // Trigger dynamic limit check button
+    }
+    function resetCfDealer() { cfSelectedDealer = ""; document.getElementById('cfDealerSection').innerHTML = `<label style="font-weight:bold; color:var(--indigo); margin-bottom:5px; display:block;">🏪 Search Dealer Shop</label><input type="text" id="cfDealerSearch" placeholder="Type Dealer Name or ID..." oninput="searchCfDealer()" style="width:100%; padding:10px; border:2px solid var(--primary); border-radius:6px;"><div id="cfDealerList" class="custom-scroll" style="max-height:200px; overflow-y:auto; margin-top:5px; border-radius:6px;"></div>`; document.getElementById('cfModelSection').style.display = 'none'; document.getElementById('cfSchemeSection').style.display = 'none'; document.getElementById('cfFormSection').style.display = 'none'; document.getElementById('cfSelfActionBox').style.display = 'none'; }
 
     function searchCfModel() {
         let q = document.getElementById('cfModelSearch').value.toUpperCase().trim(); let list = document.getElementById('cfModelList'); if(!q) { list.innerHTML = ''; return; }
@@ -721,32 +770,19 @@
         remaining.sort((a, b) => (a.advEmi - b.advEmi) || (a.tenure - b.tenure));
         let allRenderedSchemes = [...top4, ...remaining]; let html = "";
 
+        window.renderedCustomerSchemesList = allRenderedSchemes; // Save list safely in memory
+
         allRenderedSchemes.forEach((s, index) => {
             let displayEmiHtml = `<span style="background:#e3f2fd; color:var(--primary); padding:4px 8px; border-radius:4px; font-size:12px; font-weight:bold;">EMI: किमतीनुसार</span>`;
             let displayDpHtml = `<span style="background:#e8f5e9; color:var(--success); padding:4px 8px; border-radius:4px; font-size:12px; font-weight:bold;">Est. DP: ~ ${s.advEmi} EMI + Charges</span>`;
 
-            let emiPlain = "किमतीनुसार";
-            let dpPlain = `${s.advEmi} EMI`;
-
-            if (s.mrp > 0 && s.tenure > 0) { 
-                let calcEmi = Math.round(s.mrp / s.tenure); 
-                emiPlain = `₹${calcEmi}/mo`;
-                displayEmiHtml = `<span style="background:#e3f2fd; color:var(--primary); padding:4px 8px; border-radius:4px; font-size:12px; font-weight:bold;">EMI: ~ ₹${calcEmi}</span>`; 
-                let estDp = Math.round((calcEmi*s.advEmi)+(s.mrp*((s.dbd||0)*1.18/100))+(s.pf||0)); 
-                dpPlain = `₹${estDp.toLocaleString('en-IN')}`;
-                displayDpHtml = `<span style="background:#e8f5e9; color:var(--success); padding:4px 8px; border-radius:4px; font-size:12px; font-weight:bold;">Est. DP: ~ ₹${estDp.toLocaleString('en-IN')}</span>`; 
-            } else if (s.fixedEmi > 0) { 
-                emiPlain = `₹${s.fixedEmi}/mo`;
-                dpPlain = `Fixed Scheme`;
-                displayEmiHtml = `<span style="background:#e3f2fd; color:var(--primary); padding:4px 8px; border-radius:4px; font-size:12px; font-weight:bold;">EMI: ₹${s.fixedEmi}</span>`; displayDpHtml = `<span style="background:#e8f5e9; color:var(--success); padding:4px 8px; border-radius:4px; font-size:12px; font-weight:bold;">Fixed Advance Scheme</span>`; 
-            }
-
-            let schemePayload = `TENURE: ${s.tenure} MONTHS | ADVANCE: ${s.advEmi}\n💰 *Displayed DP:* ${dpPlain} | *Displayed EMI:* ${emiPlain}`;
+            if (s.mrp > 0 && s.tenure > 0) { let calcEmi = Math.round(s.mrp / s.tenure); displayEmiHtml = `<span style="background:#e3f2fd; color:var(--primary); padding:4px 8px; border-radius:4px; font-size:12px; font-weight:bold;">EMI: ~ ₹${calcEmi}</span>`; let estDp = Math.round((calcEmi*s.advEmi)+(s.mrp*((s.dbd||0)*1.18/100))+(s.pf||0)); displayDpHtml = `<span style="background:#e8f5e9; color:var(--success); padding:4px 8px; border-radius:4px; font-size:12px; font-weight:bold;">Est. DP: ~ ₹${estDp.toLocaleString('en-IN')}</span>`; } 
+            else if (s.fixedEmi > 0) { displayEmiHtml = `<span style="background:#e3f2fd; color:var(--primary); padding:4px 8px; border-radius:4px; font-size:12px; font-weight:bold;">EMI: ₹${s.fixedEmi}</span>`; displayDpHtml = `<span style="background:#e8f5e9; color:var(--success); padding:4px 8px; border-radius:4px; font-size:12px; font-weight:bold;">Fixed Advance Scheme</span>`; }
 
             let isTop = index < top4.length; let displayStyle = isTop ? 'block' : 'none';
             let extraBadge = s.customTag ? `<span style="background:var(--warning); color:#000; font-size:10px; padding:2px 6px; border-radius:10px; float:right; font-weight:900;">${s.customTag}</span>` : ``;
 
-            html += `<div onclick="selectCfScheme('${schemePayload}', this)" class="cf-scheme-card ${isTop?'':'cf-hidden-scheme'}" style="display:${displayStyle}; padding:15px; border:2px solid #ccc; border-radius:8px; cursor:pointer; background:#fff; transition:0.3s;"><div style="font-weight:900; color:var(--bajaj-blue); font-size:14px; margin-bottom:8px;">💳 Scheme: ${s.tenure} Months / ${s.advEmi} Advance ${extraBadge}</div><div style="display:flex; gap:8px; flex-wrap:wrap;">${displayEmiHtml}${displayDpHtml}</div></div>`;
+            html += `<div onclick="selectCfSchemeByIndex(${index}, this)" class="cf-scheme-card ${isTop?'':'cf-hidden-scheme'}" style="display:${displayStyle}; padding:15px; border:2px solid #ccc; border-radius:8px; cursor:pointer; background:#fff; transition:0.3s;"><div style="font-weight:900; color:var(--bajaj-blue); font-size:14px; margin-bottom:8px;">💳 Scheme: ${s.tenure} Months / ${s.advEmi} Advance ${extraBadge}</div><div style="display:flex; gap:8px; flex-wrap:wrap;">${displayEmiHtml}${displayDpHtml}</div></div>`;
         });
 
         if (remaining.length > 0) html += `<button id="cfShowMoreSchemesBtn" onclick="toggleCfSchemes()" style="background:#f1f2f6; color:var(--primary); border:1px dashed var(--primary); padding:10px; width:100%; border-radius:6px; font-weight:bold; cursor:pointer; margin-top:5px;">⬇️ View ${remaining.length} More Schemes</button>`;
@@ -754,20 +790,34 @@
     }
 
     function toggleCfSchemes() { let hiddenEls = document.querySelectorAll('.cf-hidden-scheme'); let btn = document.getElementById('cfShowMoreSchemesBtn'); if(!hiddenEls.length) return; let isHidden = hiddenEls[0].style.display === 'none'; hiddenEls.forEach(el => el.style.display = isHidden ? 'block' : 'none'); btn.innerHTML = isHidden ? `⬆️ Hide Extra Schemes` : `⬇️ View ${hiddenEls.length} More Schemes`; }
-    function selectCfScheme(payload, el) { cfSelectedScheme = payload; document.querySelectorAll('.cf-scheme-card').forEach(x => { x.style.borderColor = '#ccc'; x.style.background = '#fff'; }); el.style.borderColor = 'var(--success)'; el.style.background = '#e8f5e9'; document.getElementById('cfFormSection').style.display = 'block'; setTimeout(() => document.getElementById('cfFormSection').scrollIntoView({behavior:'smooth'}), 150); }
+    
+    // 🚀 NEW SAFE SCHEME SELECTION TRIGGER
+    function selectCfSchemeByIndex(idx, el) {
+        let s = window.renderedCustomerSchemesList[idx];
+        let emiPlain = "किमतीनुसार"; let dpPlain = `${s.advEmi} EMI`;
+
+        if (s.mrp > 0 && s.tenure > 0) {
+            let calcEmi = Math.round(s.mrp / s.tenure); emiPlain = `₹${calcEmi}/mo`;
+            let estDp = Math.round((calcEmi*s.advEmi)+(s.mrp*((s.dbd||0)*1.18/100))+(s.pf||0)); dpPlain = `₹${estDp.toLocaleString('en-IN')}`;
+        } else if (s.fixedEmi > 0) { emiPlain = `₹${s.fixedEmi}/mo`; dpPlain = `Fixed Advance Scheme`; }
+
+        cfSelectedScheme = `\n💳 *निवडलेली स्कीम:* ${s.tenure} Months | Advance: ${s.advEmi}\n💰 *अंदाजे DP:* ${dpPlain} | *अंदाजे EMI:* ${emiPlain}`;
+        
+        document.querySelectorAll('.cf-scheme-card').forEach(x => { x.style.borderColor = '#ccc'; x.style.background = '#fff'; }); 
+        el.style.borderColor = 'var(--success)'; el.style.background = '#e8f5e9'; 
+        document.getElementById('cfFormSection').style.display = 'block'; 
+        setTimeout(() => document.getElementById('cfFormSection').scrollIntoView({behavior:'smooth'}), 150);
+    }
 
     const langTemplates = {
-        mr: { header: "⚡ *PERSISTENT PORTAL: नवीन लीड (LEAD)* ⚡\n\nनमस्कार *{SNAME}*,\nमला Persistent Portal द्वारे खालील फोन फायनान्सवर घेण्यास रस आहे:\n\n", name: "👤 *ग्राहक नाव:*", mobile: "📞 *मोबाईल:*", dealer: "🏪 *निवडलेले दुकान:*", model: "📱 *मॉडेल:*", scheme: "💳 *स्कीम व आकडेवारी:*\n", footer: "\n*(टीप: प्रत्यक्ष दुकानात आल्यावर सिस्टीमनुसार जी फायनल प्रोसेस आकडेवारी येईल, ती मला मान्य असेल.)*\n\n*कृपया मला प्रोसेस सांगण्यासाठी संपर्क करावा.*" },
-        hi: { header: "⚡ *PERSISTENT PORTAL: नई लीड (LEAD)* ⚡\n\nनमस्ते *{SNAME}*,\nमैं Persistent Portal के जरिए नीचे दिए गए फोन को फाइनेंस पर लेना चाहता हूँ:\n\n", name: "👤 *ग्राहक का नाम:*", mobile: "📞 *मोबाइल:*", dealer: "🏪 *चुनी गई दुकान:*", model: "📱 *मॉडल:*", scheme: "💳 *स्कीम और विवरण:*\n", footer: "\n*(नोट: दुकान पर आने के बाद सिस्टम द्वारा तय अंतिम डाउनपेमेंट व EMI मुझे मान्य होगी।)*\n\n*कृपया आगे की प्रोसेस के लिए संपर्क करें।* " },
-        en: { header: "⚡ *PERSISTENT PORTAL: NEW LEAD* ⚡\n\nHello *{SNAME}*,\nI generated a finance request via Persistent Portal. Details below:\n\n", name: "👤 *Customer:*", mobile: "📞 *Mobile:*", dealer: "🏪 *Dealer Shop:*", model: "📱 *Model:*", scheme: "💳 *Selected Scheme:*\n", footer: "\n*(Note: Final system-generated DP & EMI finalized at the shop counter will be binding/accepted.)*\n\n*Please connect to share the next steps.*" }
+        mr: { header: "⚡ *PERSISTENT PORTAL: नवीन लीड (LEAD)* ⚡\n\nनमस्कार *{SNAME}*,\nमला Persistent Portal द्वारे खालील फोन फायनान्सवर घेण्यास रस आहे:\n\n", name: "👤 *ग्राहक नाव:*", mobile: "📞 *मोबाईल:*", dealer: "🏪 *निवडलेले दुकान:*", model: "📱 *मॉडेल:*", footer: "\n*(टीप: प्रत्यक्ष दुकानात आल्यावर सिस्टीमनुसार जी फायनल प्रोसेस आकडेवारी येईल, ती मला मान्य असेल.)*\n\n*कृपया मला प्रोसेस सांगण्यासाठी संपर्क करावा.*" },
+        hi: { header: "⚡ *PERSISTENT PORTAL: नई लीड (LEAD)* ⚡\n\nनमस्ते *{SNAME}*,\nमैं Persistent Portal के जरिए नीचे दिए गए फोन को फाइनेंस पर लेना चाहता हूँ:\n\n", name: "👤 *ग्राहक का नाम:*", mobile: "📞 *मोबाइल:*", dealer: "🏪 *चुनी गई दुकान:*", model: "📱 *मॉडल:*", footer: "\n*(नोट: दुकान पर आने के बाद सिस्टम द्वारा तय अंतिम डाउनपेमेंट व EMI मुझे मान्य होगी।)*\n\n*कृपया आगे की प्रोसेस के लिए संपर्क करें।* " },
+        en: { header: "⚡ *PERSISTENT PORTAL: NEW LEAD* ⚡\n\nHello *{SNAME}*,\nI generated a finance request via Persistent Portal. Details below:\n\n", name: "👤 *Customer:*", mobile: "📞 *Mobile:*", dealer: "🏪 *Dealer Shop:*", model: "📱 *Model:*", footer: "\n*(Note: Final system-generated DP & EMI finalized at the shop counter will be binding/accepted.)*\n\n*Please connect to share the next steps.*" }
     };
-    function changeCfLang() {}
 
     function submitCfLead() {
-        let agreeBox = document.getElementById('cfAgreeCheck');
-        if(!agreeBox.checked) {
-            alert("⚠️ कृपया डाऊनपेमेंट आणि EMI संदर्भातील 'अटी व नियम' मान्य असल्याच्या बॉक्सवर (Tick) क्लिक करा!");
-            return;
+        if(!document.getElementById('cfAgreeCheck').checked) {
+            alert("⚠️ कृपया डाऊनपेमेंट आणि EMI संदर्भातील 'अटी व नियम' मान्य असल्याच्या बॉक्सवर (Tick) क्लिक करा!"); return;
         }
 
         let cName = document.getElementById('cfCustName').value.trim(), cMob = document.getElementById('cfCustMobile').value.trim();
@@ -785,7 +835,7 @@
             msg += `🎁 *APPLIED FLASH OFFER:* [ ${offTxt} ]\n_*(Customer requested to claim this offer)*_\n\n`;
         }
 
-        msg += `${t.name} ${cName}\n${t.mobile} ${cMob}\n\n${t.dealer} ${cfSelectedDealer}\n${t.model} ${cfSelectedModel}\n${t.scheme}${cfSelectedScheme}\n${t.footer}`;
+        msg += `${t.name} ${cName}\n${t.mobile} ${cMob}\n\n${t.dealer} ${cfSelectedDealer}\n${t.model} ${cfSelectedModel}\n${cfSelectedScheme}\n${t.footer}`;
         window.open(`https://wa.me/91${sNum}?text=${encodeURIComponent(msg)}`, '_blank');
     }
 
@@ -885,8 +935,8 @@
         let html = `<div style="text-align:center; border-bottom:3px solid #0059A3; padding-bottom:10px; margin-bottom:15px;"><h2 style="color:#0059A3; margin:0;">${c?.name||'QUOTATION'}</h2><h3>📞 ${c?.mobile||''}</h3></div>`;
         window.tempImageGenIndices.forEach(idx => {
             let p = current_products[idx];
-            html += `<h3 style="background:#eee; padding:8px; margin:10px 0 5px 0;">📱 ${p.name} (Inv: ₹${p.inputs.inv||p.inputs.mrp||0})</h3><table style="width:100%; text-align:center; border-collapse:collapse;" border="1">tr style="background:#0059A3; color:#fff;">th>Scheme</th>th>Down Payment</th>th>Monthly EMI</th>/tr>`;
-            p.calculatedData.forEach(d => html += `<tr>td style="padding:8px;">${d.currentTenure}/${d.advEmi}</td>td style="color:green; font-weight:bold;">₹${Math.round(d.dp)}</td>td style="color:blue; font-weight:bold;">₹${Math.round(d.emi)} x ${d.inst}</td>/tr>`);
+            html += `<h3 style="background:#eee; padding:8px; margin:10px 0 5px 0;">📱 ${p.name} (Inv: ₹${p.inputs.inv||p.inputs.mrp||0})</h3><table style="width:100%; text-align:center; border-collapse:collapse;" border="1"><tr style="background:#0059A3; color:#fff;"><th>Scheme</th><th>Down Payment</th><th>Monthly EMI</th></tr>`;
+            p.calculatedData.forEach(d => html += `<tr><td style="padding:8px;">${d.currentTenure}/${d.advEmi}</td><td style="color:green; font-weight:bold;">₹${Math.round(d.dp)}</td><td style="color:blue; font-weight:bold;">₹${Math.round(d.emi)} x ${d.inst}</td></tr>`);
             html += `</table>`;
         });
         div.innerHTML = html; document.body.appendChild(div);
