@@ -8,6 +8,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
     <style>
+        /* Mobile / Portrait View Styling */
         body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
             padding: 10px; 
@@ -22,7 +23,7 @@
             border-radius: 10px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             margin-bottom: 15px;
-            overflow: hidden;
+            /* overflow: hidden; <-- हा रूल काढला आहे ज्यामुळे सर्च रिझल्ट कट होत होते */
         }
 
         .card-header {
@@ -32,12 +33,17 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            border-radius: 10px; /* बॉर्डर रेडियस सेट केली */
             border-bottom: 1px solid transparent;
             transition: 0.3s;
         }
         
         .card-header:hover { background: #f8fafc; }
-        .card-header.active { border-bottom: 1px solid #eee; background: #f0f8ff; }
+        .card-header.active { 
+            border-radius: 10px 10px 0 0; /* उघडल्यावर खालचे कोपरे सरळ होतील */
+            border-bottom: 1px solid #eee; 
+            background: #f0f8ff; 
+        }
 
         .card-header h3 { margin: 0; color: #034887; font-size: 16px; }
         .toggle-icon { font-size: 14px; color: #0984e3; font-weight: bold; transition: 0.3s; }
@@ -45,6 +51,7 @@
         .card-content {
             padding: 15px;
             display: none; /* सुरुवातीला लपवलेले (Minimized) */
+            border-radius: 0 0 10px 10px;
         }
         
         input, select { 
@@ -67,6 +74,7 @@
         .input-group { display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px; }
         .input-group label { font-size: 11px; font-weight: bold; color: #555; text-transform: uppercase; }
 
+        /* सर्च रिझल्ट्स (आता कार्डच्या बाहेर पूर्ण दिसेल) */
         #searchResults { 
             position: absolute; 
             top: 100%; left: 0; right: 0; 
@@ -75,9 +83,9 @@
             overflow-y: auto; 
             border: 1px solid #ccc; 
             border-radius: 6px; 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.15); 
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2); 
             display: none; 
-            z-index: 100; 
+            z-index: 1000; 
         }
 
         .result-item { padding: 12px 15px; border-bottom: 1px solid #eee; cursor: pointer; font-size: 14px; font-weight: bold; color: #333; }
@@ -88,6 +96,12 @@
             display: none; text-transform: uppercase; text-align: center;
             margin-bottom: 10px; padding: 10px; background: #e3f2fd; border-radius: 8px;
         }
+
+        /* Summary Section Styling */
+        .summary-row { display: flex; justify-content: space-between; border-bottom: 1px dashed #ddd; padding: 8px 0; font-size: 13px; }
+        .summary-row:last-child { border-bottom: none; }
+        .summary-label { font-weight: bold; color: #555; }
+        .summary-value { font-weight: 900; color: #034887; }
 
         .table-wrapper { overflow-x: auto; border-radius: 8px; border: 1px solid #ddd; }
         .scheme-table { width: 100%; border-collapse: collapse; min-width: 500px; }
@@ -132,9 +146,8 @@
             <div class="form-grid full">
                 <div class="input-group">
                     <label>Card Type *</label>
-                    <!-- Select Card Type निवडल्यास सर्व व्हॅल्यूज क्लिअर होतील -->
                     <select id="custType" onchange="handleCardTypeChange()">
-                        <option value="" selected>-- Select Card Type --</option>
+                        <option value="" selected disabled>-- Select Card Type --</option>
                         <option value="NEW">NEW</option>
                         <option value="EMI CARD">EMI CARD</option>
                         <option value="INSTA EMI CARD">INSTA EMI CARD</option>
@@ -142,7 +155,7 @@
                     </select>
                 </div>
             </div>
-            <div class="form-grid">
+            <div class="form-grid" style="margin-top: 10px;">
                 <div class="input-group">
                     <label>NBFC Limit (₹)</label>
                     <input type="number" id="custLimit" placeholder="E.g. 50000" oninput="recalculateData()">
@@ -200,7 +213,53 @@
         </div>
     </div>
 
-    <!-- 4. कॅल्क्युलेटेड स्कीम्स -->
+    <!-- 4. Session Summary (नवीन सेक्शन) -->
+    <div class="card">
+        <div class="card-header active" onclick="toggleSection('summaryContent', 'summaryIcon', this)">
+            <h3>📋 Session Summary</h3>
+            <span class="toggle-icon" id="summaryIcon">▼</span>
+        </div>
+        <div id="summaryContent" class="card-content" style="display: block;">
+            <div class="summary-row">
+                <span class="summary-label">Selected Model:</span>
+                <span class="summary-value" id="sumModel">-</span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">Card Type:</span>
+                <span class="summary-value" id="sumType">-</span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">Invoice Amount:</span>
+                <span class="summary-value">₹<span id="sumInv">0</span></span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">NBFC Limit:</span>
+                <span class="summary-value">₹<span id="sumLimit">0</span></span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">Max LTV:</span>
+                <span class="summary-value"><span id="sumLtv">100</span>%</span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">EMI Capping:</span>
+                <span class="summary-value">₹<span id="sumCap">0</span></span>
+            </div>
+            <div class="summary-row" style="margin-top: 5px; border-top: 1px solid #034887; padding-top: 10px;">
+                <span class="summary-label">Target DP: <span class="summary-value">₹<span id="sumTarget">0</span></span></span>
+                <span class="summary-label">Margin: <span class="summary-value">₹<span id="sumMargin">0</span></span></span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">GTL: <span class="summary-value">₹<span id="sumGtl">0</span></span></span>
+                <span class="summary-label">RFC: <span class="summary-value">₹<span id="sumRfc">0</span></span></span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">EXW: <span class="summary-value">₹<span id="sumExw">0</span></span></span>
+                <span class="summary-label">Dealer: <span class="summary-value">₹<span id="sumDealer">0</span></span></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. कॅल्क्युलेटेड स्कीम्स -->
     <div class="card" id="tableContainer" style="display: none;">
         <button class="btn-copy-img" onclick="copyImage()">🖼️ COPY IMAGE</button>
         
@@ -244,11 +303,26 @@
             }
         }
 
+        // Summary Update Function
+        function updateSummary() {
+            document.getElementById('sumModel').innerText = activeModelName || "-";
+            document.getElementById('sumType').innerText = document.getElementById('custType').value || "-";
+            document.getElementById('sumInv').innerText = document.getElementById('custInvoice').value || "0";
+            document.getElementById('sumLimit').innerText = document.getElementById('custLimit').value || "0";
+            document.getElementById('sumLtv').innerText = document.getElementById('custLtv').value || "100";
+            document.getElementById('sumCap').innerText = document.getElementById('custCap').value || "0";
+            document.getElementById('sumTarget').innerText = document.getElementById('advTarget').value || "0";
+            document.getElementById('sumGtl').innerText = document.getElementById('advGtl').value || "0";
+            document.getElementById('sumRfc').innerText = document.getElementById('advRfc').value || "0";
+            document.getElementById('sumExw').innerText = document.getElementById('advExw').value || "0";
+            document.getElementById('sumMargin').innerText = document.getElementById('advMargin').value || "0";
+            document.getElementById('sumDealer').innerText = document.getElementById('advDealer').value || "0";
+        }
+
         // Card Type बदलल्यावर सर्व व्हॅल्यू क्लिअर करणे
         function handleCardTypeChange() {
             let type = document.getElementById('custType').value;
             if (type === "") {
-                // जर Select Card Type निवडले तर सर्व ब्लँक करा
                 document.getElementById('custLimit').value = '';
                 document.getElementById('custInvoice').value = '';
                 document.getElementById('custLtv').value = '100';
@@ -263,6 +337,7 @@
             } else {
                 recalculateData();
             }
+            updateSummary();
         }
 
         function findKey(row, targets) {
@@ -343,7 +418,6 @@
             document.getElementById('searchResults').style.display = 'none';
             activeModelName = modelName;
             
-            // कॅटेगरी सेव्ह करणे
             let rec = db_records.find(r => r.model === modelName);
             if(rec) activeCategory = rec.category;
             
@@ -351,7 +425,7 @@
             document.getElementById('selectedProduct').style.display = 'block';
             document.getElementById('tableContainer').style.display = 'block';
             
-            // पुढील बॉक्स आपोआप उघडणे
+            // Auto open Eligibility Content if closed
             let eligContent = document.getElementById('eligibilityContent');
             if(eligContent.style.display === "none") {
                 toggleSection('eligibilityContent', 'eligibilityIcon', eligContent.previousElementSibling);
@@ -360,15 +434,12 @@
             applyAutoRules();
         }
 
-        // इन्व्हॉइस टाकल्यावर GTL, RFC, EXW चे नियम लागू करणे
         function applyAutoRules() {
             let inv = parseFloat(document.getElementById('custInvoice').value) || 0;
             
-            // GTL Rule
             let gtl = inv > 100000 ? 2398 : (inv > 50000 ? 1799 : (inv > 30000 ? 1499 : (inv > 10000 ? 1199 : (inv > 0 ? 699 : 0))));
             document.getElementById('advGtl').value = gtl > 0 ? gtl : "";
 
-            // Mobile vs Other Category Rules
             let isMobile = isMobileCat(activeCategory);
             let rfcInp = document.getElementById('advRfc');
             let exwInp = document.getElementById('advExw');
@@ -388,15 +459,16 @@
             }
 
             recalculateData();
+            updateSummary();
         }
 
         function recalculateData() {
             if (!activeModelName) return;
 
             let type = document.getElementById('custType').value;
-            // जर प्रकार निवडला नसेल, तर टेबल लपवा
-            if (type === "") {
+            if (!type || type === "") {
                 document.getElementById('tableContainer').style.display = 'none';
+                updateSummary();
                 return;
             }
             document.getElementById('tableContainer').style.display = 'block';
@@ -501,6 +573,7 @@
             processedSchemes.sort((a, b) => b.ltv - a.ltv);
             currentSchemes = processedSchemes;
             renderTable();
+            updateSummary();
         }
 
         function renderTable() {
