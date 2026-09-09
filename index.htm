@@ -94,18 +94,21 @@
             display: none; 
         }
 
+        /* टेबलमधील सर्व मजकूर समान साईझ आणि Bold करण्यासाठी */
+        .scheme-table th, .scheme-table td {
+            padding: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            text-align: center;
+        }
+
         .scheme-table th {
             background: #0984e3;
             color: white;
-            padding: 12px;
-            font-size: 14px;
         }
 
         .scheme-table td {
-            padding: 12px;
             border-bottom: 1px solid #eee;
-            font-size: 14px;
-            font-weight: bold;
             color: #333;
         }
 
@@ -213,12 +216,12 @@
 
             let schemes = db_records.filter(r => r.model === modelName);
             
-            // 1. प्रत्येक स्कीमचा LTV कॅल्क्युलेट करून सेव्ह करणे
+            // LTV कॅल्क्युलेट करून सेव्ह करणे
             schemes.forEach(s => {
                 s.ltv = s.tenure > 0 ? ((s.tenure - s.advEmi) / s.tenure) * 100 : 0;
             });
 
-            // 2. LTV नुसार स्कीम्स उतरत्या क्रमाने (Descending Order) सॉर्ट करणे
+            // LTV नुसार स्कीम्स उतरत्या क्रमाने (Descending Order) सॉर्ट करणे
             schemes.sort((a, b) => b.ltv - a.ltv);
             
             let tbody = document.getElementById('schemeBody');
@@ -227,8 +230,8 @@
                 
                 return `
                     <tr>
-                        <td style="color: #034887; font-weight: 900; font-size: 16px;">${Math.round(s.ltv)}%</td>
-                        <td style="color: var(--indigo); font-size: 16px; font-weight: 900;">${s.tenure} / ${s.advEmi}</td>
+                        <td style="color: #034887;">${Math.round(s.ltv)}%</td>
+                        <td style="color: var(--indigo);">${s.tenure} / ${s.advEmi}</td>
                         <td>${s.dbd}%</td>
                         <td>₹${s.pf}</td>
                         <td>${s.roi}%</td>
