@@ -130,10 +130,10 @@
         <thead>
             <tr>
                 <th>Scheme (T/A)</th>
-                <th>Fixed EMI</th>
                 <th>DBD %</th>
-                <th>ROI %</th>
                 <th>PF</th>
+                <th>ROI %</th>
+                <th>Fixed EMI</th>
             </tr>
         </thead>
         <tbody id="schemeBody">
@@ -145,7 +145,6 @@
         let db_records = [];
         const GITHUB_RAW_URL = "https://raw.githubusercontent.com/luckyjathar/testcalculator/main/master_data.xlsx";
 
-        // हेल्पर फंक्शन: योग्य कॉलम शोधण्यासाठी
         function findKey(row, targets) {
             let key = Object.keys(row).find(k => targets.includes(k.toUpperCase().replace(/\s/g, '')));
             return key ? row[key] : null;
@@ -159,7 +158,6 @@
                 
                 let sheetData = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: "" });
                 
-                // एक्सेल मधून पूर्ण स्कीम डेटा वाचणे
                 db_records = sheetData.map(row => {
                     let model = findKey(row, ['MODEL', 'PRODUCT', 'MODELNAME']);
                     return { 
@@ -178,7 +176,6 @@
                 document.getElementById('searchInput').placeholder = "Start typing model name...";
                 document.getElementById('searchInput').focus();
 
-                console.log("Excel Data & Schemes Loaded!");
             } catch(err) {
                 console.error("Error loading Excel:", err);
                 document.getElementById('loadingStatus').innerText = "⚠️ Error loading data. Please refresh.";
@@ -213,25 +210,22 @@
             displayBox.innerText = "✅ " + modelName;
             displayBox.style.display = 'block';
 
-            // त्या मॉडेलच्या सर्व स्कीम्स शोधणे
             let schemes = db_records.filter(r => r.model === modelName);
             
-            // टेबलमध्ये स्कीम्स दाखवणे
             let tbody = document.getElementById('schemeBody');
             tbody.innerHTML = schemes.map(s => {
                 let fixedEmiDisplay = s.fixedEmi > 0 ? "₹" + s.fixedEmi : "N/A";
                 return `
                     <tr>
-                        <td style="color: var(--indigo);">${s.tenure} / ${s.advEmi}</td>
-                        <td style="color: #d35400;">${fixedEmiDisplay}</td>
+                        <td style="color: var(--indigo); font-size: 16px; font-weight: 900;">${s.tenure} / ${s.advEmi}</td>
                         <td>${s.dbd}%</td>
-                        <td>${s.roi}%</td>
                         <td>₹${s.pf}</td>
+                        <td>${s.roi}%</td>
+                        <td style="color: #d35400;">${fixedEmiDisplay}</td>
                     </tr>
                 `;
             }).join('');
 
-            // टेबल दृश्यमान (visible) करणे
             document.getElementById('schemeTable').style.display = 'table';
         }
 
