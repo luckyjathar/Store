@@ -3,150 +3,244 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Model Search & Scheme Chart</title>
+    <title>Pro Scheme Calculator</title>
+    <!-- आवश्यक लायब्ररीज (Excel आणि Image Copy साठी) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
     <style>
         body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            padding: 30px; 
-            text-align: center; 
+            padding: 20px; 
             background-color: #f4f7f6; 
+            margin: 0;
         }
-        h2 { color: #034887; }
-        
-        .search-container {
-            position: relative;
-            width: 100%;
-            max-width: 500px;
+
+        /* टॉप हेडर आणि दोन कॉलम्सचा लेआउट */
+        .top-container {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            max-width: 1200px;
             margin: 0 auto;
         }
+
+        /* डावीकडचा सर्च बॉक्स */
+        .search-panel {
+            flex: 1;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        /* उजवीकडचा कस्टमर एलिजिबिलिटी बॉक्स */
+        .eligibility-panel {
+            flex: 1.5;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            border-left: 5px solid #27ae60;
+        }
+
+        h2, h3 { margin-top: 0; color: #034887; }
         
-        input { 
-            width: 100%; 
-            padding: 15px; 
-            font-size: 16px; 
+        input, select { 
+            padding: 12px; 
+            font-size: 15px; 
             box-sizing: border-box; 
-            border: 2px solid #0984e3; 
+            border: 2px solid #ccc; 
             border-radius: 6px; 
             outline: none;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            width: 100%;
         }
         
-        input:focus { border-color: #034887; }
+        input:focus, select:focus { border-color: #0984e3; }
 
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+        .form-grid label { font-size: 12px; font-weight: bold; color: #555; }
+
+        /* सर्च रिझल्ट्स */
         #searchResults { 
             position: absolute; 
             top: 100%; 
-            left: 0; 
-            right: 0; 
+            left: 20px; 
+            right: 20px; 
             background: white; 
             max-height: 250px; 
             overflow-y: auto; 
             border: 1px solid #ccc; 
-            border-top: none;
-            border-radius: 0 0 6px 6px; 
+            border-radius: 6px; 
             box-shadow: 0 4px 10px rgba(0,0,0,0.15); 
             display: none; 
             z-index: 100; 
-            text-align: left; 
         }
 
         .result-item { 
             padding: 12px 15px; 
             border-bottom: 1px solid #eee; 
             cursor: pointer; 
-            font-size: 14px; 
+            font-size: 15px; 
             font-weight: bold; 
             color: #333; 
         }
 
-        .result-item:hover { 
-            background: #e3f2fd; 
-            color: #0984e3; 
-        }
+        .result-item:hover { background: #e3f2fd; color: #0984e3; }
 
         #selectedProduct { 
-            margin-top: 30px; 
             font-size: 22px; 
             font-weight: 900; 
-            color: #27ae60; 
+            color: #034887; 
             display: none; 
+            text-transform: uppercase;
         }
+
+        /* टेबलची डिझाईन */
+        .table-container {
+            max-width: 1200px;
+            margin: 20px auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            display: none;
+        }
+
+        .scheme-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        .scheme-table th, .scheme-table td {
+            padding: 12px 8px;
+            font-size: 16px;
+            font-weight: bold;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+        }
+
+        .scheme-table th { background: #0984e3; color: white; }
+        .scheme-table tr:hover { background: #f8fafc; }
+
+        .btn-action {
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+            background: #0984e3;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .btn-action:hover { background: #034887; }
+
+        .btn-copy-img {
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            color: white;
+            background: #27ae60;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-bottom: 15px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-copy-img:hover { background: #219653; }
 
         #loadingStatus {
             color: #e67e22;
             font-weight: bold;
             font-size: 14px;
             margin-bottom: 10px;
-        }
-
-        /* टेबलची डिझाईन */
-        .scheme-table {
-            width: 100%;
-            max-width: 800px;
-            margin: 20px auto;
-            border-collapse: collapse;
-            background: white;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            border-radius: 8px;
-            overflow: hidden;
-            display: none; 
-        }
-
-        /* टेबलमधील सर्व मजकूर समान साईझ आणि Bold करण्यासाठी */
-        .scheme-table th, .scheme-table td {
-            padding: 12px;
-            font-size: 16px;
-            font-weight: bold;
             text-align: center;
         }
-
-        .scheme-table th {
-            background: #0984e3;
-            color: white;
-        }
-
-        .scheme-table td {
-            border-bottom: 1px solid #eee;
-            color: #333;
-        }
-
-        .scheme-table tr:hover { background: #f8fafc; }
     </style>
 </head>
 <body>
 
-    <h2>🔍 Search Product & Schemes</h2>
-    
     <div id="loadingStatus">⏳ Loading Master Data... Please wait.</div>
 
-    <div class="search-container">
-        <input type="text" id="searchInput" onkeyup="searchModel()" placeholder="Type model name here..." disabled>
-        <div id="searchResults"></div>
+    <div class="top-container">
+        <!-- डावी बाजू: मॉडेल सर्च -->
+        <div class="search-panel">
+            <h2>🔍 Search Product</h2>
+            <input type="text" id="searchInput" onkeyup="searchModel()" placeholder="Type model name here..." disabled>
+            <div id="searchResults"></div>
+        </div>
+
+        <!-- उजवी बाजू: Customer Eligibility -->
+        <div class="eligibility-panel">
+            <h3>👤 Customer Eligibility</h3>
+            <div class="form-grid">
+                <div>
+                    <label>Card Type</label>
+                    <select id="custType" onchange="recalculateData()">
+                        <option value="NEW">NEW</option>
+                        <option value="EMI CARD">EMI CARD</option>
+                        <option value="W/O CARD">W/O CARD</option>
+                    </select>
+                </div>
+                <div>
+                    <label>NBFC Limit (₹)</label>
+                    <input type="number" id="custLimit" placeholder="E.g. 50000" oninput="recalculateData()">
+                </div>
+                <div>
+                    <label>Invoice Amt (₹)</label>
+                    <input type="number" id="custInvoice" placeholder="E.g. 35000" oninput="recalculateData()">
+                </div>
+                <div>
+                    <label>Max LTV (%)</label>
+                    <input type="number" id="custLtv" value="100" oninput="recalculateData()">
+                </div>
+                <div>
+                    <label>EMI Capping (₹)</label>
+                    <input type="number" id="custCap" placeholder="Max EMI" oninput="recalculateData()">
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div id="selectedProduct"></div>
-    
-    <!-- स्कीम्स दिसण्यासाठी टेबल -->
-    <table id="schemeTable" class="scheme-table">
-        <thead>
-            <tr>
-                <th>LTV %</th>
-                <th>Scheme (T/A)</th>
-                <th>DBD %</th>
-                <th>PF</th>
-                <th>ROI %</th>
-                <th>Fixed EMI</th>
-            </tr>
-        </thead>
-        <tbody id="schemeBody">
-            <!-- डायनॅमिक डेटा इथे येईल -->
-        </tbody>
-    </table>
+    <!-- कॅल्क्युलेटेड स्कीम्स दिसण्यासाठी टेबल -->
+    <div class="table-container" id="tableContainer">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div id="selectedProduct"></div>
+            <button class="btn-copy-img" onclick="copyImage()">🖼️ COPY IMAGE</button>
+        </div>
+        
+        <table id="schemeTable" class="scheme-table">
+            <thead>
+                <tr>
+                    <th>LTV %</th>
+                    <th>Scheme (T/A)</th>
+                    <th style="color:#f1c40f;">LOAN</th>
+                    <th style="color:#2ecc71;">NET DP</th>
+                    <th style="color:#0984e3;">EMI</th>
+                    <th>Months (M)</th>
+                    <th style="color:#e67e22;">Per Day</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="schemeBody">
+                <!-- डायनॅमिक डेटा इथे येईल -->
+            </tbody>
+        </table>
+    </div>
 
     <script>
         let db_records = [];
+        let currentSchemes = [];
+        let activeModelName = "";
         const GITHUB_RAW_URL = "https://raw.githubusercontent.com/luckyjathar/testcalculator/main/master_data.xlsx";
 
         function findKey(row, targets) {
@@ -159,7 +253,6 @@
                 let res = await fetch(GITHUB_RAW_URL + '?t=' + new Date().getTime());
                 let dataBuffer = await res.arrayBuffer();
                 let wb = XLSX.read(new Uint8Array(dataBuffer), { type: 'array' });
-                
                 let sheetData = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: "" });
                 
                 db_records = sheetData.map(row => {
@@ -177,20 +270,14 @@
                 
                 document.getElementById('loadingStatus').style.display = 'none';
                 document.getElementById('searchInput').disabled = false;
-                document.getElementById('searchInput').placeholder = "Start typing model name...";
-                document.getElementById('searchInput').focus();
-
             } catch(err) {
-                console.error("Error loading Excel:", err);
                 document.getElementById('loadingStatus').innerText = "⚠️ Error loading data. Please refresh.";
-                document.getElementById('loadingStatus').style.color = "red";
             }
         }
 
         function searchModel() {
             let q = document.getElementById('searchInput').value.toUpperCase().trim();
             let resultsDiv = document.getElementById('searchResults');
-            
             if (!q) { resultsDiv.style.display = 'none'; return; }
             
             let matches = db_records.filter(r => r.model.includes(q)).map(r => r.model);
@@ -209,38 +296,195 @@
         function selectModel(modelName) {
             document.getElementById('searchInput').value = '';
             document.getElementById('searchResults').style.display = 'none';
+            activeModelName = modelName;
             
-            let displayBox = document.getElementById('selectedProduct');
-            displayBox.innerText = "✅ " + modelName;
-            displayBox.style.display = 'block';
+            document.getElementById('selectedProduct').innerText = "📱 " + modelName;
+            document.getElementById('selectedProduct').style.display = 'block';
+            document.getElementById('tableContainer').style.display = 'block';
+            
+            recalculateData();
+        }
 
-            let schemes = db_records.filter(r => r.model === modelName);
-            
-            // LTV कॅल्क्युलेट करून सेव्ह करणे
-            schemes.forEach(s => {
-                s.ltv = s.tenure > 0 ? ((s.tenure - s.advEmi) / s.tenure) * 100 : 0;
+        // मुख्य कॅल्क्युलेशन फंक्शन
+        function recalculateData() {
+            if (!activeModelName) return;
+
+            let type = document.getElementById('custType').value;
+            let limit = parseFloat(document.getElementById('custLimit').value) || 0;
+            let inv = parseFloat(document.getElementById('custInvoice').value) || 0;
+            let maxLtvLimit = parseFloat(document.getElementById('custLtv').value) || 100;
+            let cap = parseFloat(document.getElementById('custCap').value) || 0;
+
+            let fee = (type === 'EMI CARD') ? 270 : (type === 'W/O CARD' ? 320 : 850);
+            let gtl = inv > 100000 ? 2398 : (inv > 50000 ? 1799 : (inv > 30000 ? 1499 : (inv > 10000 ? 1199 : (inv > 0 ? 699 : 0))));
+
+            let rawSchemes = db_records.filter(r => r.model === activeModelName);
+            let processedSchemes = [];
+
+            rawSchemes.forEach(s => {
+                let loan = 0, emi = 0, dp = 0, inst = 0, currentTenure = s.tenure;
+                let dbdRate = s.dbd * 1.18 / 100;
+                let roiRate = s.roi / 1200;
+                let roiRateDP = roiRate * s.advEmi;
+                let nbfcMaxL = limit > 0 ? (limit * s.tenure) / (s.tenure - s.advEmi || 1) : 999999;
+
+                if (s.fixedEmi > 0) {
+                    let maxTotalTenure = limit > 0 ? Math.floor(limit / s.fixedEmi) + s.advEmi : 99;
+                    currentTenure = inv > 0 ? Math.floor(inv / s.fixedEmi) : s.tenure;
+                    if (currentTenure > maxTotalTenure) currentTenure = maxTotalTenure;
+                    if (currentTenure < 1) currentTenure = 1;
+                    
+                    loan = currentTenure * s.fixedEmi;
+                    if (inv > 0 && loan > inv) loan = Math.floor(inv / s.fixedEmi) * s.fixedEmi;
+                    
+                    inst = currentTenure - s.advEmi; if (inst < 1) inst = 1;
+                    let roiInEmi = loan * roiRate;
+                    emi = s.fixedEmi + (gtl / inst) + roiInEmi;
+                    
+                    let roiInDp = loan * roiRateDP;
+                    let dpExact = inv - loan + (s.fixedEmi * s.advEmi) + (loan * dbdRate) + s.pf + fee + roiInDp;
+                    dp = Math.ceil(dpExact / 10) * 10;
+                } else {
+                    loan = Math.min(nbfcMaxL, inv > 0 ? inv : 999999);
+                    inst = s.tenure - s.advEmi; if (inst < 1) inst = 1;
+                    let baseEmi = loan / s.tenure;
+                    if (baseEmi > 0 && baseEmi < 900) baseEmi = 900;
+                    
+                    let roiInEmi = loan * roiRate;
+                    emi = baseEmi + (gtl / inst) + roiInEmi;
+                    
+                    if (cap > 0 && emi > cap) {
+                        loan = (cap - (gtl / inst)) / ((1 / s.tenure) + roiRate);
+                        if (loan < 0) loan = 0;
+                        if (inv > 0 && loan > inv) loan = inv;
+                        baseEmi = loan / s.tenure;
+                        if (baseEmi > 0 && baseEmi < 900) baseEmi = 900;
+                        roiInEmi = loan * roiRate;
+                        emi = baseEmi + (gtl / inst) + roiInEmi;
+                    }
+                    
+                    let roiInDp = loan * roiRateDP;
+                    let dpExact = inv - loan + (baseEmi * s.advEmi) + (loan * dbdRate) + s.pf + fee + roiInDp;
+                    dp = Math.ceil(dpExact / 10) * 10;
+                }
+
+                let ltv = currentTenure > 0 ? ((currentTenure - s.advEmi) / currentTenure) * 100 : 0;
+                let daily = emi / 30;
+
+                // फक्त Max LTV च्या आतील स्कीम्स घ्या
+                if (ltv <= maxLtvLimit && loan > 0) {
+                    processedSchemes.push({ ...s, loan, dp, emi, inst, daily, currentTenure, ltv });
+                }
             });
 
-            // LTV नुसार स्कीम्स उतरत्या क्रमाने (Descending Order) सॉर्ट करणे
-            schemes.sort((a, b) => b.ltv - a.ltv);
-            
+            // LTV नुसार उतरत्या क्रमाने सॉर्ट करा
+            processedSchemes.sort((a, b) => b.ltv - a.ltv);
+            currentSchemes = processedSchemes;
+            renderTable();
+        }
+
+        function renderTable() {
             let tbody = document.getElementById('schemeBody');
-            tbody.innerHTML = schemes.map(s => {
-                let fixedEmiDisplay = s.fixedEmi > 0 ? "₹" + s.fixedEmi : "N/A";
-                
+            tbody.innerHTML = currentSchemes.map((s, index) => {
+                let dpDisplay = s.dp > 0 ? `₹${Math.round(s.dp).toLocaleString()}` : "₹0";
                 return `
                     <tr>
                         <td style="color: #034887;">${Math.round(s.ltv)}%</td>
-                        <td style="color: var(--indigo);">${s.tenure} / ${s.advEmi}</td>
-                        <td>${s.dbd}%</td>
-                        <td>₹${s.pf}</td>
-                        <td>${s.roi}%</td>
-                        <td style="color: #d35400;">${fixedEmiDisplay}</td>
+                        <td style="color: var(--indigo);">${s.currentTenure} / ${s.advEmi}</td>
+                        <td style="color: #f39c12;">₹${Math.floor(s.loan).toLocaleString()}</td>
+                        <td style="color: #27ae60;">${dpDisplay}</td>
+                        <td style="color: #0984e3;">₹${Math.round(s.emi).toLocaleString()}</td>
+                        <td>${s.inst}</td>
+                        <td style="color: #e67e22;">₹${Math.round(s.daily).toLocaleString()}</td>
+                        <td><button class="btn-action" onclick="copyText(${index}, this)">COPY</button></td>
                     </tr>
                 `;
             }).join('');
+        }
 
-            document.getElementById('schemeTable').style.display = 'table';
+        // टेक्स्ट कॉपी करण्यासाठी
+        function copyText(index, btnElement) {
+            let s = currentSchemes[index];
+            let inv = document.getElementById('custInvoice').value || 0;
+            let text = `📱 *${activeModelName}*\n\n`;
+            if (inv > 0) text += `*INVOICE AMOUNT:* ₹${inv}\n\n`;
+            text += `✅ *Scheme:* ${s.currentTenure}/${s.advEmi}\n`;
+            text += `💰 *DP:* ₹${Math.round(s.dp).toLocaleString()}\n`;
+            text += `🗓️ *EMI:* ₹${Math.round(s.emi).toLocaleString()} x ${s.inst} Months\n`;
+            text += `✨ *Daily EMI:* ₹${Math.round(s.daily).toLocaleString()}`;
+
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(text).then(() => {
+                    let oldText = btnElement.innerText;
+                    btnElement.innerText = "COPIED!";
+                    btnElement.style.background = "#27ae60";
+                    setTimeout(() => { btnElement.innerText = oldText; btnElement.style.background = "#0984e3"; }, 2000);
+                });
+            }
+        }
+
+        // इमेज कॉपी करण्यासाठी (फक्त निवडक रकाने)
+        function copyImage() {
+            if(currentSchemes.length === 0) return;
+            
+            let btn = document.querySelector('.btn-copy-img');
+            let origText = btn.innerText;
+            btn.innerText = "⏳ COPYING...";
+
+            let inv = document.getElementById('custInvoice').value || 0;
+
+            // एक नवीन अदृश्य Div बनवणे (इमेज काढण्यासाठी)
+            let printDiv = document.createElement('div');
+            printDiv.style.width = "700px";
+            printDiv.style.padding = "20px";
+            printDiv.style.background = "#ffffff";
+            printDiv.style.position = "absolute";
+            printDiv.style.top = "-9999px";
+            printDiv.style.fontFamily = "sans-serif";
+
+            let trs = currentSchemes.map((s, i) => {
+                let bgCol = i % 2 === 0 ? '#ffffff' : '#f8fafc';
+                return `
+                <tr style="background: ${bgCol}; border-bottom: 1px solid #e2e8f0;">
+                    <td style="padding: 15px; font-size: 24px; font-weight: 900; color: #1e293b;">${s.currentTenure}/${s.advEmi}</td>
+                    <td style="padding: 15px; font-size: 24px; font-weight: 900; color: #059669;">₹${Math.round(s.dp).toLocaleString()}</td>
+                    <td style="padding: 15px; font-size: 24px; font-weight: 900; color: #095797;">₹${Math.round(s.emi).toLocaleString()}</td>
+                    <td style="padding: 15px; font-size: 24px; font-weight: 900; color: #0f172a;">${s.inst}</td>
+                    <td style="padding: 15px; font-size: 24px; font-weight: 900; color: #ea580c;">₹${Math.round(s.daily).toLocaleString()}</td>
+                </tr>`;
+            }).join('');
+
+            printDiv.innerHTML = `
+            <div style="border: 3px solid #034887; border-radius: 12px; overflow: hidden;">
+                <div style="background: #034887; color: white; padding: 20px; text-align: center;">
+                    <h2 style="margin: 0; font-size: 28px; font-weight: 900; text-transform: uppercase;">📱 ${activeModelName}</h2>
+                    ${inv > 0 ? `<div style="margin-top: 8px; font-size: 18px; font-weight: bold;">INVOICE AMOUNT: ₹${parseFloat(inv).toLocaleString()}</div>` : ''}
+                </div>
+                <table style="width: 100%; border-collapse: collapse; text-align: center;">
+                    <thead style="background: #f1f5f9; color: #334155; border-bottom: 2px solid #cbd5e1;">
+                        <tr>
+                            <th style="padding: 15px; font-size: 18px; font-weight: 900;">SCHEME (T/A)</th>
+                            <th style="padding: 15px; font-size: 18px; font-weight: 900;">NET DP</th>
+                            <th style="padding: 15px; font-size: 18px; font-weight: 900;">EMI</th>
+                            <th style="padding: 15px; font-size: 18px; font-weight: 900;">MONTHS</th>
+                            <th style="padding: 15px; font-size: 18px; font-weight: 900;">DAILY</th>
+                        </tr>
+                    </thead>
+                    <tbody>${trs}</tbody>
+                </table>
+            </div>`;
+            
+            document.body.appendChild(printDiv);
+
+            html2canvas(printDiv, { scale: 2, useCORS: true }).then(canvas => {
+                canvas.toBlob(blob => {
+                    navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]).then(() => {
+                        btn.innerText = "✅ COPIED";
+                        setTimeout(() => { btn.innerText = origText; }, 2000);
+                        document.body.removeChild(printDiv);
+                    });
+                }, "image/png");
+            });
         }
 
         window.onload = loadExcelData;
