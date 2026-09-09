@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pro Scheme Calculator</title>
+    <title>Pro Scheme Calculator (Mobile View)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
@@ -17,51 +17,27 @@
             max-width: 480px; 
         }
 
-        .card {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-            margin-bottom: 12px;
-        }
+        .card { background: white; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); margin-bottom: 12px; }
 
-        /* Exclusive Accordion Headers */
+        /* Accordion Headers */
         .main-accordion-header {
-            background: #ffffff;
-            padding: 12px 15px;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-radius: 8px;
-            transition: 0.2s;
-            border: 1px solid transparent;
+            background: #ffffff; padding: 12px 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+            border-radius: 8px; transition: 0.2s; border: 1px solid transparent;
         }
-        
-        .main-accordion-header.active { 
-            border-radius: 8px 8px 0 0; 
-            border-bottom: 1px solid #eee; 
-            background: #f0f8ff; 
-            border-color: #bee3f8;
-        }
-
+        .main-accordion-header.active { border-radius: 8px 8px 0 0; border-bottom: 1px solid #eee; background: #f0f8ff; border-color: #bee3f8; }
         .main-accordion-header h3 { margin: 0; color: #034887; font-size: 15px; }
         .toggle-icon { font-size: 12px; color: #0984e3; font-weight: bold; }
-
         .card-content { padding: 12px; display: none; }
         
-        /* Compact Inputs */
+        /* Compact Inputs without Spinners */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; }
+
         input, select { 
-            padding: 8px 10px; 
-            font-size: 13px; 
-            box-sizing: border-box; 
-            border: 1px solid #ccc; 
-            border-radius: 4px; 
-            outline: none;
-            width: 100%;
-            height: 38px;
-            background: #fff;
+            padding: 8px 10px; font-size: 13px; box-sizing: border-box; border: 1px solid #ccc; 
+            border-radius: 4px; outline: none; width: 100%; height: 38px; background: #fff;
         }
-        
         input:focus, select:focus { border-color: #0984e3; box-shadow: 0 0 3px rgba(9,132,227,0.3); }
         input:disabled, select:disabled { background: #e9ecef; color: #666; cursor: not-allowed; }
 
@@ -70,12 +46,14 @@
         .input-group { display: flex; flex-direction: column; gap: 2px; }
         .input-group label { font-size: 10px; font-weight: bold; color: #666; text-transform: uppercase; }
 
+        /* Rule Info Box */
+        .rule-box { background: #fff8e1; border-left: 3px solid #f39c12; padding: 8px; border-radius: 4px; font-size: 10px; color: #555; margin-bottom: 12px; line-height: 1.5; }
+        .rule-box strong { color: #d35400; }
+
         /* Search Results */
         #searchResults { 
-            position: absolute; top: 100%; left: 0; right: 0; 
-            background: white; max-height: 200px; overflow-y: auto; 
-            border: 1px solid #ccc; border-radius: 6px; 
-            box-shadow: 0 8px 16px rgba(0,0,0,0.2); display: none; z-index: 1000; 
+            position: absolute; top: 100%; left: 0; right: 0; background: white; max-height: 200px; overflow-y: auto; 
+            border: 1px solid #ccc; border-radius: 6px; box-shadow: 0 8px 16px rgba(0,0,0,0.2); display: none; z-index: 1000; 
         }
         .result-item { padding: 10px 12px; border-bottom: 1px solid #eee; cursor: pointer; font-size: 13px; font-weight: bold; color: #333; }
         .result-item:hover { background: #e3f2fd; color: #0984e3; }
@@ -99,18 +77,27 @@
         .product-header.active { border-radius: 6px 6px 0 0; margin-bottom: 0; background: #0984e3; }
         .product-body {
             border: 1px solid #0984e3; border-top: none; border-radius: 0 0 6px 6px; 
-            padding: 8px; background: #fff; display: none; margin-bottom: 12px;
+            padding: 6px; background: #fff; display: none; margin-bottom: 12px;
         }
+        
+        .remove-btn { color: #ffcccc; background: none; border: none; font-size: 14px; font-weight: bold; padding: 0 5px; cursor: pointer; }
+        .remove-btn:hover { color: white; }
 
-        /* Compact Scroll-proof Table */
+        /* Compact Scroll-proof Table with Sub-rows */
         .scheme-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-        .scheme-table th, .scheme-table td { padding: 8px 2px; font-size: 11px; font-weight: bold; text-align: center; border-bottom: 1px solid #eee; word-wrap: break-word; }
-        .scheme-table th { background: #034887; color: white; font-size: 10px; text-transform: uppercase; }
-        .scheme-table tr:nth-child(even) { background: #f8fafc; }
+        .scheme-table th, .scheme-table td { padding: 6px 2px; font-size: 11px; font-weight: bold; text-align: center; word-wrap: break-word; }
+        .scheme-table th { background: #034887; color: white; font-size: 10px; text-transform: uppercase; border-bottom: none; }
+        
+        .row-main td { border-bottom: none; padding-top: 8px; }
+        .row-sub td { padding: 4px 6px 8px 6px; font-size: 9px; color: #666; text-align: left; border-bottom: 2px solid #ddd; background: #f8fafc; }
+
+        .loan-input {
+            width: 100%; height: 26px; padding: 2px; font-size: 11px; text-align: center; 
+            font-weight: bold; border: 1px solid #0984e3; color: #d35400; border-radius: 3px; background: #fff3e0;
+        }
+        .loan-input:focus { background: #fff; }
 
         .btn-action { padding: 4px 6px; font-size: 9px; font-weight: bold; color: white; background: #0984e3; border: none; border-radius: 3px; cursor: pointer; }
-        .btn-action:hover { background: #034887; }
-        
         .btn-copy-img { width: 100%; padding: 10px; font-size: 13px; font-weight: bold; color: white; background: #27ae60; border: none; border-radius: 4px; cursor: pointer; margin-bottom: 10px; }
 
         /* Modals */
@@ -160,18 +147,9 @@
                 </div>
             </div>
             <div class="form-grid" style="margin-top: 8px;">
-                <div class="input-group">
-                    <label>NBFC Limit (₹)</label>
-                    <input type="number" id="custLimit" placeholder="0" oninput="handleInputUpdate()">
-                </div>
-                <div class="input-group">
-                    <label>Max LTV (%)</label>
-                    <input type="number" id="custLtv" value="100" oninput="handleInputUpdate()">
-                </div>
-                <div class="input-group">
-                    <label>EMI Capping (₹)</label>
-                    <input type="number" id="custCap" placeholder="Max EMI" oninput="handleInputUpdate()">
-                </div>
+                <div class="input-group"><label>NBFC Limit (₹)</label><input type="number" id="custLimit" placeholder="0" oninput="handleInputUpdate()"></div>
+                <div class="input-group"><label>Max LTV (%)</label><input type="number" id="custLtv" value="100" oninput="handleInputUpdate()"></div>
+                <div class="input-group"><label>EMI Capping (₹)</label><input type="number" id="custCap" placeholder="Max EMI" oninput="handleInputUpdate()"></div>
             </div>
         </div>
     </div>
@@ -183,6 +161,12 @@
             <span class="toggle-icon" id="advancedIcon">▶</span>
         </div>
         <div id="advancedContent" class="card-content">
+            <!-- GTL & RFC Rule Box -->
+            <div class="rule-box">
+                <strong>GTL Rule:</strong> Up to 10k: ₹699 | 30k: ₹1199 | 50k: ₹1499 | 1L: ₹1799 | >1L: ₹2398<br>
+                <strong>RFC Rule:</strong> 10k: ₹1109 | 15k: ₹1631 | 20k: ₹2147 | 25k: ₹2695 | 30k: ₹3215 | 40k: ₹4219 | 50k: ₹5720
+            </div>
+
             <div class="form-grid full" style="margin-bottom: 8px;">
                 <div class="input-group">
                     <label>Invoice Amount (₹) *</label>
@@ -190,35 +174,17 @@
                 </div>
             </div>
             <div class="form-grid">
-                <div class="input-group">
-                    <label>Target DP (₹)</label>
-                    <input type="number" id="advTarget" placeholder="0" oninput="handleInputUpdate()">
-                </div>
-                <div class="input-group">
-                    <label>GTL (₹)</label>
-                    <input type="number" id="advGtl" placeholder="0" oninput="handleInputUpdate()">
-                </div>
-                <div class="input-group">
-                    <label>RFC (₹)</label>
-                    <input type="number" id="advRfc" placeholder="0" oninput="handleInputUpdate()">
-                </div>
-                <div class="input-group">
-                    <label>EXW (₹)</label>
-                    <input type="number" id="advExw" placeholder="0" oninput="handleInputUpdate()">
-                </div>
-                <div class="input-group">
-                    <label>Margin (₹)</label>
-                    <input type="number" id="advMargin" placeholder="0" oninput="handleInputUpdate()">
-                </div>
-                <div class="input-group">
-                    <label>Dealer Contri (₹)</label>
-                    <input type="number" id="advDealer" placeholder="0" oninput="handleInputUpdate()">
-                </div>
+                <div class="input-group"><label>Target DP (₹)</label><input type="number" id="advTarget" placeholder="0" oninput="handleInputUpdate()"></div>
+                <div class="input-group"><label>GTL (₹)</label><input type="number" id="advGtl" placeholder="0" oninput="handleInputUpdate()"></div>
+                <div class="input-group"><label>RFC (₹)</label><input type="number" id="advRfc" placeholder="0" oninput="handleInputUpdate()"></div>
+                <div class="input-group"><label>EXW (₹)</label><input type="number" id="advExw" placeholder="0" oninput="handleInputUpdate()"></div>
+                <div class="input-group"><label>Margin (₹)</label><input type="number" id="advMargin" placeholder="0" oninput="handleInputUpdate()"></div>
+                <div class="input-group"><label>Dealer Contri (₹)</label><input type="number" id="advDealer" placeholder="0" oninput="handleInputUpdate()"></div>
             </div>
         </div>
     </div>
 
-    <!-- 📋 Session Summary (Independent Accordion) -->
+    <!-- 📋 Session Summary -->
     <div class="card">
         <div class="card-header active" onclick="toggleSimpleAccordion('summaryContent', 'summaryIcon', this)" style="display:flex; justify-content:space-between; padding:12px; cursor:pointer;">
             <h4 style="margin:0; color:#555;">📋 Session Summary</h4>
@@ -289,7 +255,6 @@
         let activeProductIndex = -1;
         const GITHUB_RAW_URL = "https://raw.githubusercontent.com/luckyjathar/testcalculator/main/master_data.xlsx";
 
-        // Exclusive Accordion Logic (Only 1 open at a time)
         function toggleMainAccordion(contentId, iconId, headerEl) {
             const sections = ['searchContent', 'eligibilityContent', 'advancedContent'];
             const icons = ['searchIcon', 'eligibilityIcon', 'advancedIcon'];
@@ -297,28 +262,31 @@
 
             let isOpen = document.getElementById(contentId).style.display === "block";
 
-            // Close all
             sections.forEach(id => document.getElementById(id).style.display = "none");
             icons.forEach(id => document.getElementById(id).innerText = "▶");
             headers.forEach(el => el.classList.remove('active'));
 
-            // Open clicked if it was closed
             if (!isOpen) {
                 document.getElementById(contentId).style.display = "block";
-                document.getElementById(iconId).innerText = "▼";
-                headerEl.classList.add('active');
+                if(iconId !== 'none') document.getElementById(iconId).innerText = "▼";
+                if(headerEl) headerEl.classList.add('active');
             }
         }
 
-        // Simple Toggle for Summary
         function toggleSimpleAccordion(contentId, iconId, headerEl) {
             let content = document.getElementById(contentId);
             let icon = document.getElementById(iconId);
-            if (content.style.display === "none") {
-                content.style.display = "block"; icon.innerText = "▼";
-            } else {
-                content.style.display = "none"; icon.innerText = "▶";
+            if (content.style.display === "none") { content.style.display = "block"; icon.innerText = "▼"; } 
+            else { content.style.display = "none"; icon.innerText = "▶"; }
+        }
+
+        function handleCardTypeChange() {
+            let type = document.getElementById('custType').value;
+            if (type === "") {
+                ['custLimit','custInvoice','custCap','advTarget','advGtl','advRfc','advExw','advMargin','advDealer'].forEach(id => document.getElementById(id).value = '');
+                document.getElementById('custLtv').value = '100';
             }
+            handleInputUpdate();
         }
 
         function isMobileCat(cat) {
@@ -363,14 +331,10 @@
                 let res = await fetch(GITHUB_RAW_URL + '?t=' + new Date().getTime());
                 let dataBuffer = await res.arrayBuffer();
                 let wb = XLSX.read(new Uint8Array(dataBuffer), { type: 'array' });
-                
-                // Read Sheet 1 (Regular)
                 let sheet1Data = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: "" }).map(r => mapData(r, "REG"));
-                // Read Sheet 2 (Non Tieup) if exists
                 let sheet2Data = wb.SheetNames.length > 1 ? XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[1]], { defval: "" }).map(r => mapData(r, "NON TIEUP")) : [];
                 
                 db_records = [...sheet1Data, ...sheet2Data].filter(x => x && x.model !== "");
-                
                 document.getElementById('loadingStatus').style.display = 'none';
                 document.getElementById('searchInput').disabled = false;
             } catch(err) {
@@ -389,14 +353,11 @@
             if (matches.length === 0) {
                 resultsDiv.innerHTML = '<div style="padding:15px; color:red; font-size: 13px; text-align:center;">No matching models found.</div>';
             } else {
-                resultsDiv.innerHTML = matches.map(m => 
-                    `<div class="result-item" onclick="selectModel('${m.replace(/'/g, "\\'")}', false, 'OTHER')">📱 ${m}</div>`
-                ).join('');
+                resultsDiv.innerHTML = matches.map(m => `<div class="result-item" onclick="selectModel('${m.replace(/'/g, "\\'")}', false, 'OTHER')">📱 ${m}</div>`).join('');
             }
             resultsDiv.style.display = 'block';
         }
 
-        // --- Multi Product Logic ---
         function selectModel(modelName, isNonTieup = false, category = "OTHER", manualSchemes = null) {
             document.getElementById('searchInput').value = '';
             document.getElementById('searchResults').style.display = 'none';
@@ -404,9 +365,8 @@
             let cat = category;
             let rawSchemes = [];
             
-            if (manualSchemes) {
-                rawSchemes = manualSchemes;
-            } else if (!isNonTieup) {
+            if (manualSchemes) { rawSchemes = manualSchemes; } 
+            else if (!isNonTieup) {
                 let rec = db_records.find(r => r.model === modelName);
                 if(rec) cat = rec.category;
                 rawSchemes = db_records.filter(r => r.model === modelName);
@@ -414,7 +374,6 @@
                 rawSchemes = db_records.filter(r => r.model === "NON TIEUP" && r.category === cat);
             }
 
-            // Capture current global inputs to seed the new product
             let pInputs = {
                 type: document.getElementById('custType').value || '',
                 limit: parseFloat(document.getElementById('custLimit').value) || 0,
@@ -426,7 +385,8 @@
                 rfc: parseFloat(document.getElementById('advRfc').value) || 0,
                 exw: parseFloat(document.getElementById('advExw').value) || 0,
                 margin: parseFloat(document.getElementById('advMargin').value) || 0,
-                dealer: parseFloat(document.getElementById('advDealer').value) || 0
+                dealer: parseFloat(document.getElementById('advDealer').value) || 0,
+                overrides: {} // To store manual loan inputs
             };
 
             let newProd = {
@@ -442,8 +402,6 @@
             activeProductIndex = current_products.length - 1;
 
             document.getElementById('finalCalcSection').style.display = 'block';
-            
-            // Auto open Final Calculation and collapse others
             toggleMainAccordion('none', 'none', document.createElement('div')); 
             
             syncUIWithActiveProduct();
@@ -451,7 +409,19 @@
             renderFinalCalculation();
         }
 
-        // When user clicks a model in the Final Calc section
+        function removeProduct(index, event) {
+            event.stopPropagation();
+            current_products.splice(index, 1);
+            if (current_products.length === 0) {
+                activeProductIndex = -1;
+                document.getElementById('finalCalcSection').style.display = 'none';
+            } else {
+                activeProductIndex = current_products.length - 1;
+            }
+            syncUIWithActiveProduct();
+            renderFinalCalculation();
+        }
+
         function switchActiveProduct(index) {
             if(activeProductIndex === index) return;
             activeProductIndex = index;
@@ -459,7 +429,6 @@
             renderFinalCalculation();
         }
 
-        // Restore global input boxes with active product's data
         function syncUIWithActiveProduct() {
             if(activeProductIndex === -1) return;
             let p = current_products[activeProductIndex];
@@ -484,7 +453,6 @@
             updateSummary();
         }
 
-        // Auto rule for Invoice change
         function onInvoiceChange() {
             let inv = parseFloat(document.getElementById('custInvoice').value) || 0;
             let gtl = inv > 100000 ? 2398 : (inv > 50000 ? 1799 : (inv > 30000 ? 1499 : (inv > 10000 ? 1199 : (inv > 0 ? 699 : 0))));
@@ -497,23 +465,11 @@
                     let rfc = getRfcSlab(inv);
                     document.getElementById('advRfc').value = rfc > 0 ? rfc : "";
                     document.getElementById('advExw').value = "";
-                } else {
-                    document.getElementById('advRfc').value = "0";
-                }
+                } else { document.getElementById('advRfc').value = "0"; }
             }
             handleInputUpdate();
         }
 
-        function handleCardTypeChange() {
-            let type = document.getElementById('custType').value;
-            if (type === "") {
-                ['custLimit','custInvoice','custCap','advTarget','advGtl','advRfc','advExw','advMargin','advDealer'].forEach(id => document.getElementById(id).value = '');
-                document.getElementById('custLtv').value = '100';
-            }
-            handleInputUpdate();
-        }
-
-        // Save UI inputs to active product and recalculate
         function handleInputUpdate() {
             if (activeProductIndex === -1) return;
             let p = current_products[activeProductIndex];
@@ -539,7 +495,6 @@
         function updateSummary() {
             if(activeProductIndex === -1) return;
             let p = current_products[activeProductIndex];
-            
             let fee = 0;
             if (p.inputs.type === 'EMI CARD' || p.inputs.type === 'INSTA EMI CARD') fee = 270;
             else if (p.inputs.type === 'W/O CARD') fee = 320;
@@ -550,6 +505,15 @@
             document.getElementById('sumInv').innerText = p.inputs.inv || "0";
             document.getElementById('sumLimit').innerText = p.inputs.limit || "0";
             document.getElementById('sumTarget').innerText = p.inputs.target || "0";
+        }
+
+        // Custom Override for single scheme loan
+        function overrideSchemeLoan(pIndex, sKey, newLoanVal) {
+            let val = parseFloat(newLoanVal) || 0;
+            let p = current_products[pIndex];
+            p.inputs.overrides[sKey] = val > 0 ? val : undefined;
+            recalculateProduct(pIndex);
+            renderFinalCalculation();
         }
 
         function recalculateProduct(index) {
@@ -566,6 +530,10 @@
             let processedSchemes = [];
 
             p.rawSchemes.forEach(s => {
+                let sKey = `${s.tenure}_${s.advEmi}_${s.fixedEmi}`;
+                let isOverridden = inp.overrides && inp.overrides[sKey] !== undefined;
+                let overrideVal = isOverridden ? inp.overrides[sKey] : 0;
+
                 let loan = 0, emi = 0, dp = 0, inst = 0, currentTenure = s.tenure;
                 let dbdRate = s.dbd * 1.18 / 100;
                 let roiRate = s.roi / 1200;
@@ -583,12 +551,11 @@
                     if (inp.target > 0) {
                         let numerator = inp.target - inp.inv - (s.fixedEmi * s.advEmi) - totalFees;
                         let denominator = dbdRate + roiRateDP - 1;
-                        let solvedTenure = Math.floor((numerator / denominator) / s.fixedEmi);
-                        if (solvedTenure > maxTotalTenure) solvedTenure = maxTotalTenure;
-                        loan = Math.max(0, solvedTenure * s.fixedEmi);
-                        currentTenure = Math.floor(loan / s.fixedEmi) || 1;
+                        loan = Math.max(0, Math.floor((numerator / denominator) / s.fixedEmi) * s.fixedEmi);
                     }
                     if (inp.inv > 0 && loan > inp.inv) loan = Math.floor(inp.inv / s.fixedEmi) * s.fixedEmi;
+                    
+                    if (isOverridden) { loan = overrideVal; currentTenure = Math.floor(loan / s.fixedEmi) || 1; }
                     
                     inst = currentTenure - s.advEmi; if (inst < 1) inst = 1;
                     emi = s.fixedEmi + (insTotal / inst) + (loan * roiRate);
@@ -596,31 +563,29 @@
                 } else {
                     loan = Math.min(nbfcMaxL, inp.inv > 0 ? inp.inv : 999999);
                     if (inp.target > 0 && inp.inv > 0) {
-                        let solvedLoan = (inp.target - inp.inv - totalFees) / ((s.advEmi / s.tenure) + dbdRate + roiRateDP - 1);
-                        loan = Math.min(loan, Math.max(0, Math.floor(solvedLoan)));
+                        loan = Math.min(loan, Math.max(0, Math.floor((inp.target - inp.inv - totalFees) / ((s.advEmi / s.tenure) + dbdRate + roiRateDP - 1))));
                     }
+                    
+                    if (isOverridden) { loan = overrideVal; }
 
                     inst = s.tenure - s.advEmi; if (inst < 1) inst = 1;
                     let baseEmi = Math.max(900, loan / s.tenure);
                     emi = baseEmi + (insTotal / inst) + (loan * roiRate);
                     
-                    if (inp.cap > 0 && emi > inp.cap) {
+                    if (inp.cap > 0 && emi > inp.cap && !isOverridden) {
                         loan = Math.max(0, (inp.cap - (insTotal / inst)) / ((1 / s.tenure) + roiRate));
                         if (inp.inv > 0 && loan > inp.inv) loan = inp.inv;
-                        baseEmi = Math.max(900, loan / s.tenure);
-                        emi = baseEmi + (insTotal / inst) + (loan * roiRate);
+                        emi = Math.max(900, loan / s.tenure) + (insTotal / inst) + (loan * roiRate);
                     }
-                    dp = Math.ceil((inp.inv - loan + (baseEmi * s.advEmi) + (loan * dbdRate) + totalFees + (loan * roiRateDP)) / 10) * 10;
+                    dp = Math.ceil((inp.inv - loan + (Math.max(900, loan/s.tenure) * s.advEmi) + (loan * dbdRate) + totalFees + (loan * roiRateDP)) / 10) * 10;
                 }
 
                 let ltv = currentTenure > 0 ? ((currentTenure - s.advEmi) / currentTenure) * 100 : 0;
                 let daily = emi / 30;
-
-                // Max/Min Loan Check for Non-Tieup
                 let boundCheck = p.isNonTieup ? (loan >= s.minLoan && loan <= s.maxLoan) : true;
 
-                if (ltv <= inp.ltv && loan > 0 && boundCheck) {
-                    processedSchemes.push({ ...s, loan, dp, emi, inst, daily, currentTenure, ltv });
+                if (isOverridden || (ltv <= inp.ltv && loan > 0 && boundCheck)) {
+                    processedSchemes.push({ ...s, loan, dp, emi, inst, daily, currentTenure, ltv, sKey });
                 }
             });
 
@@ -637,32 +602,43 @@
                 let invText = p.inputs.inv > 0 ? ` (₹${p.inputs.inv})` : "";
                 
                 let html = `
-                <div style="margin-bottom: ${isActive ? '10px' : '4px'};">
+                <div style="margin-bottom: ${isActive ? '10px' : '6px'};">
                     <div class="product-header ${isActive ? 'active' : ''}" onclick="switchActiveProduct(${index})">
                         <span>📱 ${p.name}${invText}</span>
-                        <span>${isActive ? '▼' : '▶'}</span>
+                        <div>
+                            <span>${isActive ? '▼' : '▶'}</span>
+                            <button class="remove-btn" onclick="removeProduct(${index}, event)">✖</button>
+                        </div>
                     </div>
                     <div class="product-body" style="display: ${isActive ? 'block' : 'none'};">
                         <table class="scheme-table">
                             <thead>
                                 <tr>
-                                    <th style="width:18%;">T/A</th>
-                                    <th style="width:22%;">DP</th>
-                                    <th style="width:25%;">EMI</th>
-                                    <th style="width:20%;">DAY</th>
-                                    <th style="width:15%;">ACT</th>
+                                    <th style="width:16%;">T/A</th>
+                                    <th style="width:30%;">LOAN (₹)</th>
+                                    <th style="width:20%;">DP</th>
+                                    <th style="width:22%;">EMI</th>
+                                    <th style="width:12%;">ACT</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 ${p.calculatedData.length > 0 ? p.calculatedData.map((s, i) => `
-                                <tr>
-                                    <td style="color:var(--indigo);">${s.currentTenure}/${s.advEmi}</td>
-                                    <td style="color:#27ae60;">₹${Math.round(s.dp).toLocaleString()}</td>
-                                    <td style="color:#0984e3; line-height:1.1;">₹${Math.round(s.emi).toLocaleString()}<br><span style="font-size:8px;color:#666;">x${s.inst}M</span></td>
-                                    <td style="color:#e67e22;">₹${Math.round(s.daily).toLocaleString()}</td>
+                                <tr class="row-main">
+                                    <td style="color:var(--indigo); font-size:13px;">${s.currentTenure}/${s.advEmi}</td>
+                                    <td>
+                                        <input type="number" class="loan-input" value="${Math.floor(s.loan)}" 
+                                               onchange="overrideSchemeLoan(${index}, '${s.sKey}', this.value)" title="Edit Loan to Recalculate">
+                                    </td>
+                                    <td style="color:#27ae60; font-size:12px;">₹${Math.round(s.dp).toLocaleString()}</td>
+                                    <td style="color:#0984e3; line-height:1.1; font-size:12px;">₹${Math.round(s.emi).toLocaleString()}<br><span style="font-size:9px;color:#666;">x${s.inst}M</span></td>
                                     <td><button class="btn-action" onclick="copyText(${index}, ${i}, this)">COPY</button></td>
                                 </tr>
-                                `).join('') : '<tr><td colspan="5" style="color:red; padding:15px;">No eligible schemes found. Check limits or values.</td></tr>'}
+                                <tr class="row-sub">
+                                    <td colspan="5">
+                                        <b>DBD:</b> ${s.dbd}% | <b>PF:</b> ₹${s.pf} | <b>ROI:</b> ${s.roi}% | <b>FIXED:</b> ${s.fixedEmi>0 ? '₹'+s.fixedEmi : 'No'} | <b>DAILY:</b> ₹${Math.round(s.daily)}
+                                    </td>
+                                </tr>
+                                `).join('') : '<tr><td colspan="5" style="color:red; padding:15px;">No eligible schemes found. Check limits or LTV.</td></tr>'}
                             </tbody>
                         </table>
                     </div>
@@ -671,7 +647,7 @@
             });
         }
 
-        // --- Modals Logic ---
+        // Modals
         function openNonTieupModal() { document.getElementById('nonTieupModal').style.display='flex'; }
         function openManualModal() { document.getElementById('manualModal').style.display='flex'; }
         
@@ -690,39 +666,22 @@
             let fix = parseInt(document.getElementById('manFix').value) || 0;
 
             if(ten === 0) { alert("Please enter valid tenure"); return; }
-
-            let manualSchemes = [{
-                tenure: ten, advEmi: adv, dbd: dbd, pf: pf, roi: roi, fixedEmi: fix,
-                minLoan: 0, maxLoan: 9999999
-            }];
-
+            let manualSchemes = [{ tenure: ten, advEmi: adv, dbd: dbd, pf: pf, roi: roi, fixedEmi: fix, minLoan: 0, maxLoan: 9999999 }];
             document.getElementById('manualModal').style.display='none';
-            // Clear inputs for next time
             ['manTen','manAdv','manDbd','manPf','manRoi','manFix'].forEach(id => document.getElementById(id).value = '');
-            
             selectModel('MANUAL SCHEME', false, 'OTHER', manualSchemes);
         }
 
         function copyText(pIndex, sIndex, btnElement) {
-            let p = current_products[pIndex];
-            let s = p.calculatedData[sIndex];
-
-            let text = `📱 *${p.name}*\n\n`;
-            text += `👤 *ELIGIBILITY:*\n`;
-            text += `*Type:* ${p.inputs.type} | *Limit:* ₹${p.inputs.limit.toLocaleString()}\n`;
-            text += `*LTV:* ${p.inputs.ltv}% ${p.inputs.cap > 0 ? '| *Cap:* ₹'+p.inputs.cap : ''}\n`;
+            let p = current_products[pIndex]; let s = p.calculatedData[sIndex];
+            let text = `📱 *${p.name}*\n\n👤 *ELIGIBILITY:*\n*Type:* ${p.inputs.type} | *Limit:* ₹${p.inputs.limit.toLocaleString()}\n*LTV:* ${p.inputs.ltv}% ${p.inputs.cap > 0 ? '| *Cap:* ₹'+p.inputs.cap : ''}\n`;
             if(p.inputs.inv > 0) text += `*Invoice:* ₹${p.inputs.inv.toLocaleString()}\n`;
-            text += `------------------------\n`;
-            text += `✅ *Scheme:* ${s.currentTenure}/${s.advEmi}\n`;
-            text += `💰 *DP:* ₹${Math.round(s.dp).toLocaleString()}\n`;
-            text += `🗓️ *EMI:* ₹${Math.round(s.emi).toLocaleString()} x ${s.inst} Months\n`;
-            text += `✨ *Daily EMI:* ₹${Math.round(s.daily).toLocaleString()}`;
+            text += `------------------------\n✅ *Scheme:* ${s.currentTenure}/${s.advEmi}\n💳 *Loan:* ₹${Math.floor(s.loan).toLocaleString()}\n💰 *DP:* ₹${Math.round(s.dp).toLocaleString()}\n🗓️ *EMI:* ₹${Math.round(s.emi).toLocaleString()} x ${s.inst} Months\n`;
+            text += `⚙️ *Rules:* DBD: ${s.dbd}% | PF: ₹${s.pf} | ROI: ${s.roi}%\n✨ *Daily EMI:* ₹${Math.round(s.daily).toLocaleString()}`;
 
             if (navigator.clipboard) {
                 navigator.clipboard.writeText(text).then(() => {
-                    let oldText = btnElement.innerText;
-                    btnElement.innerText = "COPIED";
-                    btnElement.style.background = "#27ae60";
+                    let oldText = btnElement.innerText; btnElement.innerText = "COPIED"; btnElement.style.background = "#27ae60";
                     setTimeout(() => { btnElement.innerText = oldText; btnElement.style.background = "#0984e3"; }, 2000);
                 });
             }
@@ -734,25 +693,25 @@
             if(p.calculatedData.length === 0) return;
             
             let btn = document.querySelector('.btn-copy-img');
-            let origText = btn.innerHTML;
-            btn.innerHTML = "⏳ COPYING...";
+            let origText = btn.innerHTML; btn.innerHTML = "⏳ COPYING...";
 
             let printDiv = document.createElement('div');
-            printDiv.style.width = "700px";
-            printDiv.style.position = "absolute";
-            printDiv.style.left = "-9999px";
-            printDiv.style.backgroundColor = "#ffffff";
-            printDiv.style.fontFamily = "Arial, sans-serif";
+            printDiv.style.width = "750px"; printDiv.style.position = "absolute"; printDiv.style.left = "-9999px"; printDiv.style.backgroundColor = "#ffffff"; printDiv.style.fontFamily = "Arial, sans-serif";
 
             let trs = p.calculatedData.map((s, i) => {
                 let bgCol = i % 2 === 0 ? '#ffffff' : '#f8fafc';
                 return `
                 <tr style="background-color: ${bgCol};">
-                    <td style="padding: 15px; font-size: 24px; font-weight: 900; color: #1e293b; border-bottom: 1px solid #e2e8f0;">${s.currentTenure} / ${s.advEmi}</td>
-                    <td style="padding: 15px; font-size: 24px; font-weight: 900; color: #27ae60; border-bottom: 1px solid #e2e8f0;">₹${Math.round(s.dp).toLocaleString()}</td>
-                    <td style="padding: 15px; font-size: 24px; font-weight: 900; color: #0984e3; border-bottom: 1px solid #e2e8f0;">₹${Math.round(s.emi).toLocaleString()}</td>
-                    <td style="padding: 15px; font-size: 24px; font-weight: 900; color: #333333; border-bottom: 1px solid #e2e8f0;">${s.inst}</td>
-                    <td style="padding: 15px; font-size: 24px; font-weight: 900; color: #e67e22; border-bottom: 1px solid #e2e8f0;">₹${Math.round(s.daily).toLocaleString()}</td>
+                    <td style="padding: 12px; font-size: 22px; font-weight: 900; color: #1e293b; border-bottom: 1px solid #e2e8f0;">${s.currentTenure} / ${s.advEmi}</td>
+                    <td style="padding: 12px; font-size: 22px; font-weight: 900; color: #d35400; border-bottom: 1px solid #e2e8f0;">₹${Math.floor(s.loan).toLocaleString()}</td>
+                    <td style="padding: 12px; font-size: 22px; font-weight: 900; color: #27ae60; border-bottom: 1px solid #e2e8f0;">₹${Math.round(s.dp).toLocaleString()}</td>
+                    <td style="padding: 12px; font-size: 22px; font-weight: 900; color: #0984e3; border-bottom: 1px solid #e2e8f0;">₹${Math.round(s.emi).toLocaleString()}</td>
+                    <td style="padding: 12px; font-size: 22px; font-weight: 900; color: #333333; border-bottom: 1px solid #e2e8f0;">${s.inst}</td>
+                </tr>
+                <tr style="background-color: ${bgCol}; border-bottom: 2px solid #cbd5e1;">
+                    <td colspan="5" style="padding: 6px 12px 12px 12px; font-size: 14px; font-weight: bold; color: #555555; text-align: left;">
+                        DBD: ${s.dbd}% | PF: ₹${s.pf} | ROI: ${s.roi}% | FIXED: ${s.fixedEmi > 0 ? '₹'+s.fixedEmi : 'No'} | DAILY: ₹${Math.round(s.daily).toLocaleString()}
+                    </td>
                 </tr>`;
             }).join('');
 
@@ -773,10 +732,10 @@
                         <thead style="background-color: #f1f5f9; color: #334155;">
                             <tr>
                                 <th style="padding: 18px 10px; font-size: 18px; font-weight: 900; border-bottom: 2px solid #cbd5e1;">SCHEME<br><span style="font-size:14px; font-weight:normal;">(T / A)</span></th>
+                                <th style="padding: 18px 10px; font-size: 18px; font-weight: 900; border-bottom: 2px solid #cbd5e1;">LOAN<br><span style="font-size:14px; font-weight:normal;">(₹)</span></th>
                                 <th style="padding: 18px 10px; font-size: 18px; font-weight: 900; border-bottom: 2px solid #cbd5e1;">NET&nbsp;DP</th>
                                 <th style="padding: 18px 10px; font-size: 18px; font-weight: 900; border-bottom: 2px solid #cbd5e1;">EMI</th>
                                 <th style="padding: 18px 10px; font-size: 18px; font-weight: 900; border-bottom: 2px solid #cbd5e1;">MONTHS</th>
-                                <th style="padding: 18px 10px; font-size: 18px; font-weight: 900; border-bottom: 2px solid #cbd5e1;">DAILY</th>
                             </tr>
                         </thead>
                         <tbody>${trs}</tbody>
@@ -785,18 +744,13 @@
             </div>`;
             
             document.body.appendChild(printDiv);
-
             setTimeout(() => {
                 html2canvas(printDiv, { scale: 2, useCORS: true, backgroundColor: "#ffffff", logging: false }).then(canvas => {
                     canvas.toBlob(blob => {
                         navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]).then(() => {
-                            btn.innerHTML = "✅ COPIED";
-                            setTimeout(() => { btn.innerHTML = origText; }, 2000);
-                            document.body.removeChild(printDiv);
+                            btn.innerHTML = "✅ COPIED"; setTimeout(() => { btn.innerHTML = origText; }, 2000); document.body.removeChild(printDiv);
                         }).catch(err => {
-                            btn.innerHTML = "⚠️ ERROR";
-                            setTimeout(() => { btn.innerHTML = origText; }, 2000);
-                            document.body.removeChild(printDiv);
+                            btn.innerHTML = "⚠️ ERROR"; setTimeout(() => { btn.innerHTML = origText; }, 2000); document.body.removeChild(printDiv);
                         });
                     }, "image/png");
                 });
