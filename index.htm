@@ -3,35 +3,112 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blank Add Product</title>
+    <title>Direct Model Search</title>
     <!-- Excel फाईल वाचण्यासाठी लागणारी लायब्ररी -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
     <style>
-        body { font-family: sans-serif; padding: 50px; text-align: center; background-color: #f8f9fa; }
-        #searchModal { display: none; position: fixed; top: 20%; left: 50%; transform: translate(-50%, 0); background: white; padding: 20px; border: 1px solid #ccc; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); width: 320px; z-index: 1000; }
-        input { width: 100%; padding: 10px; margin-bottom: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
-        button { padding: 12px 25px; font-size: 16px; cursor: pointer; background: #0984e3; color: white; border: none; border-radius: 5px; font-weight: bold; }
-        button:hover { opacity: 0.9; }
-        .result-item { padding: 12px 10px; border-bottom: 1px solid #eee; cursor: pointer; text-align: left; font-size: 14px; font-weight: bold; color: #333; }
-        .result-item:hover { background: #e3f2fd; color: #0984e3; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            padding: 50px; 
+            text-align: center; 
+            background-color: #f4f7f6; 
+        }
+        h2 { color: #034887; }
+        
+        /* सर्च बॉक्सची डिझाईन */
+        .search-container {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        
+        input { 
+            width: 100%; 
+            padding: 15px; 
+            font-size: 16px; 
+            box-sizing: border-box; 
+            border: 2px solid #0984e3; 
+            border-radius: 6px; 
+            outline: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        
+        input:focus { border-color: #034887; }
+
+        /* रिझल्ट दाखवणारा बॉक्स (ड्रॉपडाऊन) */
+        #searchResults { 
+            position: absolute; 
+            top: 100%; 
+            left: 0; 
+            right: 0; 
+            background: white; 
+            max-height: 250px; 
+            overflow-y: auto; 
+            border: 1px solid #ccc; 
+            border-top: none;
+            border-radius: 0 0 6px 6px; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15); 
+            display: none; 
+            z-index: 100; 
+            text-align: left; 
+        }
+
+        .result-item { 
+            padding: 12px 15px; 
+            border-bottom: 1px solid #eee; 
+            cursor: pointer; 
+            font-size: 14px; 
+            font-weight: bold; 
+            color: #333; 
+            transition: 0.2s;
+        }
+
+        .result-item:hover { 
+            background: #e3f2fd; 
+            color: #0984e3; 
+        }
+
+        #selectedProduct { 
+            margin-top: 30px; 
+            font-size: 20px; 
+            font-weight: 900; 
+            color: #27ae60; 
+            background: #e8f8f5;
+            padding: 15px;
+            border-radius: 8px;
+            display: none; /* आधी लपवून ठेवले आहे */
+            width: max-content;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        #loadingStatus {
+            color: #e67e22;
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
 
-    <!-- फक्त Add Product बटण -->
-    <button onclick="document.getElementById('searchModal').style.display='block'">➕ Add Product</button>
+    <h2>🔍 Search Product</h2>
+    
+    <!-- डेटा लोड होईपर्यंत हा मेसेज दिसेल -->
+    <div id="loadingStatus">⏳ Loading Master Data... Please wait.</div>
 
-    <!-- सर्च बॉक्स (Modal) -->
-    <div id="searchModal">
-        <h3 style="margin-top:0; color: #333;">🔍 Search Product</h3>
-        <input type="text" id="searchInput" onkeyup="searchModel()" placeholder="Type model name...">
-        <div id="searchResults" style="max-height: 250px; overflow-y: auto; border: 1px solid #eee; display:none; margin-bottom: 15px; border-radius: 4px;"></div>
-        <button onclick="document.getElementById('searchModal').style.display='none'" style="background: #e74c3c; width: 100%;">Close</button>
+    <!-- मुख्य सर्च बॉक्स -->
+    <div class="search-container">
+        <!-- डेटा लोड झाल्यावरच इनपुट चालू होईल -->
+        <input type="text" id="searchInput" onkeyup="searchModel()" placeholder="Type model name here..." disabled>
+        
+        <div id="searchResults"></div>
     </div>
 
     <!-- सिलेक्ट केलेले मॉडेल दिसण्यासाठी जागा -->
-    <div id="selectedProduct" style="margin-top: 30px; font-size: 22px; font-weight: bold; color: #27ae60;"></div>
+    <div id="selectedProduct"></div>
 
     <script>
         let db_records = [];
@@ -53,9 +130,17 @@
                     return { model: modelKey ? String(r[modelKey]).trim().toUpperCase() : "" };
                 }).filter(x => x.model !== "");
                 
+                // डेटा लोड झाल्यावर सर्च बॉक्स चालू (Enable) करणे
+                document.getElementById('loadingStatus').style.display = 'none';
+                document.getElementById('searchInput').disabled = false;
+                document.getElementById('searchInput').placeholder = "Start typing model name...";
+                document.getElementById('searchInput').focus();
+
                 console.log("Excel Data Loaded successfully!");
             } catch(err) {
                 console.error("Error loading Excel:", err);
+                document.getElementById('loadingStatus').innerText = "⚠️ Error loading data. Please refresh.";
+                document.getElementById('loadingStatus').style.color = "red";
             }
         }
 
@@ -66,12 +151,12 @@
             
             if (!q) { resultsDiv.style.display = 'none'; return; }
             
-            // टाईप केलेल्या शब्दानुसार मॉडेल शोधणे (टॉप 10)
+            // टाईप केलेल्या शब्दानुसार मॉडेल शोधणे (टॉप 15)
             let matches = db_records.filter(r => r.model.includes(q)).map(r => r.model);
-            matches = [...new Set(matches)].slice(0, 10); 
+            matches = [...new Set(matches)].slice(0, 15); 
             
             if (matches.length === 0) {
-                resultsDiv.innerHTML = '<div style="padding:10px; color:red; font-size: 13px;">No models found.</div>';
+                resultsDiv.innerHTML = '<div style="padding:15px; color:red; font-size: 13px; text-align:center;">No matching models found.</div>';
             } else {
                 resultsDiv.innerHTML = matches.map(m => 
                     `<div class="result-item" onclick="selectModel('${m.replace(/'/g, "\\'")}')">📱 ${m}</div>`
@@ -82,12 +167,14 @@
 
         // 3. मॉडेल सिलेक्ट झाल्यावर काय करायचे
         function selectModel(modelName) {
-            document.getElementById('searchModal').style.display = 'none';
+            // ड्रॉपडाऊन लपवणे आणि इनपुट बॉक्स रिकामा करणे
             document.getElementById('searchInput').value = '';
             document.getElementById('searchResults').style.display = 'none';
             
             // सिलेक्ट केलेले मॉडेल स्क्रीनवर दाखवणे
-            document.getElementById('selectedProduct').innerText = "✅ Selected: " + modelName;
+            let displayBox = document.getElementById('selectedProduct');
+            displayBox.innerText = "✅ " + modelName;
+            displayBox.style.display = 'block';
         }
 
         // फाईल रन होताच डेटा लोड सुरू करा
