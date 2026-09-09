@@ -213,15 +213,21 @@
 
             let schemes = db_records.filter(r => r.model === modelName);
             
+            // 1. प्रत्येक स्कीमचा LTV कॅल्क्युलेट करून सेव्ह करणे
+            schemes.forEach(s => {
+                s.ltv = s.tenure > 0 ? ((s.tenure - s.advEmi) / s.tenure) * 100 : 0;
+            });
+
+            // 2. LTV नुसार स्कीम्स उतरत्या क्रमाने (Descending Order) सॉर्ट करणे
+            schemes.sort((a, b) => b.ltv - a.ltv);
+            
             let tbody = document.getElementById('schemeBody');
             tbody.innerHTML = schemes.map(s => {
-                // LTV कॅल्क्युलेशन
-                let ltv = s.tenure > 0 ? ((s.tenure - s.advEmi) / s.tenure) * 100 : 0;
                 let fixedEmiDisplay = s.fixedEmi > 0 ? "₹" + s.fixedEmi : "N/A";
                 
                 return `
                     <tr>
-                        <td style="color: #034887;">${Math.round(ltv)}%</td>
+                        <td style="color: #034887; font-weight: 900; font-size: 16px;">${Math.round(s.ltv)}%</td>
                         <td style="color: var(--indigo); font-size: 16px; font-weight: 900;">${s.tenure} / ${s.advEmi}</td>
                         <td>${s.dbd}%</td>
                         <td>₹${s.pf}</td>
