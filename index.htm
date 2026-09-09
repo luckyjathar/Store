@@ -3,75 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pro Scheme Calculator</title>
+    <title>Pro Scheme Calculator (Mobile View)</title>
     <!-- आवश्यक लायब्ररीज (Excel आणि Image Copy साठी) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
     <style>
+        /* Mobile / Portrait View Styling */
         body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            padding: 20px; 
-            background-color: #f4f7f6; 
-            margin: 0;
-        }
-
-        /* टॉप हेडर आणि दोन कॉलम्सचा लेआउट */
-        .top-container {
-            display: flex;
-            justify-content: space-between;
-            gap: 20px;
-            max-width: 1200px;
+            padding: 10px; 
+            background-color: #f0f2f5; 
             margin: 0 auto;
+            max-width: 480px; /* Portrait View Limit */
         }
 
-        /* डावीकडचा सर्च बॉक्स */
-        .search-panel {
-            flex: 1;
+        .card {
             background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 15px;
             position: relative;
         }
 
-        /* उजवीकडचा कस्टमर एलिजिबिलिटी बॉक्स */
-        .eligibility-panel {
-            flex: 1.5;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            border-left: 5px solid #27ae60;
-        }
-
-        h2, h3 { margin-top: 0; color: #034887; }
+        h2, h3, h4 { margin-top: 0; color: #034887; margin-bottom: 12px; }
         
         input, select { 
             padding: 12px; 
-            font-size: 15px; 
+            font-size: 14px; 
             box-sizing: border-box; 
-            border: 2px solid #ccc; 
+            border: 2px solid #ddd; 
             border-radius: 6px; 
             outline: none;
             width: 100%;
+            background: #fff;
+            transition: 0.3s;
         }
         
         input:focus, select:focus { border-color: #0984e3; }
 
         .form-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: 1fr 1fr;
             gap: 10px;
         }
-        .form-grid label { font-size: 12px; font-weight: bold; color: #555; }
+        
+        .form-grid.full { grid-template-columns: 1fr; }
+        
+        .input-group { display: flex; flex-direction: column; gap: 4px; }
+        .input-group label { font-size: 11px; font-weight: bold; color: #555; text-transform: uppercase; }
 
         /* सर्च रिझल्ट्स */
         #searchResults { 
             position: absolute; 
             top: 100%; 
-            left: 20px; 
-            right: 20px; 
+            left: 0; 
+            right: 0; 
             background: white; 
             max-height: 250px; 
             overflow-y: auto; 
@@ -86,7 +74,7 @@
             padding: 12px 15px; 
             border-bottom: 1px solid #eee; 
             cursor: pointer; 
-            font-size: 15px; 
+            font-size: 14px; 
             font-weight: bold; 
             color: #333; 
         }
@@ -94,44 +82,45 @@
         .result-item:hover { background: #e3f2fd; color: #0984e3; }
 
         #selectedProduct { 
-            font-size: 22px; 
+            font-size: 18px; 
             font-weight: 900; 
             color: #034887; 
             display: none; 
             text-transform: uppercase;
+            text-align: center;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: #e3f2fd;
+            border-radius: 8px;
         }
 
         /* टेबलची डिझाईन */
-        .table-container {
-            max-width: 1200px;
-            margin: 20px auto;
-            background: white;
-            padding: 20px;
+        .table-wrapper {
+            overflow-x: auto; /* Horizontal scroll for mobile */
             border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            display: none;
+            border: 1px solid #ddd;
         }
 
         .scheme-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 10px;
+            min-width: 500px; /* Ensures table doesn't shrink too much */
         }
 
         .scheme-table th, .scheme-table td {
-            padding: 12px 8px;
-            font-size: 16px;
+            padding: 10px 6px;
+            font-size: 13px;
             font-weight: bold;
             text-align: center;
             border-bottom: 1px solid #eee;
         }
 
-        .scheme-table th { background: #0984e3; color: white; }
-        .scheme-table tr:hover { background: #f8fafc; }
+        .scheme-table th { background: #034887; color: white; }
+        .scheme-table tr:nth-child(even) { background: #f8fafc; }
 
         .btn-action {
-            padding: 6px 12px;
-            font-size: 12px;
+            padding: 6px 10px;
+            font-size: 11px;
             font-weight: bold;
             color: white;
             background: #0984e3;
@@ -143,8 +132,9 @@
         .btn-action:hover { background: #034887; }
 
         .btn-copy-img {
-            padding: 10px 20px;
-            font-size: 16px;
+            width: 100%;
+            padding: 12px;
+            font-size: 14px;
             font-weight: bold;
             color: white;
             background: #27ae60;
@@ -152,8 +142,9 @@
             border-radius: 6px;
             cursor: pointer;
             margin-bottom: 15px;
-            display: inline-flex;
+            display: flex;
             align-items: center;
+            justify-content: center;
             gap: 8px;
         }
         .btn-copy-img:hover { background: #219653; }
@@ -165,76 +156,113 @@
             margin-bottom: 10px;
             text-align: center;
         }
+        
+        .section-divider {
+            border-top: 1px dashed #ccc;
+            margin: 15px 0;
+        }
     </style>
 </head>
 <body>
 
     <div id="loadingStatus">⏳ Loading Master Data... Please wait.</div>
 
-    <div class="top-container">
-        <!-- डावी बाजू: मॉडेल सर्च -->
-        <div class="search-panel">
-            <h2>🔍 Search Product</h2>
+    <!-- 1. सर्च बॉक्स -->
+    <div class="card">
+        <h2>🔍 Search Product</h2>
+        <div style="position: relative;">
             <input type="text" id="searchInput" onkeyup="searchModel()" placeholder="Type model name here..." disabled>
             <div id="searchResults"></div>
         </div>
+    </div>
 
-        <!-- उजवी बाजू: Customer Eligibility -->
-        <div class="eligibility-panel">
-            <h3>👤 Customer Eligibility</h3>
-            <div class="form-grid">
-                <div>
-                    <label>Card Type</label>
-                    <select id="custType" onchange="recalculateData()">
-                        <option value="NEW">NEW</option>
-                        <option value="EMI CARD">EMI CARD</option>
-                        <option value="W/O CARD">W/O CARD</option>
-                    </select>
-                </div>
-                <div>
-                    <label>NBFC Limit (₹)</label>
-                    <input type="number" id="custLimit" placeholder="E.g. 50000" oninput="recalculateData()">
-                </div>
-                <div>
-                    <label>Invoice Amt (₹)</label>
-                    <input type="number" id="custInvoice" placeholder="E.g. 35000" oninput="recalculateData()">
-                </div>
-                <div>
-                    <label>Max LTV (%)</label>
-                    <input type="number" id="custLtv" value="100" oninput="recalculateData()">
-                </div>
-                <div>
-                    <label>EMI Capping (₹)</label>
-                    <input type="number" id="custCap" placeholder="Max EMI" oninput="recalculateData()">
-                </div>
+    <!-- 2. Customer Eligibility -->
+    <div class="card">
+        <h3>👤 Customer Eligibility</h3>
+        <div class="form-grid full">
+            <div class="input-group">
+                <label>Card Type *</label>
+                <select id="custType" onchange="recalculateData()">
+                    <option value="" selected disabled>-- Select Card Type --</option>
+                    <option value="NEW">NEW</option>
+                    <option value="EMI CARD">EMI CARD</option>
+                    <option value="INSTA EMI CARD">INSTA EMI CARD</option>
+                    <option value="W/O CARD">W/O CARD</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-grid" style="margin-top: 10px;">
+            <div class="input-group">
+                <label>NBFC Limit (₹)</label>
+                <input type="number" id="custLimit" placeholder="E.g. 50000" oninput="recalculateData()">
+            </div>
+            <div class="input-group">
+                <label>Invoice Amt (₹)</label>
+                <input type="number" id="custInvoice" placeholder="E.g. 35000" oninput="recalculateData()">
+            </div>
+            <div class="input-group">
+                <label>Max LTV (%)</label>
+                <input type="number" id="custLtv" value="100" oninput="recalculateData()">
+            </div>
+            <div class="input-group">
+                <label>EMI Capping (₹)</label>
+                <input type="number" id="custCap" placeholder="Max EMI" oninput="recalculateData()">
+            </div>
+        </div>
+
+        <div class="section-divider"></div>
+
+        <!-- 3. Advanced Inputs -->
+        <h4 style="color: #e67e22; margin-bottom: 8px;">⚙️ Advanced Charges & Margin</h4>
+        <div class="form-grid">
+            <div class="input-group">
+                <label>Target DP (₹)</label>
+                <input type="number" id="advTarget" placeholder="0" oninput="recalculateData()">
+            </div>
+            <div class="input-group">
+                <label>GTL (₹)</label>
+                <input type="number" id="advGtl" placeholder="0" oninput="recalculateData()">
+            </div>
+            <div class="input-group">
+                <label>RFC (₹)</label>
+                <input type="number" id="advRfc" placeholder="0" oninput="recalculateData()">
+            </div>
+            <div class="input-group">
+                <label>EXW (₹)</label>
+                <input type="number" id="advExw" placeholder="0" oninput="recalculateData()">
+            </div>
+            <div class="input-group">
+                <label>Margin (₹)</label>
+                <input type="number" id="advMargin" placeholder="0" oninput="recalculateData()">
+            </div>
+            <div class="input-group">
+                <label>Dealer Contri (₹)</label>
+                <input type="number" id="advDealer" placeholder="0" oninput="recalculateData()">
             </div>
         </div>
     </div>
 
-    <!-- कॅल्क्युलेटेड स्कीम्स दिसण्यासाठी टेबल -->
-    <div class="table-container" id="tableContainer">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <div id="selectedProduct"></div>
-            <button class="btn-copy-img" onclick="copyImage()">🖼️ COPY IMAGE</button>
-        </div>
+    <!-- 4. कॅल्क्युलेटेड स्कीम्स -->
+    <div class="card" id="tableContainer" style="display: none;">
+        <div id="selectedProduct"></div>
+        <button class="btn-copy-img" onclick="copyImage()">🖼️ COPY IMAGE</button>
         
-        <table id="schemeTable" class="scheme-table">
-            <thead>
-                <tr>
-                    <th>LTV %</th>
-                    <th>Scheme (T/A)</th>
-                    <th style="color:#f1c40f;">LOAN</th>
-                    <th style="color:#2ecc71;">NET DP</th>
-                    <th style="color:#0984e3;">EMI</th>
-                    <th>Months (M)</th>
-                    <th style="color:#e67e22;">Per Day</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody id="schemeBody">
-                <!-- डायनॅमिक डेटा इथे येईल -->
-            </tbody>
-        </table>
+        <div class="table-wrapper">
+            <table id="schemeTable" class="scheme-table">
+                <thead>
+                    <tr>
+                        <th style="background:#0984e3;">T/A</th>
+                        <th style="background:#2ecc71;">DP</th>
+                        <th style="background:#0984e3;">EMI</th>
+                        <th style="background:#e67e22;">DAILY</th>
+                        <th style="background:#333;">ACT</th>
+                    </tr>
+                </thead>
+                <tbody id="schemeBody">
+                    <!-- डायनॅमिक डेटा इथे येईल -->
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <script>
@@ -305,7 +333,6 @@
             recalculateData();
         }
 
-        // मुख्य कॅल्क्युलेशन फंक्शन
         function recalculateData() {
             if (!activeModelName) return;
 
@@ -315,8 +342,21 @@
             let maxLtvLimit = parseFloat(document.getElementById('custLtv').value) || 100;
             let cap = parseFloat(document.getElementById('custCap').value) || 0;
 
-            let fee = (type === 'EMI CARD') ? 270 : (type === 'W/O CARD' ? 320 : 850);
-            let gtl = inv > 100000 ? 2398 : (inv > 50000 ? 1799 : (inv > 30000 ? 1499 : (inv > 10000 ? 1199 : (inv > 0 ? 699 : 0))));
+            // Advanced Inputs
+            let target = parseFloat(document.getElementById('advTarget').value) || 0;
+            let gtl = parseFloat(document.getElementById('advGtl').value) || 0;
+            let rfc = parseFloat(document.getElementById('advRfc').value) || 0;
+            let exw = parseFloat(document.getElementById('advExw').value) || 0;
+            let margin = parseFloat(document.getElementById('advMargin').value) || 0;
+            let dealer = parseFloat(document.getElementById('advDealer').value) || 0;
+
+            let fee = 0;
+            if (type === 'EMI CARD') fee = 270;
+            else if (type === 'INSTA EMI CARD') fee = 270; // Assuming same as EMI CARD
+            else if (type === 'W/O CARD') fee = 320;
+            else if (type === 'NEW') fee = 850;
+
+            let insTotal = gtl + rfc + exw;
 
             let rawSchemes = db_records.filter(r => r.model === activeModelName);
             let processedSchemes = [];
@@ -326,6 +366,7 @@
                 let dbdRate = s.dbd * 1.18 / 100;
                 let roiRate = s.roi / 1200;
                 let roiRateDP = roiRate * s.advEmi;
+                let totalFees = fee + margin + dealer + s.pf;
                 let nbfcMaxL = limit > 0 ? (limit * s.tenure) / (s.tenure - s.advEmi || 1) : 999999;
 
                 if (s.fixedEmi > 0) {
@@ -335,49 +376,67 @@
                     if (currentTenure < 1) currentTenure = 1;
                     
                     loan = currentTenure * s.fixedEmi;
+                    
+                    if (target > 0) {
+                        let numerator = target - inv - (s.fixedEmi * s.advEmi) - totalFees;
+                        let denominator = dbdRate + roiRateDP - 1;
+                        let solvedLoan = numerator / denominator;
+                        let solvedTenure = Math.floor(solvedLoan / s.fixedEmi);
+                        if (solvedTenure > maxTotalTenure) solvedTenure = maxTotalTenure;
+                        loan = Math.max(0, solvedTenure * s.fixedEmi);
+                        currentTenure = Math.floor(loan / s.fixedEmi) || 1;
+                    }
+
                     if (inv > 0 && loan > inv) loan = Math.floor(inv / s.fixedEmi) * s.fixedEmi;
                     
                     inst = currentTenure - s.advEmi; if (inst < 1) inst = 1;
                     let roiInEmi = loan * roiRate;
-                    emi = s.fixedEmi + (gtl / inst) + roiInEmi;
+                    emi = s.fixedEmi + (insTotal / inst) + roiInEmi;
                     
                     let roiInDp = loan * roiRateDP;
-                    let dpExact = inv - loan + (s.fixedEmi * s.advEmi) + (loan * dbdRate) + s.pf + fee + roiInDp;
+                    let dpExact = inv - loan + (s.fixedEmi * s.advEmi) + (loan * dbdRate) + totalFees + roiInDp;
                     dp = Math.ceil(dpExact / 10) * 10;
                 } else {
                     loan = Math.min(nbfcMaxL, inv > 0 ? inv : 999999);
+                    
+                    if (target > 0 && inv > 0) {
+                        let advRate = s.advEmi / s.tenure;
+                        let numerator = target - inv - totalFees;
+                        let denominator = advRate + dbdRate + roiRateDP - 1;
+                        let solvedLoan = numerator / denominator;
+                        loan = Math.min(loan, Math.max(0, Math.floor(solvedLoan)));
+                    }
+
                     inst = s.tenure - s.advEmi; if (inst < 1) inst = 1;
                     let baseEmi = loan / s.tenure;
                     if (baseEmi > 0 && baseEmi < 900) baseEmi = 900;
                     
                     let roiInEmi = loan * roiRate;
-                    emi = baseEmi + (gtl / inst) + roiInEmi;
+                    emi = baseEmi + (insTotal / inst) + roiInEmi;
                     
                     if (cap > 0 && emi > cap) {
-                        loan = (cap - (gtl / inst)) / ((1 / s.tenure) + roiRate);
+                        loan = (cap - (insTotal / inst)) / ((1 / s.tenure) + roiRate);
                         if (loan < 0) loan = 0;
                         if (inv > 0 && loan > inv) loan = inv;
                         baseEmi = loan / s.tenure;
                         if (baseEmi > 0 && baseEmi < 900) baseEmi = 900;
                         roiInEmi = loan * roiRate;
-                        emi = baseEmi + (gtl / inst) + roiInEmi;
+                        emi = baseEmi + (insTotal / inst) + roiInEmi;
                     }
                     
                     let roiInDp = loan * roiRateDP;
-                    let dpExact = inv - loan + (baseEmi * s.advEmi) + (loan * dbdRate) + s.pf + fee + roiInDp;
+                    let dpExact = inv - loan + (baseEmi * s.advEmi) + (loan * dbdRate) + totalFees + roiInDp;
                     dp = Math.ceil(dpExact / 10) * 10;
                 }
 
                 let ltv = currentTenure > 0 ? ((currentTenure - s.advEmi) / currentTenure) * 100 : 0;
                 let daily = emi / 30;
 
-                // फक्त Max LTV च्या आतील स्कीम्स घ्या
                 if (ltv <= maxLtvLimit && loan > 0) {
                     processedSchemes.push({ ...s, loan, dp, emi, inst, daily, currentTenure, ltv });
                 }
             });
 
-            // LTV नुसार उतरत्या क्रमाने सॉर्ट करा
             processedSchemes.sort((a, b) => b.ltv - a.ltv);
             currentSchemes = processedSchemes;
             renderTable();
@@ -389,12 +448,9 @@
                 let dpDisplay = s.dp > 0 ? `₹${Math.round(s.dp).toLocaleString()}` : "₹0";
                 return `
                     <tr>
-                        <td style="color: #034887;">${Math.round(s.ltv)}%</td>
-                        <td style="color: var(--indigo);">${s.currentTenure} / ${s.advEmi}</td>
-                        <td style="color: #f39c12;">₹${Math.floor(s.loan).toLocaleString()}</td>
+                        <td style="color: var(--indigo);">${s.currentTenure}/${s.advEmi}</td>
                         <td style="color: #27ae60;">${dpDisplay}</td>
-                        <td style="color: #0984e3;">₹${Math.round(s.emi).toLocaleString()}</td>
-                        <td>${s.inst}</td>
+                        <td style="color: #0984e3;">₹${Math.round(s.emi).toLocaleString()}<br><span style="font-size:10px; color:#555;">x ${s.inst} M</span></td>
                         <td style="color: #e67e22;">₹${Math.round(s.daily).toLocaleString()}</td>
                         <td><button class="btn-action" onclick="copyText(${index}, this)">COPY</button></td>
                     </tr>
@@ -402,12 +458,22 @@
             }).join('');
         }
 
-        // टेक्स्ट कॉपी करण्यासाठी
+        // टेक्स्ट कॉपी
         function copyText(index, btnElement) {
             let s = currentSchemes[index];
+            let type = document.getElementById('custType').value || 'Not Selected';
+            let limit = document.getElementById('custLimit').value || 0;
+            let ltv = document.getElementById('custLtv').value || 100;
+            let cap = document.getElementById('custCap').value || 0;
             let inv = document.getElementById('custInvoice').value || 0;
+
             let text = `📱 *${activeModelName}*\n\n`;
-            if (inv > 0) text += `*INVOICE AMOUNT:* ₹${inv}\n\n`;
+            text += `👤 *CUSTOMER ELIGIBILITY:*\n`;
+            text += `*Card Type:* ${type}\n`;
+            text += `*Limit:* ₹${parseFloat(limit).toLocaleString()}  |  *Max LTV:* ${ltv}%\n`;
+            if(cap > 0) text += `*EMI Cap:* ₹${cap}\n`;
+            if(inv > 0) text += `*Invoice:* ₹${parseFloat(inv).toLocaleString()}\n`;
+            text += `------------------------\n`;
             text += `✅ *Scheme:* ${s.currentTenure}/${s.advEmi}\n`;
             text += `💰 *DP:* ₹${Math.round(s.dp).toLocaleString()}\n`;
             text += `🗓️ *EMI:* ₹${Math.round(s.emi).toLocaleString()} x ${s.inst} Months\n`;
@@ -423,14 +489,18 @@
             }
         }
 
-        // इमेज कॉपी करण्यासाठी (फिक्स केलेला कोड)
+        // इमेज कॉपी (क्लियर हेडर आणि एलिजिबिलिटी डिटेल्स सोबत)
         function copyImage() {
             if(currentSchemes.length === 0) return;
             
             let btn = document.querySelector('.btn-copy-img');
-            let origText = btn.innerText;
-            btn.innerText = "⏳ COPYING...";
+            let origText = btn.innerHTML;
+            btn.innerHTML = "⏳ COPYING...";
 
+            let type = document.getElementById('custType').value || 'Not Selected';
+            let limit = document.getElementById('custLimit').value || 0;
+            let ltv = document.getElementById('custLtv').value || 100;
+            let cap = document.getElementById('custCap').value || 0;
             let inv = document.getElementById('custInvoice').value || 0;
             let displayName = document.getElementById('selectedProduct').innerText.replace('📱 ', '').trim() || activeModelName;
 
@@ -456,18 +526,30 @@
             printDiv.innerHTML = `
             <div style="padding: 20px; background-color: #ffffff;">
                 <div style="border: 3px solid #034887; border-radius: 12px; overflow: hidden; background-color: #ffffff;">
+                    
+                    <!-- Top Blue Header -->
                     <div style="background-color: #034887; color: #ffffff; padding: 25px; text-align: center;">
-                        <div style="font-size: 32px; font-weight: 900; margin: 0; padding-bottom: 10px;">📱 ${displayName.toUpperCase()}</div>
-                        ${inv > 0 ? `<div style="font-size: 20px; font-weight: bold; color: #e0f2fe;">INVOICE AMOUNT: ₹${parseFloat(inv).toLocaleString()}</div>` : ''}
+                        <div style="font-size: 34px; font-weight: 900; margin: 0; padding-bottom: 15px; border-bottom: 1px dashed rgba(255,255,255,0.3);">📱 ${displayName.toUpperCase()}</div>
+                        
+                        <!-- Customer Eligibility Details in Image -->
+                        <div style="display: flex; justify-content: space-evenly; flex-wrap: wrap; gap: 10px; margin-top: 15px; font-size: 18px; font-weight: bold; color: #e0f2fe;">
+                            <span>TYPE: <span style="color:#f1c40f;">${type}</span></span>
+                            <span>LIMIT: <span style="color:#2ecc71;">₹${parseFloat(limit).toLocaleString()}</span></span>
+                            <span>LTV: <span style="color:#fff;">${ltv}%</span></span>
+                            ${cap > 0 ? `<span>CAP: <span style="color:#e74c3c;">₹${cap}</span></span>` : ''}
+                        </div>
+                        ${inv > 0 ? `<div style="margin-top: 15px; font-size: 22px; font-weight: 900; background: rgba(255,255,255,0.1); padding: 8px; border-radius: 6px;">INVOICE AMOUNT: ₹${parseFloat(inv).toLocaleString()}</div>` : ''}
                     </div>
+
+                    <!-- Scheme Table -->
                     <table style="width: 100%; border-collapse: collapse; text-align: center; background-color: #ffffff;">
-                        <thead style="background-color: #f1f5f9; color: #334155;">
+                        <thead style="background-color: #034887; color: #ffffff;">
                             <tr>
-                                <th style="padding: 18px 10px; font-size: 18px; font-weight: 900; border-bottom: 2px solid #cbd5e1;">SCHEME<br><span style="font-size:14px;">(T / A)</span></th>
-                                <th style="padding: 18px 10px; font-size: 18px; font-weight: 900; border-bottom: 2px solid #cbd5e1;">NET&nbsp;DP</th>
-                                <th style="padding: 18px 10px; font-size: 18px; font-weight: 900; border-bottom: 2px solid #cbd5e1;">EMI</th>
-                                <th style="padding: 18px 10px; font-size: 18px; font-weight: 900; border-bottom: 2px solid #cbd5e1;">MONTHS</th>
-                                <th style="padding: 18px 10px; font-size: 18px; font-weight: 900; border-bottom: 2px solid #cbd5e1;">DAILY</th>
+                                <th style="padding: 18px 10px; font-size: 18px; font-weight: 900; border-bottom: 2px solid #022c54;">SCHEME<br><span style="font-size:14px; font-weight:normal;">(T / A)</span></th>
+                                <th style="padding: 18px 10px; font-size: 18px; font-weight: 900; border-bottom: 2px solid #022c54;">NET&nbsp;DP</th>
+                                <th style="padding: 18px 10px; font-size: 18px; font-weight: 900; border-bottom: 2px solid #022c54;">EMI</th>
+                                <th style="padding: 18px 10px; font-size: 18px; font-weight: 900; border-bottom: 2px solid #022c54;">MONTHS</th>
+                                <th style="padding: 18px 10px; font-size: 18px; font-weight: 900; border-bottom: 2px solid #022c54;">DAILY</th>
                             </tr>
                         </thead>
                         <tbody>${trs}</tbody>
@@ -478,20 +560,15 @@
             document.body.appendChild(printDiv);
 
             setTimeout(() => {
-                html2canvas(printDiv, { 
-                    scale: 2, 
-                    useCORS: true,
-                    backgroundColor: "#ffffff",
-                    logging: false
-                }).then(canvas => {
+                html2canvas(printDiv, { scale: 2, useCORS: true, backgroundColor: "#ffffff" }).then(canvas => {
                     canvas.toBlob(blob => {
                         navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]).then(() => {
-                            btn.innerText = "✅ COPIED";
-                            setTimeout(() => { btn.innerText = origText; }, 2000);
+                            btn.innerHTML = "✅ COPIED";
+                            setTimeout(() => { btn.innerHTML = origText; }, 2000);
                             document.body.removeChild(printDiv);
                         }).catch(err => {
-                            btn.innerText = "⚠️ ERROR";
-                            setTimeout(() => { btn.innerText = origText; }, 2000);
+                            btn.innerHTML = "⚠️ ERROR";
+                            setTimeout(() => { btn.innerHTML = origText; }, 2000);
                             document.body.removeChild(printDiv);
                         });
                     }, "image/png");
@@ -501,6 +578,5 @@
 
         window.onload = loadExcelData;
     </script>
-
 </body>
 </html>
