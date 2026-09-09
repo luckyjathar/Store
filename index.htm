@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pro Scheme Calculator (Mobile View)</title>
+    <title>Pro Scheme Calculator</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
@@ -17,113 +17,114 @@
             max-width: 480px; 
         }
 
-        /* कार्ड आणि अकॉर्डियन (Collapsible) डिझाईन */
         .card {
             background: white;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            margin-bottom: 15px;
-            /* overflow: hidden; <-- हा रूल काढला आहे ज्यामुळे सर्च रिझल्ट कट होत होते */
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+            margin-bottom: 12px;
         }
 
-        .card-header {
+        /* Exclusive Accordion Headers */
+        .main-accordion-header {
             background: #ffffff;
-            padding: 15px;
+            padding: 12px 15px;
             cursor: pointer;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-radius: 10px; /* बॉर्डर रेडियस सेट केली */
-            border-bottom: 1px solid transparent;
-            transition: 0.3s;
+            border-radius: 8px;
+            transition: 0.2s;
+            border: 1px solid transparent;
         }
         
-        .card-header:hover { background: #f8fafc; }
-        .card-header.active { 
-            border-radius: 10px 10px 0 0; /* उघडल्यावर खालचे कोपरे सरळ होतील */
+        .main-accordion-header.active { 
+            border-radius: 8px 8px 0 0; 
             border-bottom: 1px solid #eee; 
             background: #f0f8ff; 
+            border-color: #bee3f8;
         }
 
-        .card-header h3 { margin: 0; color: #034887; font-size: 16px; }
-        .toggle-icon { font-size: 14px; color: #0984e3; font-weight: bold; transition: 0.3s; }
+        .main-accordion-header h3 { margin: 0; color: #034887; font-size: 15px; }
+        .toggle-icon { font-size: 12px; color: #0984e3; font-weight: bold; }
 
-        .card-content {
-            padding: 15px;
-            display: none; /* सुरुवातीला लपवलेले (Minimized) */
-            border-radius: 0 0 10px 10px;
-        }
+        .card-content { padding: 12px; display: none; }
         
+        /* Compact Inputs */
         input, select { 
-            padding: 12px; 
-            font-size: 14px; 
+            padding: 8px 10px; 
+            font-size: 13px; 
             box-sizing: border-box; 
-            border: 2px solid #ddd; 
-            border-radius: 6px; 
+            border: 1px solid #ccc; 
+            border-radius: 4px; 
             outline: none;
             width: 100%;
+            height: 38px;
             background: #fff;
-            transition: 0.3s;
         }
         
-        input:focus, select:focus { border-color: #0984e3; }
-        input:disabled, select:disabled { background: #e9ecef; cursor: not-allowed; color: #666; }
+        input:focus, select:focus { border-color: #0984e3; box-shadow: 0 0 3px rgba(9,132,227,0.3); }
+        input:disabled, select:disabled { background: #e9ecef; color: #666; cursor: not-allowed; }
 
-        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
         .form-grid.full { grid-template-columns: 1fr; }
-        .input-group { display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px; }
-        .input-group label { font-size: 11px; font-weight: bold; color: #555; text-transform: uppercase; }
+        .input-group { display: flex; flex-direction: column; gap: 2px; }
+        .input-group label { font-size: 10px; font-weight: bold; color: #666; text-transform: uppercase; }
 
-        /* सर्च रिझल्ट्स (आता कार्डच्या बाहेर पूर्ण दिसेल) */
+        /* Search Results */
         #searchResults { 
-            position: absolute; 
-            top: 100%; left: 0; right: 0; 
-            background: white; 
-            max-height: 250px; 
-            overflow-y: auto; 
-            border: 1px solid #ccc; 
-            border-radius: 6px; 
-            box-shadow: 0 8px 16px rgba(0,0,0,0.2); 
-            display: none; 
-            z-index: 1000; 
+            position: absolute; top: 100%; left: 0; right: 0; 
+            background: white; max-height: 200px; overflow-y: auto; 
+            border: 1px solid #ccc; border-radius: 6px; 
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2); display: none; z-index: 1000; 
         }
-
-        .result-item { padding: 12px 15px; border-bottom: 1px solid #eee; cursor: pointer; font-size: 14px; font-weight: bold; color: #333; }
+        .result-item { padding: 10px 12px; border-bottom: 1px solid #eee; cursor: pointer; font-size: 13px; font-weight: bold; color: #333; }
         .result-item:hover { background: #e3f2fd; color: #0984e3; }
 
-        #selectedProduct { 
-            font-size: 18px; font-weight: 900; color: #034887; 
-            display: none; text-transform: uppercase; text-align: center;
-            margin-bottom: 10px; padding: 10px; background: #e3f2fd; border-radius: 8px;
-        }
+        .action-buttons { display: flex; gap: 8px; margin-top: 10px; }
+        .btn-secondary { flex: 1; padding: 10px; background: #e2e8f0; color: #334155; border: none; border-radius: 4px; font-size: 12px; font-weight: bold; cursor: pointer; }
+        .btn-secondary:hover { background: #cbd5e1; }
 
-        /* Summary Section Styling */
-        .summary-row { display: flex; justify-content: space-between; border-bottom: 1px dashed #ddd; padding: 8px 0; font-size: 13px; }
-        .summary-row:last-child { border-bottom: none; }
-        .summary-label { font-weight: bold; color: #555; }
+        /* Session Summary */
+        .summary-row { display: flex; justify-content: space-between; border-bottom: 1px dashed #eee; padding: 6px 0; font-size: 12px; }
+        .summary-label { font-weight: bold; color: #666; }
         .summary-value { font-weight: 900; color: #034887; }
 
-        .table-wrapper { overflow-x: auto; border-radius: 8px; border: 1px solid #ddd; }
-        .scheme-table { width: 100%; border-collapse: collapse; min-width: 500px; }
-        .scheme-table th, .scheme-table td { padding: 10px 6px; font-size: 13px; font-weight: bold; text-align: center; border-bottom: 1px solid #eee; }
-        .scheme-table th { background: #034887; color: white; }
+        /* Multiple Product Headers in Final Calc */
+        .product-header {
+            background: #034887; color: white; padding: 10px 12px; border-radius: 6px; 
+            display: flex; justify-content: space-between; align-items: center; 
+            font-size: 13px; font-weight: bold; margin-bottom: 8px; cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .product-header.active { border-radius: 6px 6px 0 0; margin-bottom: 0; background: #0984e3; }
+        .product-body {
+            border: 1px solid #0984e3; border-top: none; border-radius: 0 0 6px 6px; 
+            padding: 8px; background: #fff; display: none; margin-bottom: 12px;
+        }
+
+        /* Compact Scroll-proof Table */
+        .scheme-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        .scheme-table th, .scheme-table td { padding: 8px 2px; font-size: 11px; font-weight: bold; text-align: center; border-bottom: 1px solid #eee; word-wrap: break-word; }
+        .scheme-table th { background: #034887; color: white; font-size: 10px; text-transform: uppercase; }
         .scheme-table tr:nth-child(even) { background: #f8fafc; }
 
-        .btn-action { padding: 6px 10px; font-size: 11px; font-weight: bold; color: white; background: #0984e3; border: none; border-radius: 4px; cursor: pointer; }
+        .btn-action { padding: 4px 6px; font-size: 9px; font-weight: bold; color: white; background: #0984e3; border: none; border-radius: 3px; cursor: pointer; }
         .btn-action:hover { background: #034887; }
-        .btn-copy-img { width: 100%; padding: 12px; font-size: 14px; font-weight: bold; color: white; background: #27ae60; border: none; border-radius: 6px; cursor: pointer; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .btn-copy-img:hover { background: #219653; }
+        
+        .btn-copy-img { width: 100%; padding: 10px; font-size: 13px; font-weight: bold; color: white; background: #27ae60; border: none; border-radius: 4px; cursor: pointer; margin-bottom: 10px; }
 
-        #loadingStatus { color: #e67e22; font-weight: bold; font-size: 14px; margin-bottom: 10px; text-align: center; }
+        /* Modals */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; align-items: center; justify-content: center; }
+        .modal-content { background: white; padding: 20px; border-radius: 8px; width: 90%; max-width: 400px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
     </style>
 </head>
 <body>
 
-    <div id="loadingStatus">⏳ Loading Master Data... Please wait.</div>
+    <div id="loadingStatus">⏳ Loading Master Data...</div>
 
-    <!-- 1. Search Box (Collapsible) -->
+    <!-- 1. 🔍 Search Product -->
     <div class="card">
-        <div class="card-header active" onclick="toggleSection('searchContent', 'searchIcon', this)">
+        <div class="main-accordion-header active" onclick="toggleMainAccordion('searchContent', 'searchIcon', this)">
             <h3>🔍 Search Product</h3>
             <span class="toggle-icon" id="searchIcon">▼</span>
         </div>
@@ -132,13 +133,16 @@
                 <input type="text" id="searchInput" onkeyup="searchModel()" placeholder="Type model name here..." disabled>
                 <div id="searchResults"></div>
             </div>
-            <div id="selectedProduct" style="margin-top: 15px;"></div>
+            <div class="action-buttons">
+                <button class="btn-secondary" onclick="openNonTieupModal()">+ NON TIE-UP</button>
+                <button class="btn-secondary" onclick="openManualModal()">+ MANUAL SCHEME</button>
+            </div>
         </div>
     </div>
 
-    <!-- 2. Customer Eligibility (Collapsible) -->
+    <!-- 2. 👤 Customer Eligibility -->
     <div class="card">
-        <div class="card-header" onclick="toggleSection('eligibilityContent', 'eligibilityIcon', this)">
+        <div class="main-accordion-header" onclick="toggleMainAccordion('eligibilityContent', 'eligibilityIcon', this)">
             <h3>👤 Customer Eligibility</h3>
             <span class="toggle-icon" id="eligibilityIcon">▶</span>
         </div>
@@ -147,7 +151,7 @@
                 <div class="input-group">
                     <label>Card Type *</label>
                     <select id="custType" onchange="handleCardTypeChange()">
-                        <option value="" selected disabled>-- Select Card Type --</option>
+                        <option value="" selected disabled>-- Select Card --</option>
                         <option value="NEW">NEW</option>
                         <option value="EMI CARD">EMI CARD</option>
                         <option value="INSTA EMI CARD">INSTA EMI CARD</option>
@@ -155,194 +159,166 @@
                     </select>
                 </div>
             </div>
-            <div class="form-grid" style="margin-top: 10px;">
+            <div class="form-grid" style="margin-top: 8px;">
                 <div class="input-group">
                     <label>NBFC Limit (₹)</label>
-                    <input type="number" id="custLimit" placeholder="E.g. 50000" oninput="recalculateData()">
-                </div>
-                <div class="input-group">
-                    <label>Invoice Amt (₹)</label>
-                    <!-- इन्व्हॉइस बदलल्यावर GTL, RFC चे नियम लागू होतील -->
-                    <input type="number" id="custInvoice" placeholder="E.g. 35000" oninput="applyAutoRules()">
+                    <input type="number" id="custLimit" placeholder="0" oninput="handleInputUpdate()">
                 </div>
                 <div class="input-group">
                     <label>Max LTV (%)</label>
-                    <input type="number" id="custLtv" value="100" oninput="recalculateData()">
+                    <input type="number" id="custLtv" value="100" oninput="handleInputUpdate()">
                 </div>
                 <div class="input-group">
                     <label>EMI Capping (₹)</label>
-                    <input type="number" id="custCap" placeholder="Max EMI" oninput="recalculateData()">
+                    <input type="number" id="custCap" placeholder="Max EMI" oninput="handleInputUpdate()">
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- 3. Advanced Charges & Margin (Collapsible) -->
+    <!-- 3. ⚙️ Invoice, Charges & Margin -->
     <div class="card">
-        <div class="card-header" onclick="toggleSection('advancedContent', 'advancedIcon', this)">
-            <h3>⚙️ Advanced Charges & Margin</h3>
+        <div class="main-accordion-header" onclick="toggleMainAccordion('advancedContent', 'advancedIcon', this)">
+            <h3>⚙️ Invoice, Charges & Margin</h3>
             <span class="toggle-icon" id="advancedIcon">▶</span>
         </div>
         <div id="advancedContent" class="card-content">
+            <div class="form-grid full" style="margin-bottom: 8px;">
+                <div class="input-group">
+                    <label>Invoice Amount (₹) *</label>
+                    <input type="number" id="custInvoice" placeholder="E.g. 35000" oninput="onInvoiceChange()" style="border-color:#27ae60; background:#f0fdf4;">
+                </div>
+            </div>
             <div class="form-grid">
                 <div class="input-group">
                     <label>Target DP (₹)</label>
-                    <input type="number" id="advTarget" placeholder="0" oninput="recalculateData()">
+                    <input type="number" id="advTarget" placeholder="0" oninput="handleInputUpdate()">
                 </div>
                 <div class="input-group">
                     <label>GTL (₹)</label>
-                    <input type="number" id="advGtl" placeholder="0" oninput="recalculateData()">
+                    <input type="number" id="advGtl" placeholder="0" oninput="handleInputUpdate()">
                 </div>
                 <div class="input-group">
                     <label>RFC (₹)</label>
-                    <input type="number" id="advRfc" placeholder="0" oninput="recalculateData()">
+                    <input type="number" id="advRfc" placeholder="0" oninput="handleInputUpdate()">
                 </div>
                 <div class="input-group">
                     <label>EXW (₹)</label>
-                    <input type="number" id="advExw" placeholder="0" oninput="recalculateData()">
+                    <input type="number" id="advExw" placeholder="0" oninput="handleInputUpdate()">
                 </div>
                 <div class="input-group">
                     <label>Margin (₹)</label>
-                    <input type="number" id="advMargin" placeholder="0" oninput="recalculateData()">
+                    <input type="number" id="advMargin" placeholder="0" oninput="handleInputUpdate()">
                 </div>
                 <div class="input-group">
                     <label>Dealer Contri (₹)</label>
-                    <input type="number" id="advDealer" placeholder="0" oninput="recalculateData()">
+                    <input type="number" id="advDealer" placeholder="0" oninput="handleInputUpdate()">
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- 4. Session Summary (नवीन सेक्शन) -->
+    <!-- 📋 Session Summary (Independent Accordion) -->
     <div class="card">
-        <div class="card-header active" onclick="toggleSection('summaryContent', 'summaryIcon', this)">
-            <h3>📋 Session Summary</h3>
-            <span class="toggle-icon" id="summaryIcon">▼</span>
+        <div class="card-header active" onclick="toggleSimpleAccordion('summaryContent', 'summaryIcon', this)" style="display:flex; justify-content:space-between; padding:12px; cursor:pointer;">
+            <h4 style="margin:0; color:#555;">📋 Session Summary</h4>
+            <span id="summaryIcon" style="font-size:12px;">▼</span>
         </div>
-        <div id="summaryContent" class="card-content" style="display: block;">
-            <div class="summary-row">
-                <span class="summary-label">Selected Model:</span>
-                <span class="summary-value" id="sumModel">-</span>
-            </div>
-            <div class="summary-row">
-                <span class="summary-label">Card Type:</span>
-                <span class="summary-value" id="sumType">-</span>
-            </div>
-            <div class="summary-row">
-                <span class="summary-label">Invoice Amount:</span>
-                <span class="summary-value">₹<span id="sumInv">0</span></span>
-            </div>
-            <div class="summary-row">
-                <span class="summary-label">NBFC Limit:</span>
-                <span class="summary-value">₹<span id="sumLimit">0</span></span>
-            </div>
-            <div class="summary-row">
-                <span class="summary-label">Max LTV:</span>
-                <span class="summary-value"><span id="sumLtv">100</span>%</span>
-            </div>
-            <div class="summary-row">
-                <span class="summary-label">EMI Capping:</span>
-                <span class="summary-value">₹<span id="sumCap">0</span></span>
-            </div>
-            <div class="summary-row" style="margin-top: 5px; border-top: 1px solid #034887; padding-top: 10px;">
-                <span class="summary-label">Target DP: <span class="summary-value">₹<span id="sumTarget">0</span></span></span>
-                <span class="summary-label">Margin: <span class="summary-value">₹<span id="sumMargin">0</span></span></span>
-            </div>
-            <div class="summary-row">
-                <span class="summary-label">GTL: <span class="summary-value">₹<span id="sumGtl">0</span></span></span>
-                <span class="summary-label">RFC: <span class="summary-value">₹<span id="sumRfc">0</span></span></span>
-            </div>
-            <div class="summary-row">
-                <span class="summary-label">EXW: <span class="summary-value">₹<span id="sumExw">0</span></span></span>
-                <span class="summary-label">Dealer: <span class="summary-value">₹<span id="sumDealer">0</span></span></span>
+        <div id="summaryContent" class="card-content" style="display: block; padding-top:0;">
+            <div class="summary-row"><span class="summary-label">Card Type:</span><span class="summary-value" id="sumType">-</span></div>
+            <div class="summary-row"><span class="summary-label">Card Fee:</span><span class="summary-value">₹<span id="sumFee">0</span></span></div>
+            <div class="summary-row"><span class="summary-label">Invoice Amount:</span><span class="summary-value">₹<span id="sumInv">0</span></span></div>
+            <div class="summary-row"><span class="summary-label">NBFC Limit:</span><span class="summary-value">₹<span id="sumLimit">0</span></span></div>
+            <div class="summary-row"><span class="summary-label">Target DP:</span><span class="summary-value">₹<span id="sumTarget">0</span></span></div>
+        </div>
+    </div>
+
+    <!-- 📊 Final Calculation -->
+    <div class="card" id="finalCalcSection" style="display: none;">
+        <div style="padding: 12px; background: #e3f2fd; border-radius: 8px 8px 0 0; border-bottom: 2px solid #0984e3;">
+            <h3 style="margin:0; text-align:center; color:#034887;">📊 Final Calculation</h3>
+        </div>
+        <div class="card-content" style="display: block; background: #f8fafc; padding: 10px;">
+            <button class="btn-copy-img" onclick="copyImage()">🖼️ COPY IMAGE</button>
+            <div id="productsContainer">
+                <!-- Dynamically injected products -->
             </div>
         </div>
     </div>
 
-    <!-- 5. कॅल्क्युलेटेड स्कीम्स -->
-    <div class="card" id="tableContainer" style="display: none;">
-        <button class="btn-copy-img" onclick="copyImage()">🖼️ COPY IMAGE</button>
-        
-        <div class="table-wrapper">
-            <table id="schemeTable" class="scheme-table">
-                <thead>
-                    <tr>
-                        <th style="background:#0984e3;">T/A</th>
-                        <th style="background:#2ecc71;">DP</th>
-                        <th style="background:#0984e3;">EMI</th>
-                        <th style="background:#e67e22;">DAILY</th>
-                        <th style="background:#333;">ACT</th>
-                    </tr>
-                </thead>
-                <tbody id="schemeBody">
-                    <!-- डायनॅमिक डेटा इथे येईल -->
-                </tbody>
-            </table>
+    <!-- Modals for Non-Tieup & Manual -->
+    <div id="nonTieupModal" class="modal">
+        <div class="modal-content">
+            <h3 style="color:#034887; margin-top:0;">Select Category (Non Tie-up)</h3>
+            <select id="ntCategory" style="margin-bottom: 15px;">
+                <option value="PHONE(WEB-MOBILE)">Phone / Tablet</option>
+                <option value="LED TV">LED TV</option>
+                <option value="REFRIGERATOR">Refrigerator</option>
+                <option value="WASHING MACHINE">Washing Machine</option>
+                <option value="AC">AC</option>
+                <option value="OTHER">Other</option>
+            </select>
+            <div style="display:flex; gap:10px;">
+                <button class="btn-secondary" style="background:#27ae60; color:white;" onclick="addNonTieupProduct()">Add Product</button>
+                <button class="btn-secondary" onclick="document.getElementById('nonTieupModal').style.display='none'">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="manualModal" class="modal">
+        <div class="modal-content">
+            <h3 style="color:#034887; margin-top:0;">Add Manual Scheme</h3>
+            <div class="form-grid">
+                <div class="input-group"><label>Tenure</label><input type="number" id="manTen" placeholder="e.g. 12"></div>
+                <div class="input-group"><label>Advance</label><input type="number" id="manAdv" placeholder="e.g. 4"></div>
+                <div class="input-group"><label>DBD %</label><input type="number" id="manDbd" placeholder="0"></div>
+                <div class="input-group"><label>PF (₹)</label><input type="number" id="manPf" placeholder="0"></div>
+                <div class="input-group"><label>ROI %</label><input type="number" id="manRoi" placeholder="0"></div>
+                <div class="input-group"><label>Fixed EMI (₹)</label><input type="number" id="manFix" placeholder="0"></div>
+            </div>
+            <div style="display:flex; gap:10px; margin-top:15px;">
+                <button class="btn-secondary" style="background:#0984e3; color:white;" onclick="addManualProduct()">Add Scheme</button>
+                <button class="btn-secondary" onclick="document.getElementById('manualModal').style.display='none'">Cancel</button>
+            </div>
         </div>
     </div>
 
     <script>
         let db_records = [];
-        let currentSchemes = [];
-        let activeModelName = "";
-        let activeCategory = "";
+        let current_products = [];
+        let activeProductIndex = -1;
         const GITHUB_RAW_URL = "https://raw.githubusercontent.com/luckyjathar/testcalculator/main/master_data.xlsx";
 
-        // Accordion Toggle Function
-        function toggleSection(contentId, iconId, headerEl) {
+        // Exclusive Accordion Logic (Only 1 open at a time)
+        function toggleMainAccordion(contentId, iconId, headerEl) {
+            const sections = ['searchContent', 'eligibilityContent', 'advancedContent'];
+            const icons = ['searchIcon', 'eligibilityIcon', 'advancedIcon'];
+            const headers = document.querySelectorAll('.main-accordion-header');
+
+            let isOpen = document.getElementById(contentId).style.display === "block";
+
+            // Close all
+            sections.forEach(id => document.getElementById(id).style.display = "none");
+            icons.forEach(id => document.getElementById(id).innerText = "▶");
+            headers.forEach(el => el.classList.remove('active'));
+
+            // Open clicked if it was closed
+            if (!isOpen) {
+                document.getElementById(contentId).style.display = "block";
+                document.getElementById(iconId).innerText = "▼";
+                headerEl.classList.add('active');
+            }
+        }
+
+        // Simple Toggle for Summary
+        function toggleSimpleAccordion(contentId, iconId, headerEl) {
             let content = document.getElementById(contentId);
             let icon = document.getElementById(iconId);
-            if (content.style.display === "none" || content.style.display === "") {
-                content.style.display = "block";
-                icon.innerText = "▼";
-                headerEl.classList.add('active');
+            if (content.style.display === "none") {
+                content.style.display = "block"; icon.innerText = "▼";
             } else {
-                content.style.display = "none";
-                icon.innerText = "▶";
-                headerEl.classList.remove('active');
+                content.style.display = "none"; icon.innerText = "▶";
             }
-        }
-
-        // Summary Update Function
-        function updateSummary() {
-            document.getElementById('sumModel').innerText = activeModelName || "-";
-            document.getElementById('sumType').innerText = document.getElementById('custType').value || "-";
-            document.getElementById('sumInv').innerText = document.getElementById('custInvoice').value || "0";
-            document.getElementById('sumLimit').innerText = document.getElementById('custLimit').value || "0";
-            document.getElementById('sumLtv').innerText = document.getElementById('custLtv').value || "100";
-            document.getElementById('sumCap').innerText = document.getElementById('custCap').value || "0";
-            document.getElementById('sumTarget').innerText = document.getElementById('advTarget').value || "0";
-            document.getElementById('sumGtl').innerText = document.getElementById('advGtl').value || "0";
-            document.getElementById('sumRfc').innerText = document.getElementById('advRfc').value || "0";
-            document.getElementById('sumExw').innerText = document.getElementById('advExw').value || "0";
-            document.getElementById('sumMargin').innerText = document.getElementById('advMargin').value || "0";
-            document.getElementById('sumDealer').innerText = document.getElementById('advDealer').value || "0";
-        }
-
-        // Card Type बदलल्यावर सर्व व्हॅल्यू क्लिअर करणे
-        function handleCardTypeChange() {
-            let type = document.getElementById('custType').value;
-            if (type === "") {
-                document.getElementById('custLimit').value = '';
-                document.getElementById('custInvoice').value = '';
-                document.getElementById('custLtv').value = '100';
-                document.getElementById('custCap').value = '';
-                document.getElementById('advTarget').value = '';
-                document.getElementById('advGtl').value = '';
-                document.getElementById('advRfc').value = '';
-                document.getElementById('advExw').value = '';
-                document.getElementById('advMargin').value = '';
-                document.getElementById('advDealer').value = '';
-                document.getElementById('tableContainer').style.display = 'none';
-            } else {
-                recalculateData();
-            }
-            updateSummary();
-        }
-
-        function findKey(row, targets) {
-            let key = Object.keys(row).find(k => targets.includes(k.toUpperCase().replace(/\s/g, '')));
-            return key ? row[key] : null;
         }
 
         function isMobileCat(cat) {
@@ -352,19 +328,34 @@
         }
 
         function getRfcSlab(val) {
-            if (val < 8000) return 0;
-            if (val <= 10000) return 1109;
-            if (val <= 15000) return 1631;
-            if (val <= 20000) return 2147;
-            if (val <= 25000) return 2695;
-            if (val <= 30000) return 3215;
-            if (val <= 35000) return 3648;
-            if (val <= 40000) return 4219;
-            if (val <= 50000) return 5720;
-            if (val <= 60000) return 8686;
-            if (val <= 100000) return 11438;
-            if (val <= 200000) return 16677;
+            if (val < 8000) return 0; if (val <= 10000) return 1109; if (val <= 15000) return 1631;
+            if (val <= 20000) return 2147; if (val <= 25000) return 2695; if (val <= 30000) return 3215;
+            if (val <= 35000) return 3648; if (val <= 40000) return 4219; if (val <= 50000) return 5720;
+            if (val <= 60000) return 8686; if (val <= 100000) return 11438; if (val <= 200000) return 16677;
             return 0;
+        }
+
+        function findKey(row, targets) {
+            let key = Object.keys(row).find(k => targets.includes(k.toUpperCase().replace(/\s/g, '')));
+            return key ? row[key] : null;
+        }
+
+        function mapData(row, type) {
+            let model = findKey(row, ['MODEL', 'PRODUCT', 'MODELNAME']);
+            if (!model && type !== 'NON TIEUP') return null;
+            let cat = String(findKey(row, ['CATEGORY', 'CAT']) || "").toUpperCase();
+            return {
+                model: type === 'NON TIEUP' ? 'NON TIEUP' : String(model).trim().toUpperCase(),
+                category: cat,
+                tenure: parseInt(findKey(row, ['TOTALTENURE', 'TENURE', 'TA'])) || 0,
+                advEmi: parseInt(findKey(row, ['ADVANCEEMI', 'ADV'])) || 0,
+                dbd: parseFloat(findKey(row, ['DBD', 'DBD%'])) || 0,
+                roi: parseFloat(findKey(row, ['ROI', 'ROI%'])) || 0,
+                pf: parseInt(findKey(row, ['PF', 'PROCESSINGFEE'])) || 0,
+                fixedEmi: parseFloat(findKey(row, ['FIXEDEMI', 'FIXED'])) || 0,
+                minLoan: parseFloat(findKey(row, ['MINLOAN'])) || 0,
+                maxLoan: parseFloat(findKey(row, ['MAXLOAN'])) || 9999999
+            };
         }
 
         async function loadExcelData() {
@@ -372,21 +363,13 @@
                 let res = await fetch(GITHUB_RAW_URL + '?t=' + new Date().getTime());
                 let dataBuffer = await res.arrayBuffer();
                 let wb = XLSX.read(new Uint8Array(dataBuffer), { type: 'array' });
-                let sheetData = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: "" });
                 
-                db_records = sheetData.map(row => {
-                    let model = findKey(row, ['MODEL', 'PRODUCT', 'MODELNAME']);
-                    return { 
-                        model: model ? String(model).trim().toUpperCase() : "",
-                        category: String(findKey(row, ['CATEGORY', 'CAT']) || "").toUpperCase(),
-                        tenure: parseInt(findKey(row, ['TOTALTENURE', 'TENURE', 'TA'])) || 0,
-                        advEmi: parseInt(findKey(row, ['ADVANCEEMI', 'ADV'])) || 0,
-                        dbd: parseFloat(findKey(row, ['DBD', 'DBD%'])) || 0,
-                        roi: parseFloat(findKey(row, ['ROI', 'ROI%'])) || 0,
-                        pf: parseInt(findKey(row, ['PF', 'PROCESSINGFEE'])) || 0,
-                        fixedEmi: parseFloat(findKey(row, ['FIXEDEMI', 'FIXED'])) || 0
-                    };
-                }).filter(x => x.model !== "");
+                // Read Sheet 1 (Regular)
+                let sheet1Data = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: "" }).map(r => mapData(r, "REG"));
+                // Read Sheet 2 (Non Tieup) if exists
+                let sheet2Data = wb.SheetNames.length > 1 ? XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[1]], { defval: "" }).map(r => mapData(r, "NON TIEUP")) : [];
+                
+                db_records = [...sheet1Data, ...sheet2Data].filter(x => x && x.model !== "");
                 
                 document.getElementById('loadingStatus').style.display = 'none';
                 document.getElementById('searchInput').disabled = false;
@@ -400,212 +383,335 @@
             let resultsDiv = document.getElementById('searchResults');
             if (!q) { resultsDiv.style.display = 'none'; return; }
             
-            let matches = db_records.filter(r => r.model.includes(q)).map(r => r.model);
+            let matches = db_records.filter(r => r.model !== 'NON TIEUP' && r.model.includes(q)).map(r => r.model);
             matches = [...new Set(matches)].slice(0, 15); 
             
             if (matches.length === 0) {
                 resultsDiv.innerHTML = '<div style="padding:15px; color:red; font-size: 13px; text-align:center;">No matching models found.</div>';
             } else {
                 resultsDiv.innerHTML = matches.map(m => 
-                    `<div class="result-item" onclick="selectModel('${m.replace(/'/g, "\\'")}')">📱 ${m}</div>`
+                    `<div class="result-item" onclick="selectModel('${m.replace(/'/g, "\\'")}', false, 'OTHER')">📱 ${m}</div>`
                 ).join('');
             }
             resultsDiv.style.display = 'block';
         }
 
-        function selectModel(modelName) {
+        // --- Multi Product Logic ---
+        function selectModel(modelName, isNonTieup = false, category = "OTHER", manualSchemes = null) {
             document.getElementById('searchInput').value = '';
             document.getElementById('searchResults').style.display = 'none';
-            activeModelName = modelName;
+
+            let cat = category;
+            let rawSchemes = [];
             
-            let rec = db_records.find(r => r.model === modelName);
-            if(rec) activeCategory = rec.category;
-            
-            document.getElementById('selectedProduct').innerText = "📱 " + modelName;
-            document.getElementById('selectedProduct').style.display = 'block';
-            document.getElementById('tableContainer').style.display = 'block';
-            
-            // Auto open Eligibility Content if closed
-            let eligContent = document.getElementById('eligibilityContent');
-            if(eligContent.style.display === "none") {
-                toggleSection('eligibilityContent', 'eligibilityIcon', eligContent.previousElementSibling);
+            if (manualSchemes) {
+                rawSchemes = manualSchemes;
+            } else if (!isNonTieup) {
+                let rec = db_records.find(r => r.model === modelName);
+                if(rec) cat = rec.category;
+                rawSchemes = db_records.filter(r => r.model === modelName);
+            } else {
+                rawSchemes = db_records.filter(r => r.model === "NON TIEUP" && r.category === cat);
             }
+
+            // Capture current global inputs to seed the new product
+            let pInputs = {
+                type: document.getElementById('custType').value || '',
+                limit: parseFloat(document.getElementById('custLimit').value) || 0,
+                inv: parseFloat(document.getElementById('custInvoice').value) || 0,
+                ltv: parseFloat(document.getElementById('custLtv').value) || 100,
+                cap: parseFloat(document.getElementById('custCap').value) || 0,
+                target: parseFloat(document.getElementById('advTarget').value) || 0,
+                gtl: parseFloat(document.getElementById('advGtl').value) || 0,
+                rfc: parseFloat(document.getElementById('advRfc').value) || 0,
+                exw: parseFloat(document.getElementById('advExw').value) || 0,
+                margin: parseFloat(document.getElementById('advMargin').value) || 0,
+                dealer: parseFloat(document.getElementById('advDealer').value) || 0
+            };
+
+            let newProd = {
+                name: isNonTieup ? `NON TIEUP - ${cat}` : modelName,
+                category: cat,
+                isNonTieup: isNonTieup,
+                inputs: pInputs,
+                rawSchemes: rawSchemes,
+                calculatedData: []
+            };
+
+            current_products.push(newProd);
+            activeProductIndex = current_products.length - 1;
+
+            document.getElementById('finalCalcSection').style.display = 'block';
             
-            applyAutoRules();
+            // Auto open Final Calculation and collapse others
+            toggleMainAccordion('none', 'none', document.createElement('div')); 
+            
+            syncUIWithActiveProduct();
+            recalculateProduct(activeProductIndex);
+            renderFinalCalculation();
         }
 
-        function applyAutoRules() {
-            let inv = parseFloat(document.getElementById('custInvoice').value) || 0;
+        // When user clicks a model in the Final Calc section
+        function switchActiveProduct(index) {
+            if(activeProductIndex === index) return;
+            activeProductIndex = index;
+            syncUIWithActiveProduct();
+            renderFinalCalculation();
+        }
+
+        // Restore global input boxes with active product's data
+        function syncUIWithActiveProduct() {
+            if(activeProductIndex === -1) return;
+            let p = current_products[activeProductIndex];
             
-            let gtl = inv > 100000 ? 2398 : (inv > 50000 ? 1799 : (inv > 30000 ? 1499 : (inv > 10000 ? 1199 : (inv > 0 ? 699 : 0))));
-            document.getElementById('advGtl').value = gtl > 0 ? gtl : "";
+            document.getElementById('custType').value = p.inputs.type;
+            document.getElementById('custLimit').value = p.inputs.limit || "";
+            document.getElementById('custInvoice').value = p.inputs.inv || "";
+            document.getElementById('custLtv').value = p.inputs.ltv || 100;
+            document.getElementById('custCap').value = p.inputs.cap || "";
+            
+            document.getElementById('advTarget').value = p.inputs.target || "";
+            document.getElementById('advGtl').value = p.inputs.gtl || "";
+            document.getElementById('advRfc').value = p.inputs.rfc || "";
+            document.getElementById('advExw').value = p.inputs.exw || "";
+            document.getElementById('advMargin').value = p.inputs.margin || "";
+            document.getElementById('advDealer').value = p.inputs.dealer || "";
 
-            let isMobile = isMobileCat(activeCategory);
-            let rfcInp = document.getElementById('advRfc');
-            let exwInp = document.getElementById('advExw');
+            let isMobile = isMobileCat(p.category);
+            document.getElementById('advRfc').disabled = !isMobile;
+            document.getElementById('advExw').disabled = isMobile;
 
-            if (isMobile) {
-                let rfcVal = getRfcSlab(inv);
-                rfcInp.value = rfcVal > 0 ? rfcVal : "";
-                rfcInp.disabled = false;
-                
-                exwInp.value = "";
-                exwInp.disabled = true;
-            } else {
-                rfcInp.value = "0";
-                rfcInp.disabled = true;
-                
-                exwInp.disabled = false;
-            }
-
-            recalculateData();
             updateSummary();
         }
 
-        function recalculateData() {
-            if (!activeModelName) return;
-
-            let type = document.getElementById('custType').value;
-            if (!type || type === "") {
-                document.getElementById('tableContainer').style.display = 'none';
-                updateSummary();
-                return;
-            }
-            document.getElementById('tableContainer').style.display = 'block';
-
-            let limit = parseFloat(document.getElementById('custLimit').value) || 0;
+        // Auto rule for Invoice change
+        function onInvoiceChange() {
             let inv = parseFloat(document.getElementById('custInvoice').value) || 0;
-            let maxLtvLimit = parseFloat(document.getElementById('custLtv').value) || 100;
-            let cap = parseFloat(document.getElementById('custCap').value) || 0;
+            let gtl = inv > 100000 ? 2398 : (inv > 50000 ? 1799 : (inv > 30000 ? 1499 : (inv > 10000 ? 1199 : (inv > 0 ? 699 : 0))));
+            document.getElementById('advGtl').value = gtl > 0 ? gtl : "";
 
-            let target = parseFloat(document.getElementById('advTarget').value) || 0;
-            let gtl = parseFloat(document.getElementById('advGtl').value) || 0;
-            let rfc = parseFloat(document.getElementById('advRfc').value) || 0;
-            let exw = parseFloat(document.getElementById('advExw').value) || 0;
-            let margin = parseFloat(document.getElementById('advMargin').value) || 0;
-            let dealer = parseFloat(document.getElementById('advDealer').value) || 0;
+            if (activeProductIndex !== -1) {
+                let p = current_products[activeProductIndex];
+                let isMobile = isMobileCat(p.category);
+                if (isMobile) {
+                    let rfc = getRfcSlab(inv);
+                    document.getElementById('advRfc').value = rfc > 0 ? rfc : "";
+                    document.getElementById('advExw').value = "";
+                } else {
+                    document.getElementById('advRfc').value = "0";
+                }
+            }
+            handleInputUpdate();
+        }
+
+        function handleCardTypeChange() {
+            let type = document.getElementById('custType').value;
+            if (type === "") {
+                ['custLimit','custInvoice','custCap','advTarget','advGtl','advRfc','advExw','advMargin','advDealer'].forEach(id => document.getElementById(id).value = '');
+                document.getElementById('custLtv').value = '100';
+            }
+            handleInputUpdate();
+        }
+
+        // Save UI inputs to active product and recalculate
+        function handleInputUpdate() {
+            if (activeProductIndex === -1) return;
+            let p = current_products[activeProductIndex];
+            
+            p.inputs.type = document.getElementById('custType').value || '';
+            p.inputs.limit = parseFloat(document.getElementById('custLimit').value) || 0;
+            p.inputs.inv = parseFloat(document.getElementById('custInvoice').value) || 0;
+            p.inputs.ltv = parseFloat(document.getElementById('custLtv').value) || 100;
+            p.inputs.cap = parseFloat(document.getElementById('custCap').value) || 0;
+            
+            p.inputs.target = parseFloat(document.getElementById('advTarget').value) || 0;
+            p.inputs.gtl = parseFloat(document.getElementById('advGtl').value) || 0;
+            p.inputs.rfc = parseFloat(document.getElementById('advRfc').value) || 0;
+            p.inputs.exw = parseFloat(document.getElementById('advExw').value) || 0;
+            p.inputs.margin = parseFloat(document.getElementById('advMargin').value) || 0;
+            p.inputs.dealer = parseFloat(document.getElementById('advDealer').value) || 0;
+
+            recalculateProduct(activeProductIndex);
+            renderFinalCalculation();
+            updateSummary();
+        }
+
+        function updateSummary() {
+            if(activeProductIndex === -1) return;
+            let p = current_products[activeProductIndex];
+            
+            let fee = 0;
+            if (p.inputs.type === 'EMI CARD' || p.inputs.type === 'INSTA EMI CARD') fee = 270;
+            else if (p.inputs.type === 'W/O CARD') fee = 320;
+            else if (p.inputs.type === 'NEW') fee = 850;
+
+            document.getElementById('sumType').innerText = p.inputs.type || "-";
+            document.getElementById('sumFee').innerText = fee;
+            document.getElementById('sumInv').innerText = p.inputs.inv || "0";
+            document.getElementById('sumLimit').innerText = p.inputs.limit || "0";
+            document.getElementById('sumTarget').innerText = p.inputs.target || "0";
+        }
+
+        function recalculateProduct(index) {
+            let p = current_products[index];
+            let inp = p.inputs;
+            if (!inp.type) { p.calculatedData = []; return; }
 
             let fee = 0;
-            if (type === 'EMI CARD' || type === 'INSTA EMI CARD') fee = 270;
-            else if (type === 'W/O CARD') fee = 320;
-            else if (type === 'NEW') fee = 850;
+            if (inp.type === 'EMI CARD' || inp.type === 'INSTA EMI CARD') fee = 270;
+            else if (inp.type === 'W/O CARD') fee = 320;
+            else if (inp.type === 'NEW') fee = 850;
 
-            let insTotal = gtl + rfc + exw;
-            let rawSchemes = db_records.filter(r => r.model === activeModelName);
+            let insTotal = inp.gtl + inp.rfc + inp.exw;
             let processedSchemes = [];
 
-            rawSchemes.forEach(s => {
+            p.rawSchemes.forEach(s => {
                 let loan = 0, emi = 0, dp = 0, inst = 0, currentTenure = s.tenure;
                 let dbdRate = s.dbd * 1.18 / 100;
                 let roiRate = s.roi / 1200;
                 let roiRateDP = roiRate * s.advEmi;
-                let totalFees = fee + margin + dealer + s.pf;
-                let nbfcMaxL = limit > 0 ? (limit * s.tenure) / (s.tenure - s.advEmi || 1) : 999999;
+                let totalFees = fee + inp.margin + inp.dealer + s.pf;
+                let nbfcMaxL = inp.limit > 0 ? (inp.limit * s.tenure) / (s.tenure - s.advEmi || 1) : 999999;
 
                 if (s.fixedEmi > 0) {
-                    let maxTotalTenure = limit > 0 ? Math.floor(limit / s.fixedEmi) + s.advEmi : 99;
-                    currentTenure = inv > 0 ? Math.floor(inv / s.fixedEmi) : s.tenure;
+                    let maxTotalTenure = inp.limit > 0 ? Math.floor(inp.limit / s.fixedEmi) + s.advEmi : 99;
+                    currentTenure = inp.inv > 0 ? Math.floor(inp.inv / s.fixedEmi) : s.tenure;
                     if (currentTenure > maxTotalTenure) currentTenure = maxTotalTenure;
                     if (currentTenure < 1) currentTenure = 1;
                     
                     loan = currentTenure * s.fixedEmi;
-                    
-                    if (target > 0) {
-                        let numerator = target - inv - (s.fixedEmi * s.advEmi) - totalFees;
+                    if (inp.target > 0) {
+                        let numerator = inp.target - inp.inv - (s.fixedEmi * s.advEmi) - totalFees;
                         let denominator = dbdRate + roiRateDP - 1;
-                        let solvedLoan = numerator / denominator;
-                        let solvedTenure = Math.floor(solvedLoan / s.fixedEmi);
+                        let solvedTenure = Math.floor((numerator / denominator) / s.fixedEmi);
                         if (solvedTenure > maxTotalTenure) solvedTenure = maxTotalTenure;
                         loan = Math.max(0, solvedTenure * s.fixedEmi);
                         currentTenure = Math.floor(loan / s.fixedEmi) || 1;
                     }
-
-                    if (inv > 0 && loan > inv) loan = Math.floor(inv / s.fixedEmi) * s.fixedEmi;
+                    if (inp.inv > 0 && loan > inp.inv) loan = Math.floor(inp.inv / s.fixedEmi) * s.fixedEmi;
                     
                     inst = currentTenure - s.advEmi; if (inst < 1) inst = 1;
-                    let roiInEmi = loan * roiRate;
-                    emi = s.fixedEmi + (insTotal / inst) + roiInEmi;
-                    
-                    let roiInDp = loan * roiRateDP;
-                    let dpExact = inv - loan + (s.fixedEmi * s.advEmi) + (loan * dbdRate) + totalFees + roiInDp;
-                    dp = Math.ceil(dpExact / 10) * 10;
+                    emi = s.fixedEmi + (insTotal / inst) + (loan * roiRate);
+                    dp = Math.ceil((inp.inv - loan + (s.fixedEmi * s.advEmi) + (loan * dbdRate) + totalFees + (loan * roiRateDP)) / 10) * 10;
                 } else {
-                    loan = Math.min(nbfcMaxL, inv > 0 ? inv : 999999);
-                    
-                    if (target > 0 && inv > 0) {
-                        let advRate = s.advEmi / s.tenure;
-                        let numerator = target - inv - totalFees;
-                        let denominator = advRate + dbdRate + roiRateDP - 1;
-                        let solvedLoan = numerator / denominator;
+                    loan = Math.min(nbfcMaxL, inp.inv > 0 ? inp.inv : 999999);
+                    if (inp.target > 0 && inp.inv > 0) {
+                        let solvedLoan = (inp.target - inp.inv - totalFees) / ((s.advEmi / s.tenure) + dbdRate + roiRateDP - 1);
                         loan = Math.min(loan, Math.max(0, Math.floor(solvedLoan)));
                     }
 
                     inst = s.tenure - s.advEmi; if (inst < 1) inst = 1;
-                    let baseEmi = loan / s.tenure;
-                    if (baseEmi > 0 && baseEmi < 900) baseEmi = 900;
+                    let baseEmi = Math.max(900, loan / s.tenure);
+                    emi = baseEmi + (insTotal / inst) + (loan * roiRate);
                     
-                    let roiInEmi = loan * roiRate;
-                    emi = baseEmi + (insTotal / inst) + roiInEmi;
-                    
-                    if (cap > 0 && emi > cap) {
-                        loan = (cap - (insTotal / inst)) / ((1 / s.tenure) + roiRate);
-                        if (loan < 0) loan = 0;
-                        if (inv > 0 && loan > inv) loan = inv;
-                        baseEmi = loan / s.tenure;
-                        if (baseEmi > 0 && baseEmi < 900) baseEmi = 900;
-                        roiInEmi = loan * roiRate;
-                        emi = baseEmi + (insTotal / inst) + roiInEmi;
+                    if (inp.cap > 0 && emi > inp.cap) {
+                        loan = Math.max(0, (inp.cap - (insTotal / inst)) / ((1 / s.tenure) + roiRate));
+                        if (inp.inv > 0 && loan > inp.inv) loan = inp.inv;
+                        baseEmi = Math.max(900, loan / s.tenure);
+                        emi = baseEmi + (insTotal / inst) + (loan * roiRate);
                     }
-                    
-                    let roiInDp = loan * roiRateDP;
-                    let dpExact = inv - loan + (baseEmi * s.advEmi) + (loan * dbdRate) + totalFees + roiInDp;
-                    dp = Math.ceil(dpExact / 10) * 10;
+                    dp = Math.ceil((inp.inv - loan + (baseEmi * s.advEmi) + (loan * dbdRate) + totalFees + (loan * roiRateDP)) / 10) * 10;
                 }
 
                 let ltv = currentTenure > 0 ? ((currentTenure - s.advEmi) / currentTenure) * 100 : 0;
                 let daily = emi / 30;
 
-                if (ltv <= maxLtvLimit && loan > 0) {
+                // Max/Min Loan Check for Non-Tieup
+                let boundCheck = p.isNonTieup ? (loan >= s.minLoan && loan <= s.maxLoan) : true;
+
+                if (ltv <= inp.ltv && loan > 0 && boundCheck) {
                     processedSchemes.push({ ...s, loan, dp, emi, inst, daily, currentTenure, ltv });
                 }
             });
 
             processedSchemes.sort((a, b) => b.ltv - a.ltv);
-            currentSchemes = processedSchemes;
-            renderTable();
-            updateSummary();
+            p.calculatedData = processedSchemes;
         }
 
-        function renderTable() {
-            let tbody = document.getElementById('schemeBody');
-            tbody.innerHTML = currentSchemes.map((s, index) => {
-                let dpDisplay = s.dp > 0 ? `₹${Math.round(s.dp).toLocaleString()}` : "₹0";
-                return `
-                    <tr>
-                        <td style="color: var(--indigo);">${s.currentTenure}/${s.advEmi}</td>
-                        <td style="color: #27ae60;">${dpDisplay}</td>
-                        <td style="color: #0984e3;">₹${Math.round(s.emi).toLocaleString()}<br><span style="font-size:10px; color:#555;">x ${s.inst} M</span></td>
-                        <td style="color: #e67e22;">₹${Math.round(s.daily).toLocaleString()}</td>
-                        <td><button class="btn-action" onclick="copyText(${index}, this)">COPY</button></td>
-                    </tr>
-                `;
-            }).join('');
+        function renderFinalCalculation() {
+            let container = document.getElementById('productsContainer');
+            container.innerHTML = "";
+
+            current_products.forEach((p, index) => {
+                let isActive = (index === activeProductIndex);
+                let invText = p.inputs.inv > 0 ? ` (₹${p.inputs.inv})` : "";
+                
+                let html = `
+                <div style="margin-bottom: ${isActive ? '10px' : '4px'};">
+                    <div class="product-header ${isActive ? 'active' : ''}" onclick="switchActiveProduct(${index})">
+                        <span>📱 ${p.name}${invText}</span>
+                        <span>${isActive ? '▼' : '▶'}</span>
+                    </div>
+                    <div class="product-body" style="display: ${isActive ? 'block' : 'none'};">
+                        <table class="scheme-table">
+                            <thead>
+                                <tr>
+                                    <th style="width:18%;">T/A</th>
+                                    <th style="width:22%;">DP</th>
+                                    <th style="width:25%;">EMI</th>
+                                    <th style="width:20%;">DAY</th>
+                                    <th style="width:15%;">ACT</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${p.calculatedData.length > 0 ? p.calculatedData.map((s, i) => `
+                                <tr>
+                                    <td style="color:var(--indigo);">${s.currentTenure}/${s.advEmi}</td>
+                                    <td style="color:#27ae60;">₹${Math.round(s.dp).toLocaleString()}</td>
+                                    <td style="color:#0984e3; line-height:1.1;">₹${Math.round(s.emi).toLocaleString()}<br><span style="font-size:8px;color:#666;">x${s.inst}M</span></td>
+                                    <td style="color:#e67e22;">₹${Math.round(s.daily).toLocaleString()}</td>
+                                    <td><button class="btn-action" onclick="copyText(${index}, ${i}, this)">COPY</button></td>
+                                </tr>
+                                `).join('') : '<tr><td colspan="5" style="color:red; padding:15px;">No eligible schemes found. Check limits or values.</td></tr>'}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>`;
+                container.innerHTML += html;
+            });
         }
 
-        function copyText(index, btnElement) {
-            let s = currentSchemes[index];
-            let type = document.getElementById('custType').value || 'Not Selected';
-            let limit = document.getElementById('custLimit').value || 0;
-            let ltv = document.getElementById('custLtv').value || 100;
-            let cap = document.getElementById('custCap').value || 0;
-            let inv = document.getElementById('custInvoice').value || 0;
+        // --- Modals Logic ---
+        function openNonTieupModal() { document.getElementById('nonTieupModal').style.display='flex'; }
+        function openManualModal() { document.getElementById('manualModal').style.display='flex'; }
+        
+        function addNonTieupProduct() {
+            let cat = document.getElementById('ntCategory').value;
+            document.getElementById('nonTieupModal').style.display='none';
+            selectModel('NON TIEUP', true, cat);
+        }
 
-            let text = `📱 *${activeModelName}*\n\n`;
-            text += `👤 *CUSTOMER ELIGIBILITY:*\n`;
-            text += `*Card Type:* ${type}\n`;
-            text += `*Limit:* ₹${parseFloat(limit).toLocaleString()}  |  *Max LTV:* ${ltv}%\n`;
-            if(cap > 0) text += `*EMI Cap:* ₹${cap}\n`;
-            if(inv > 0) text += `*Invoice:* ₹${parseFloat(inv).toLocaleString()}\n`;
+        function addManualProduct() {
+            let ten = parseInt(document.getElementById('manTen').value) || 0;
+            let adv = parseInt(document.getElementById('manAdv').value) || 0;
+            let dbd = parseFloat(document.getElementById('manDbd').value) || 0;
+            let pf = parseInt(document.getElementById('manPf').value) || 0;
+            let roi = parseFloat(document.getElementById('manRoi').value) || 0;
+            let fix = parseInt(document.getElementById('manFix').value) || 0;
+
+            if(ten === 0) { alert("Please enter valid tenure"); return; }
+
+            let manualSchemes = [{
+                tenure: ten, advEmi: adv, dbd: dbd, pf: pf, roi: roi, fixedEmi: fix,
+                minLoan: 0, maxLoan: 9999999
+            }];
+
+            document.getElementById('manualModal').style.display='none';
+            // Clear inputs for next time
+            ['manTen','manAdv','manDbd','manPf','manRoi','manFix'].forEach(id => document.getElementById(id).value = '');
+            
+            selectModel('MANUAL SCHEME', false, 'OTHER', manualSchemes);
+        }
+
+        function copyText(pIndex, sIndex, btnElement) {
+            let p = current_products[pIndex];
+            let s = p.calculatedData[sIndex];
+
+            let text = `📱 *${p.name}*\n\n`;
+            text += `👤 *ELIGIBILITY:*\n`;
+            text += `*Type:* ${p.inputs.type} | *Limit:* ₹${p.inputs.limit.toLocaleString()}\n`;
+            text += `*LTV:* ${p.inputs.ltv}% ${p.inputs.cap > 0 ? '| *Cap:* ₹'+p.inputs.cap : ''}\n`;
+            if(p.inputs.inv > 0) text += `*Invoice:* ₹${p.inputs.inv.toLocaleString()}\n`;
             text += `------------------------\n`;
             text += `✅ *Scheme:* ${s.currentTenure}/${s.advEmi}\n`;
             text += `💰 *DP:* ₹${Math.round(s.dp).toLocaleString()}\n`;
@@ -615,7 +721,7 @@
             if (navigator.clipboard) {
                 navigator.clipboard.writeText(text).then(() => {
                     let oldText = btnElement.innerText;
-                    btnElement.innerText = "COPIED!";
+                    btnElement.innerText = "COPIED";
                     btnElement.style.background = "#27ae60";
                     setTimeout(() => { btnElement.innerText = oldText; btnElement.style.background = "#0984e3"; }, 2000);
                 });
@@ -623,27 +729,22 @@
         }
 
         function copyImage() {
-            if(currentSchemes.length === 0) return;
+            if(activeProductIndex === -1) return;
+            let p = current_products[activeProductIndex];
+            if(p.calculatedData.length === 0) return;
             
             let btn = document.querySelector('.btn-copy-img');
             let origText = btn.innerHTML;
             btn.innerHTML = "⏳ COPYING...";
 
-            let type = document.getElementById('custType').value || 'Not Selected';
-            let limit = document.getElementById('custLimit').value || 0;
-            let ltv = document.getElementById('custLtv').value || 100;
-            let cap = document.getElementById('custCap').value || 0;
-            let inv = document.getElementById('custInvoice').value || 0;
-            let displayName = document.getElementById('selectedProduct').innerText.replace('📱 ', '').trim() || activeModelName;
-
             let printDiv = document.createElement('div');
-            printDiv.style.width = "750px";
+            printDiv.style.width = "700px";
             printDiv.style.position = "absolute";
             printDiv.style.left = "-9999px";
             printDiv.style.backgroundColor = "#ffffff";
             printDiv.style.fontFamily = "Arial, sans-serif";
 
-            let trs = currentSchemes.map((s, i) => {
+            let trs = p.calculatedData.map((s, i) => {
                 let bgCol = i % 2 === 0 ? '#ffffff' : '#f8fafc';
                 return `
                 <tr style="background-color: ${bgCol};">
@@ -659,19 +760,19 @@
             <div style="padding: 20px; background-color: #ffffff;">
                 <div style="border: 3px solid #034887; border-radius: 12px; overflow: hidden; background-color: #ffffff;">
                     <div style="background-color: #034887; color: #ffffff; padding: 25px; text-align: center;">
-                        <div style="font-size: 34px; font-weight: 900; margin: 0; padding-bottom: 15px; border-bottom: 1px dashed rgba(255,255,255,0.3);">📱 ${displayName.toUpperCase()}</div>
+                        <div style="font-size: 34px; font-weight: 900; margin: 0; padding-bottom: 15px; border-bottom: 1px dashed rgba(255,255,255,0.3);">📱 ${p.name.toUpperCase()}</div>
                         <div style="display: flex; justify-content: space-evenly; flex-wrap: wrap; gap: 10px; margin-top: 15px; font-size: 18px; font-weight: bold; color: #e0f2fe;">
-                            <span>TYPE: <span style="color:#f1c40f;">${type}</span></span>
-                            <span>LIMIT: <span style="color:#2ecc71;">₹${parseFloat(limit).toLocaleString()}</span></span>
-                            <span>LTV: <span style="color:#fff;">${ltv}%</span></span>
-                            ${cap > 0 ? `<span>CAP: <span style="color:#e74c3c;">₹${cap}</span></span>` : ''}
+                            <span>TYPE: <span style="color:#f1c40f;">${p.inputs.type}</span></span>
+                            <span>LIMIT: <span style="color:#2ecc71;">₹${p.inputs.limit.toLocaleString()}</span></span>
+                            <span>LTV: <span style="color:#fff;">${p.inputs.ltv}%</span></span>
+                            ${p.inputs.cap > 0 ? `<span>CAP: <span style="color:#e74c3c;">₹${p.inputs.cap}</span></span>` : ''}
                         </div>
-                        ${inv > 0 ? `<div style="margin-top: 15px; font-size: 22px; font-weight: 900; background: rgba(255,255,255,0.1); padding: 8px; border-radius: 6px;">INVOICE AMOUNT: ₹${parseFloat(inv).toLocaleString()}</div>` : ''}
+                        ${p.inputs.inv > 0 ? `<div style="margin-top: 15px; font-size: 22px; font-weight: 900; background: rgba(255,255,255,0.1); padding: 8px; border-radius: 6px;">INVOICE AMOUNT: ₹${p.inputs.inv.toLocaleString()}</div>` : ''}
                     </div>
                     <table style="width: 100%; border-collapse: collapse; text-align: center; background-color: #ffffff;">
                         <thead style="background-color: #f1f5f9; color: #334155;">
                             <tr>
-                                <th style="padding: 18px 10px; font-size: 18px; font-weight: 900; border-bottom: 2px solid #cbd5e1;">SCHEME<br><span style="font-size:14px;">(T / A)</span></th>
+                                <th style="padding: 18px 10px; font-size: 18px; font-weight: 900; border-bottom: 2px solid #cbd5e1;">SCHEME<br><span style="font-size:14px; font-weight:normal;">(T / A)</span></th>
                                 <th style="padding: 18px 10px; font-size: 18px; font-weight: 900; border-bottom: 2px solid #cbd5e1;">NET&nbsp;DP</th>
                                 <th style="padding: 18px 10px; font-size: 18px; font-weight: 900; border-bottom: 2px solid #cbd5e1;">EMI</th>
                                 <th style="padding: 18px 10px; font-size: 18px; font-weight: 900; border-bottom: 2px solid #cbd5e1;">MONTHS</th>
@@ -686,7 +787,7 @@
             document.body.appendChild(printDiv);
 
             setTimeout(() => {
-                html2canvas(printDiv, { scale: 2, useCORS: true, backgroundColor: "#ffffff" }).then(canvas => {
+                html2canvas(printDiv, { scale: 2, useCORS: true, backgroundColor: "#ffffff", logging: false }).then(canvas => {
                     canvas.toBlob(blob => {
                         navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]).then(() => {
                             btn.innerHTML = "✅ COPIED";
