@@ -4,30 +4,48 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pro Scheme Calculator (Mobile View)</title>
-    <!-- आवश्यक लायब्ररीज (Excel आणि Image Copy साठी) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
     <style>
-        /* Mobile / Portrait View Styling */
         body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
             padding: 10px; 
             background-color: #f0f2f5; 
             margin: 0 auto;
-            max-width: 480px; /* Portrait View Limit */
+            max-width: 480px; 
         }
 
+        /* कार्ड आणि अकॉर्डियन (Collapsible) डिझाईन */
         .card {
             background: white;
-            padding: 15px;
             border-radius: 10px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             margin-bottom: 15px;
-            position: relative;
+            overflow: hidden;
         }
 
-        h2, h3, h4 { margin-top: 0; color: #034887; margin-bottom: 12px; }
+        .card-header {
+            background: #ffffff;
+            padding: 15px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid transparent;
+            transition: 0.3s;
+        }
+        
+        .card-header:hover { background: #f8fafc; }
+        .card-header.active { border-bottom: 1px solid #eee; background: #f0f8ff; }
+
+        .card-header h3 { margin: 0; color: #034887; font-size: 16px; }
+        .toggle-icon { font-size: 14px; color: #0984e3; font-weight: bold; transition: 0.3s; }
+
+        .card-content {
+            padding: 15px;
+            display: none; /* सुरुवातीला लपवलेले (Minimized) */
+        }
         
         input, select { 
             padding: 12px; 
@@ -42,24 +60,16 @@
         }
         
         input:focus, select:focus { border-color: #0984e3; }
+        input:disabled, select:disabled { background: #e9ecef; cursor: not-allowed; color: #666; }
 
-        .form-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-        }
-        
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .form-grid.full { grid-template-columns: 1fr; }
-        
-        .input-group { display: flex; flex-direction: column; gap: 4px; }
+        .input-group { display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px; }
         .input-group label { font-size: 11px; font-weight: bold; color: #555; text-transform: uppercase; }
 
-        /* सर्च रिझल्ट्स */
         #searchResults { 
             position: absolute; 
-            top: 100%; 
-            left: 0; 
-            right: 0; 
+            top: 100%; left: 0; right: 0; 
             background: white; 
             max-height: 250px; 
             overflow-y: auto; 
@@ -70,181 +80,128 @@
             z-index: 100; 
         }
 
-        .result-item { 
-            padding: 12px 15px; 
-            border-bottom: 1px solid #eee; 
-            cursor: pointer; 
-            font-size: 14px; 
-            font-weight: bold; 
-            color: #333; 
-        }
-
+        .result-item { padding: 12px 15px; border-bottom: 1px solid #eee; cursor: pointer; font-size: 14px; font-weight: bold; color: #333; }
         .result-item:hover { background: #e3f2fd; color: #0984e3; }
 
         #selectedProduct { 
-            font-size: 18px; 
-            font-weight: 900; 
-            color: #034887; 
-            display: none; 
-            text-transform: uppercase;
-            text-align: center;
-            margin-bottom: 10px;
-            padding: 10px;
-            background: #e3f2fd;
-            border-radius: 8px;
+            font-size: 18px; font-weight: 900; color: #034887; 
+            display: none; text-transform: uppercase; text-align: center;
+            margin-bottom: 10px; padding: 10px; background: #e3f2fd; border-radius: 8px;
         }
 
-        /* टेबलची डिझाईन */
-        .table-wrapper {
-            overflow-x: auto; /* Horizontal scroll for mobile */
-            border-radius: 8px;
-            border: 1px solid #ddd;
-        }
-
-        .scheme-table {
-            width: 100%;
-            border-collapse: collapse;
-            min-width: 500px; /* Ensures table doesn't shrink too much */
-        }
-
-        .scheme-table th, .scheme-table td {
-            padding: 10px 6px;
-            font-size: 13px;
-            font-weight: bold;
-            text-align: center;
-            border-bottom: 1px solid #eee;
-        }
-
+        .table-wrapper { overflow-x: auto; border-radius: 8px; border: 1px solid #ddd; }
+        .scheme-table { width: 100%; border-collapse: collapse; min-width: 500px; }
+        .scheme-table th, .scheme-table td { padding: 10px 6px; font-size: 13px; font-weight: bold; text-align: center; border-bottom: 1px solid #eee; }
         .scheme-table th { background: #034887; color: white; }
         .scheme-table tr:nth-child(even) { background: #f8fafc; }
 
-        .btn-action {
-            padding: 6px 10px;
-            font-size: 11px;
-            font-weight: bold;
-            color: white;
-            background: #0984e3;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
+        .btn-action { padding: 6px 10px; font-size: 11px; font-weight: bold; color: white; background: #0984e3; border: none; border-radius: 4px; cursor: pointer; }
         .btn-action:hover { background: #034887; }
-
-        .btn-copy-img {
-            width: 100%;
-            padding: 12px;
-            font-size: 14px;
-            font-weight: bold;
-            color: white;
-            background: #27ae60;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
+        .btn-copy-img { width: 100%; padding: 12px; font-size: 14px; font-weight: bold; color: white; background: #27ae60; border: none; border-radius: 6px; cursor: pointer; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .btn-copy-img:hover { background: #219653; }
 
-        #loadingStatus {
-            color: #e67e22;
-            font-weight: bold;
-            font-size: 14px;
-            margin-bottom: 10px;
-            text-align: center;
-        }
-        
-        .section-divider {
-            border-top: 1px dashed #ccc;
-            margin: 15px 0;
-        }
+        #loadingStatus { color: #e67e22; font-weight: bold; font-size: 14px; margin-bottom: 10px; text-align: center; }
     </style>
 </head>
 <body>
 
     <div id="loadingStatus">⏳ Loading Master Data... Please wait.</div>
 
-    <!-- 1. सर्च बॉक्स -->
+    <!-- 1. Search Box (Collapsible) -->
     <div class="card">
-        <h2>🔍 Search Product</h2>
-        <div style="position: relative;">
-            <input type="text" id="searchInput" onkeyup="searchModel()" placeholder="Type model name here..." disabled>
-            <div id="searchResults"></div>
+        <div class="card-header active" onclick="toggleSection('searchContent', 'searchIcon', this)">
+            <h3>🔍 Search Product</h3>
+            <span class="toggle-icon" id="searchIcon">▼</span>
+        </div>
+        <div id="searchContent" class="card-content" style="display: block;">
+            <div style="position: relative;">
+                <input type="text" id="searchInput" onkeyup="searchModel()" placeholder="Type model name here..." disabled>
+                <div id="searchResults"></div>
+            </div>
+            <div id="selectedProduct" style="margin-top: 15px;"></div>
         </div>
     </div>
 
-    <!-- 2. Customer Eligibility -->
+    <!-- 2. Customer Eligibility (Collapsible) -->
     <div class="card">
-        <h3>👤 Customer Eligibility</h3>
-        <div class="form-grid full">
-            <div class="input-group">
-                <label>Card Type *</label>
-                <select id="custType" onchange="recalculateData()">
-                    <option value="" selected disabled>-- Select Card Type --</option>
-                    <option value="NEW">NEW</option>
-                    <option value="EMI CARD">EMI CARD</option>
-                    <option value="INSTA EMI CARD">INSTA EMI CARD</option>
-                    <option value="W/O CARD">W/O CARD</option>
-                </select>
+        <div class="card-header" onclick="toggleSection('eligibilityContent', 'eligibilityIcon', this)">
+            <h3>👤 Customer Eligibility</h3>
+            <span class="toggle-icon" id="eligibilityIcon">▶</span>
+        </div>
+        <div id="eligibilityContent" class="card-content">
+            <div class="form-grid full">
+                <div class="input-group">
+                    <label>Card Type *</label>
+                    <!-- Select Card Type निवडल्यास सर्व व्हॅल्यूज क्लिअर होतील -->
+                    <select id="custType" onchange="handleCardTypeChange()">
+                        <option value="" selected>-- Select Card Type --</option>
+                        <option value="NEW">NEW</option>
+                        <option value="EMI CARD">EMI CARD</option>
+                        <option value="INSTA EMI CARD">INSTA EMI CARD</option>
+                        <option value="W/O CARD">W/O CARD</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-grid">
+                <div class="input-group">
+                    <label>NBFC Limit (₹)</label>
+                    <input type="number" id="custLimit" placeholder="E.g. 50000" oninput="recalculateData()">
+                </div>
+                <div class="input-group">
+                    <label>Invoice Amt (₹)</label>
+                    <!-- इन्व्हॉइस बदलल्यावर GTL, RFC चे नियम लागू होतील -->
+                    <input type="number" id="custInvoice" placeholder="E.g. 35000" oninput="applyAutoRules()">
+                </div>
+                <div class="input-group">
+                    <label>Max LTV (%)</label>
+                    <input type="number" id="custLtv" value="100" oninput="recalculateData()">
+                </div>
+                <div class="input-group">
+                    <label>EMI Capping (₹)</label>
+                    <input type="number" id="custCap" placeholder="Max EMI" oninput="recalculateData()">
+                </div>
             </div>
         </div>
-        <div class="form-grid" style="margin-top: 10px;">
-            <div class="input-group">
-                <label>NBFC Limit (₹)</label>
-                <input type="number" id="custLimit" placeholder="E.g. 50000" oninput="recalculateData()">
-            </div>
-            <div class="input-group">
-                <label>Invoice Amt (₹)</label>
-                <input type="number" id="custInvoice" placeholder="E.g. 35000" oninput="recalculateData()">
-            </div>
-            <div class="input-group">
-                <label>Max LTV (%)</label>
-                <input type="number" id="custLtv" value="100" oninput="recalculateData()">
-            </div>
-            <div class="input-group">
-                <label>EMI Capping (₹)</label>
-                <input type="number" id="custCap" placeholder="Max EMI" oninput="recalculateData()">
-            </div>
+    </div>
+
+    <!-- 3. Advanced Charges & Margin (Collapsible) -->
+    <div class="card">
+        <div class="card-header" onclick="toggleSection('advancedContent', 'advancedIcon', this)">
+            <h3>⚙️ Advanced Charges & Margin</h3>
+            <span class="toggle-icon" id="advancedIcon">▶</span>
         </div>
-
-        <div class="section-divider"></div>
-
-        <!-- 3. Advanced Inputs -->
-        <h4 style="color: #e67e22; margin-bottom: 8px;">⚙️ Advanced Charges & Margin</h4>
-        <div class="form-grid">
-            <div class="input-group">
-                <label>Target DP (₹)</label>
-                <input type="number" id="advTarget" placeholder="0" oninput="recalculateData()">
-            </div>
-            <div class="input-group">
-                <label>GTL (₹)</label>
-                <input type="number" id="advGtl" placeholder="0" oninput="recalculateData()">
-            </div>
-            <div class="input-group">
-                <label>RFC (₹)</label>
-                <input type="number" id="advRfc" placeholder="0" oninput="recalculateData()">
-            </div>
-            <div class="input-group">
-                <label>EXW (₹)</label>
-                <input type="number" id="advExw" placeholder="0" oninput="recalculateData()">
-            </div>
-            <div class="input-group">
-                <label>Margin (₹)</label>
-                <input type="number" id="advMargin" placeholder="0" oninput="recalculateData()">
-            </div>
-            <div class="input-group">
-                <label>Dealer Contri (₹)</label>
-                <input type="number" id="advDealer" placeholder="0" oninput="recalculateData()">
+        <div id="advancedContent" class="card-content">
+            <div class="form-grid">
+                <div class="input-group">
+                    <label>Target DP (₹)</label>
+                    <input type="number" id="advTarget" placeholder="0" oninput="recalculateData()">
+                </div>
+                <div class="input-group">
+                    <label>GTL (₹)</label>
+                    <input type="number" id="advGtl" placeholder="0" oninput="recalculateData()">
+                </div>
+                <div class="input-group">
+                    <label>RFC (₹)</label>
+                    <input type="number" id="advRfc" placeholder="0" oninput="recalculateData()">
+                </div>
+                <div class="input-group">
+                    <label>EXW (₹)</label>
+                    <input type="number" id="advExw" placeholder="0" oninput="recalculateData()">
+                </div>
+                <div class="input-group">
+                    <label>Margin (₹)</label>
+                    <input type="number" id="advMargin" placeholder="0" oninput="recalculateData()">
+                </div>
+                <div class="input-group">
+                    <label>Dealer Contri (₹)</label>
+                    <input type="number" id="advDealer" placeholder="0" oninput="recalculateData()">
+                </div>
             </div>
         </div>
     </div>
 
     <!-- 4. कॅल्क्युलेटेड स्कीम्स -->
     <div class="card" id="tableContainer" style="display: none;">
-        <div id="selectedProduct"></div>
         <button class="btn-copy-img" onclick="copyImage()">🖼️ COPY IMAGE</button>
         
         <div class="table-wrapper">
@@ -269,11 +226,70 @@
         let db_records = [];
         let currentSchemes = [];
         let activeModelName = "";
+        let activeCategory = "";
         const GITHUB_RAW_URL = "https://raw.githubusercontent.com/luckyjathar/testcalculator/main/master_data.xlsx";
+
+        // Accordion Toggle Function
+        function toggleSection(contentId, iconId, headerEl) {
+            let content = document.getElementById(contentId);
+            let icon = document.getElementById(iconId);
+            if (content.style.display === "none" || content.style.display === "") {
+                content.style.display = "block";
+                icon.innerText = "▼";
+                headerEl.classList.add('active');
+            } else {
+                content.style.display = "none";
+                icon.innerText = "▶";
+                headerEl.classList.remove('active');
+            }
+        }
+
+        // Card Type बदलल्यावर सर्व व्हॅल्यू क्लिअर करणे
+        function handleCardTypeChange() {
+            let type = document.getElementById('custType').value;
+            if (type === "") {
+                // जर Select Card Type निवडले तर सर्व ब्लँक करा
+                document.getElementById('custLimit').value = '';
+                document.getElementById('custInvoice').value = '';
+                document.getElementById('custLtv').value = '100';
+                document.getElementById('custCap').value = '';
+                document.getElementById('advTarget').value = '';
+                document.getElementById('advGtl').value = '';
+                document.getElementById('advRfc').value = '';
+                document.getElementById('advExw').value = '';
+                document.getElementById('advMargin').value = '';
+                document.getElementById('advDealer').value = '';
+                document.getElementById('tableContainer').style.display = 'none';
+            } else {
+                recalculateData();
+            }
+        }
 
         function findKey(row, targets) {
             let key = Object.keys(row).find(k => targets.includes(k.toUpperCase().replace(/\s/g, '')));
             return key ? row[key] : null;
+        }
+
+        function isMobileCat(cat) {
+            if (!cat) return false;
+            let c = String(cat).toUpperCase().replace(/\s+/g, '').trim();
+            return c.includes('PHONE') || c.includes('TABLET') || c.includes('SMARTWATCH') || c.includes('MOBILE');
+        }
+
+        function getRfcSlab(val) {
+            if (val < 8000) return 0;
+            if (val <= 10000) return 1109;
+            if (val <= 15000) return 1631;
+            if (val <= 20000) return 2147;
+            if (val <= 25000) return 2695;
+            if (val <= 30000) return 3215;
+            if (val <= 35000) return 3648;
+            if (val <= 40000) return 4219;
+            if (val <= 50000) return 5720;
+            if (val <= 60000) return 8686;
+            if (val <= 100000) return 11438;
+            if (val <= 200000) return 16677;
+            return 0;
         }
 
         async function loadExcelData() {
@@ -287,6 +303,7 @@
                     let model = findKey(row, ['MODEL', 'PRODUCT', 'MODELNAME']);
                     return { 
                         model: model ? String(model).trim().toUpperCase() : "",
+                        category: String(findKey(row, ['CATEGORY', 'CAT']) || "").toUpperCase(),
                         tenure: parseInt(findKey(row, ['TOTALTENURE', 'TENURE', 'TA'])) || 0,
                         advEmi: parseInt(findKey(row, ['ADVANCEEMI', 'ADV'])) || 0,
                         dbd: parseFloat(findKey(row, ['DBD', 'DBD%'])) || 0,
@@ -326,10 +343,50 @@
             document.getElementById('searchResults').style.display = 'none';
             activeModelName = modelName;
             
+            // कॅटेगरी सेव्ह करणे
+            let rec = db_records.find(r => r.model === modelName);
+            if(rec) activeCategory = rec.category;
+            
             document.getElementById('selectedProduct').innerText = "📱 " + modelName;
             document.getElementById('selectedProduct').style.display = 'block';
             document.getElementById('tableContainer').style.display = 'block';
             
+            // पुढील बॉक्स आपोआप उघडणे
+            let eligContent = document.getElementById('eligibilityContent');
+            if(eligContent.style.display === "none") {
+                toggleSection('eligibilityContent', 'eligibilityIcon', eligContent.previousElementSibling);
+            }
+            
+            applyAutoRules();
+        }
+
+        // इन्व्हॉइस टाकल्यावर GTL, RFC, EXW चे नियम लागू करणे
+        function applyAutoRules() {
+            let inv = parseFloat(document.getElementById('custInvoice').value) || 0;
+            
+            // GTL Rule
+            let gtl = inv > 100000 ? 2398 : (inv > 50000 ? 1799 : (inv > 30000 ? 1499 : (inv > 10000 ? 1199 : (inv > 0 ? 699 : 0))));
+            document.getElementById('advGtl').value = gtl > 0 ? gtl : "";
+
+            // Mobile vs Other Category Rules
+            let isMobile = isMobileCat(activeCategory);
+            let rfcInp = document.getElementById('advRfc');
+            let exwInp = document.getElementById('advExw');
+
+            if (isMobile) {
+                let rfcVal = getRfcSlab(inv);
+                rfcInp.value = rfcVal > 0 ? rfcVal : "";
+                rfcInp.disabled = false;
+                
+                exwInp.value = "";
+                exwInp.disabled = true;
+            } else {
+                rfcInp.value = "0";
+                rfcInp.disabled = true;
+                
+                exwInp.disabled = false;
+            }
+
             recalculateData();
         }
 
@@ -337,12 +394,18 @@
             if (!activeModelName) return;
 
             let type = document.getElementById('custType').value;
+            // जर प्रकार निवडला नसेल, तर टेबल लपवा
+            if (type === "") {
+                document.getElementById('tableContainer').style.display = 'none';
+                return;
+            }
+            document.getElementById('tableContainer').style.display = 'block';
+
             let limit = parseFloat(document.getElementById('custLimit').value) || 0;
             let inv = parseFloat(document.getElementById('custInvoice').value) || 0;
             let maxLtvLimit = parseFloat(document.getElementById('custLtv').value) || 100;
             let cap = parseFloat(document.getElementById('custCap').value) || 0;
 
-            // Advanced Inputs
             let target = parseFloat(document.getElementById('advTarget').value) || 0;
             let gtl = parseFloat(document.getElementById('advGtl').value) || 0;
             let rfc = parseFloat(document.getElementById('advRfc').value) || 0;
@@ -351,13 +414,11 @@
             let dealer = parseFloat(document.getElementById('advDealer').value) || 0;
 
             let fee = 0;
-            if (type === 'EMI CARD') fee = 270;
-            else if (type === 'INSTA EMI CARD') fee = 270; // Assuming same as EMI CARD
+            if (type === 'EMI CARD' || type === 'INSTA EMI CARD') fee = 270;
             else if (type === 'W/O CARD') fee = 320;
             else if (type === 'NEW') fee = 850;
 
             let insTotal = gtl + rfc + exw;
-
             let rawSchemes = db_records.filter(r => r.model === activeModelName);
             let processedSchemes = [];
 
@@ -458,7 +519,6 @@
             }).join('');
         }
 
-        // टेक्स्ट कॉपी
         function copyText(index, btnElement) {
             let s = currentSchemes[index];
             let type = document.getElementById('custType').value || 'Not Selected';
@@ -489,7 +549,6 @@
             }
         }
 
-        // इमेज कॉपी (क्लियर हेडर आणि एलिजिबिलिटी डिटेल्स सोबत)
         function copyImage() {
             if(currentSchemes.length === 0) return;
             
@@ -526,12 +585,8 @@
             printDiv.innerHTML = `
             <div style="padding: 20px; background-color: #ffffff;">
                 <div style="border: 3px solid #034887; border-radius: 12px; overflow: hidden; background-color: #ffffff;">
-                    
-                    <!-- Top Blue Header -->
                     <div style="background-color: #034887; color: #ffffff; padding: 25px; text-align: center;">
                         <div style="font-size: 34px; font-weight: 900; margin: 0; padding-bottom: 15px; border-bottom: 1px dashed rgba(255,255,255,0.3);">📱 ${displayName.toUpperCase()}</div>
-                        
-                        <!-- Customer Eligibility Details in Image -->
                         <div style="display: flex; justify-content: space-evenly; flex-wrap: wrap; gap: 10px; margin-top: 15px; font-size: 18px; font-weight: bold; color: #e0f2fe;">
                             <span>TYPE: <span style="color:#f1c40f;">${type}</span></span>
                             <span>LIMIT: <span style="color:#2ecc71;">₹${parseFloat(limit).toLocaleString()}</span></span>
@@ -540,16 +595,14 @@
                         </div>
                         ${inv > 0 ? `<div style="margin-top: 15px; font-size: 22px; font-weight: 900; background: rgba(255,255,255,0.1); padding: 8px; border-radius: 6px;">INVOICE AMOUNT: ₹${parseFloat(inv).toLocaleString()}</div>` : ''}
                     </div>
-
-                    <!-- Scheme Table -->
                     <table style="width: 100%; border-collapse: collapse; text-align: center; background-color: #ffffff;">
-                        <thead style="background-color: #034887; color: #ffffff;">
+                        <thead style="background-color: #f1f5f9; color: #334155;">
                             <tr>
-                                <th style="padding: 18px 10px; font-size: 18px; font-weight: 900; border-bottom: 2px solid #022c54;">SCHEME<br><span style="font-size:14px; font-weight:normal;">(T / A)</span></th>
-                                <th style="padding: 18px 10px; font-size: 18px; font-weight: 900; border-bottom: 2px solid #022c54;">NET&nbsp;DP</th>
-                                <th style="padding: 18px 10px; font-size: 18px; font-weight: 900; border-bottom: 2px solid #022c54;">EMI</th>
-                                <th style="padding: 18px 10px; font-size: 18px; font-weight: 900; border-bottom: 2px solid #022c54;">MONTHS</th>
-                                <th style="padding: 18px 10px; font-size: 18px; font-weight: 900; border-bottom: 2px solid #022c54;">DAILY</th>
+                                <th style="padding: 18px 10px; font-size: 18px; font-weight: 900; border-bottom: 2px solid #cbd5e1;">SCHEME<br><span style="font-size:14px;">(T / A)</span></th>
+                                <th style="padding: 18px 10px; font-size: 18px; font-weight: 900; border-bottom: 2px solid #cbd5e1;">NET&nbsp;DP</th>
+                                <th style="padding: 18px 10px; font-size: 18px; font-weight: 900; border-bottom: 2px solid #cbd5e1;">EMI</th>
+                                <th style="padding: 18px 10px; font-size: 18px; font-weight: 900; border-bottom: 2px solid #cbd5e1;">MONTHS</th>
+                                <th style="padding: 18px 10px; font-size: 18px; font-weight: 900; border-bottom: 2px solid #cbd5e1;">DAILY</th>
                             </tr>
                         </thead>
                         <tbody>${trs}</tbody>
