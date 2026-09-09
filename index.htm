@@ -423,7 +423,7 @@
             }
         }
 
-        // इमेज कॉपी करण्यासाठी (फक्त निवडक रकाने)
+        // इमेज कॉपी करण्यासाठी (फिक्स केलेला कोड)
         function copyImage() {
             if(currentSchemes.length === 0) return;
             
@@ -432,59 +432,71 @@
             btn.innerText = "⏳ COPYING...";
 
             let inv = document.getElementById('custInvoice').value || 0;
+            let displayName = document.getElementById('selectedProduct').innerText.replace('📱 ', '').trim() || activeModelName;
 
-            // एक नवीन अदृश्य Div बनवणे (इमेज काढण्यासाठी)
             let printDiv = document.createElement('div');
-            printDiv.style.width = "700px";
-            printDiv.style.padding = "20px";
-            printDiv.style.background = "#ffffff";
+            printDiv.style.width = "750px";
             printDiv.style.position = "absolute";
-            printDiv.style.top = "-9999px";
-            printDiv.style.fontFamily = "sans-serif";
+            printDiv.style.left = "-9999px";
+            printDiv.style.backgroundColor = "#ffffff";
+            printDiv.style.fontFamily = "Arial, sans-serif";
 
             let trs = currentSchemes.map((s, i) => {
                 let bgCol = i % 2 === 0 ? '#ffffff' : '#f8fafc';
                 return `
-                <tr style="background: ${bgCol}; border-bottom: 1px solid #e2e8f0;">
-                    <td style="padding: 15px; font-size: 24px; font-weight: 900; color: #1e293b;">${s.currentTenure}/${s.advEmi}</td>
-                    <td style="padding: 15px; font-size: 24px; font-weight: 900; color: #059669;">₹${Math.round(s.dp).toLocaleString()}</td>
-                    <td style="padding: 15px; font-size: 24px; font-weight: 900; color: #095797;">₹${Math.round(s.emi).toLocaleString()}</td>
-                    <td style="padding: 15px; font-size: 24px; font-weight: 900; color: #0f172a;">${s.inst}</td>
-                    <td style="padding: 15px; font-size: 24px; font-weight: 900; color: #ea580c;">₹${Math.round(s.daily).toLocaleString()}</td>
+                <tr style="background-color: ${bgCol};">
+                    <td style="padding: 15px; font-size: 24px; font-weight: 900; color: #1e293b; border-bottom: 1px solid #e2e8f0;">${s.currentTenure} / ${s.advEmi}</td>
+                    <td style="padding: 15px; font-size: 24px; font-weight: 900; color: #27ae60; border-bottom: 1px solid #e2e8f0;">₹${Math.round(s.dp).toLocaleString()}</td>
+                    <td style="padding: 15px; font-size: 24px; font-weight: 900; color: #0984e3; border-bottom: 1px solid #e2e8f0;">₹${Math.round(s.emi).toLocaleString()}</td>
+                    <td style="padding: 15px; font-size: 24px; font-weight: 900; color: #333333; border-bottom: 1px solid #e2e8f0;">${s.inst}</td>
+                    <td style="padding: 15px; font-size: 24px; font-weight: 900; color: #e67e22; border-bottom: 1px solid #e2e8f0;">₹${Math.round(s.daily).toLocaleString()}</td>
                 </tr>`;
             }).join('');
 
             printDiv.innerHTML = `
-            <div style="border: 3px solid #034887; border-radius: 12px; overflow: hidden;">
-                <div style="background: #034887; color: white; padding: 20px; text-align: center;">
-                    <h2 style="margin: 0; font-size: 28px; font-weight: 900; text-transform: uppercase;">📱 ${activeModelName}</h2>
-                    ${inv > 0 ? `<div style="margin-top: 8px; font-size: 18px; font-weight: bold;">INVOICE AMOUNT: ₹${parseFloat(inv).toLocaleString()}</div>` : ''}
+            <div style="padding: 20px; background-color: #ffffff;">
+                <div style="border: 3px solid #034887; border-radius: 12px; overflow: hidden; background-color: #ffffff;">
+                    <div style="background-color: #034887; color: #ffffff; padding: 25px; text-align: center;">
+                        <div style="font-size: 32px; font-weight: 900; margin: 0; padding-bottom: 10px;">📱 ${displayName.toUpperCase()}</div>
+                        ${inv > 0 ? `<div style="font-size: 20px; font-weight: bold; color: #e0f2fe;">INVOICE AMOUNT: ₹${parseFloat(inv).toLocaleString()}</div>` : ''}
+                    </div>
+                    <table style="width: 100%; border-collapse: collapse; text-align: center; background-color: #ffffff;">
+                        <thead style="background-color: #f1f5f9; color: #334155;">
+                            <tr>
+                                <th style="padding: 18px 10px; font-size: 18px; font-weight: 900; border-bottom: 2px solid #cbd5e1;">SCHEME<br><span style="font-size:14px;">(T / A)</span></th>
+                                <th style="padding: 18px 10px; font-size: 18px; font-weight: 900; border-bottom: 2px solid #cbd5e1;">NET&nbsp;DP</th>
+                                <th style="padding: 18px 10px; font-size: 18px; font-weight: 900; border-bottom: 2px solid #cbd5e1;">EMI</th>
+                                <th style="padding: 18px 10px; font-size: 18px; font-weight: 900; border-bottom: 2px solid #cbd5e1;">MONTHS</th>
+                                <th style="padding: 18px 10px; font-size: 18px; font-weight: 900; border-bottom: 2px solid #cbd5e1;">DAILY</th>
+                            </tr>
+                        </thead>
+                        <tbody>${trs}</tbody>
+                    </table>
                 </div>
-                <table style="width: 100%; border-collapse: collapse; text-align: center;">
-                    <thead style="background: #f1f5f9; color: #334155; border-bottom: 2px solid #cbd5e1;">
-                        <tr>
-                            <th style="padding: 15px; font-size: 18px; font-weight: 900;">SCHEME (T/A)</th>
-                            <th style="padding: 15px; font-size: 18px; font-weight: 900;">NET DP</th>
-                            <th style="padding: 15px; font-size: 18px; font-weight: 900;">EMI</th>
-                            <th style="padding: 15px; font-size: 18px; font-weight: 900;">MONTHS</th>
-                            <th style="padding: 15px; font-size: 18px; font-weight: 900;">DAILY</th>
-                        </tr>
-                    </thead>
-                    <tbody>${trs}</tbody>
-                </table>
             </div>`;
             
             document.body.appendChild(printDiv);
 
-            html2canvas(printDiv, { scale: 2, useCORS: true }).then(canvas => {
-                canvas.toBlob(blob => {
-                    navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]).then(() => {
-                        btn.innerText = "✅ COPIED";
-                        setTimeout(() => { btn.innerText = origText; }, 2000);
-                        document.body.removeChild(printDiv);
-                    });
-                }, "image/png");
-            });
+            setTimeout(() => {
+                html2canvas(printDiv, { 
+                    scale: 2, 
+                    useCORS: true,
+                    backgroundColor: "#ffffff",
+                    logging: false
+                }).then(canvas => {
+                    canvas.toBlob(blob => {
+                        navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]).then(() => {
+                            btn.innerText = "✅ COPIED";
+                            setTimeout(() => { btn.innerText = origText; }, 2000);
+                            document.body.removeChild(printDiv);
+                        }).catch(err => {
+                            btn.innerText = "⚠️ ERROR";
+                            setTimeout(() => { btn.innerText = origText; }, 2000);
+                            document.body.removeChild(printDiv);
+                        });
+                    }, "image/png");
+                });
+            }, 300);
         }
 
         window.onload = loadExcelData;
