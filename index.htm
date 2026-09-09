@@ -91,7 +91,7 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
             border-radius: 8px;
             overflow: hidden;
-            display: none; /* आधी लपवून ठेवले आहे */
+            display: none; 
         }
 
         .scheme-table th {
@@ -129,6 +129,7 @@
     <table id="schemeTable" class="scheme-table">
         <thead>
             <tr>
+                <th>LTV %</th>
                 <th>Scheme (T/A)</th>
                 <th>DBD %</th>
                 <th>PF</th>
@@ -214,9 +215,13 @@
             
             let tbody = document.getElementById('schemeBody');
             tbody.innerHTML = schemes.map(s => {
+                // LTV कॅल्क्युलेशन
+                let ltv = s.tenure > 0 ? ((s.tenure - s.advEmi) / s.tenure) * 100 : 0;
                 let fixedEmiDisplay = s.fixedEmi > 0 ? "₹" + s.fixedEmi : "N/A";
+                
                 return `
                     <tr>
+                        <td style="color: #034887;">${Math.round(ltv)}%</td>
                         <td style="color: var(--indigo); font-size: 16px; font-weight: 900;">${s.tenure} / ${s.advEmi}</td>
                         <td>${s.dbd}%</td>
                         <td>₹${s.pf}</td>
