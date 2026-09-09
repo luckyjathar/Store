@@ -3,24 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Direct Model Search</title>
-    <!-- Excel फाईल वाचण्यासाठी लागणारी लायब्ररी -->
+    <title>Model Search & Scheme Chart</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
     <style>
         body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            padding: 50px; 
+            padding: 30px; 
             text-align: center; 
             background-color: #f4f7f6; 
         }
         h2 { color: #034887; }
         
-        /* सर्च बॉक्सची डिझाईन */
         .search-container {
             position: relative;
             width: 100%;
-            max-width: 400px;
+            max-width: 500px;
             margin: 0 auto;
         }
         
@@ -37,7 +35,6 @@
         
         input:focus { border-color: #034887; }
 
-        /* रिझल्ट दाखवणारा बॉक्स (ड्रॉपडाऊन) */
         #searchResults { 
             position: absolute; 
             top: 100%; 
@@ -62,7 +59,6 @@
             font-size: 14px; 
             font-weight: bold; 
             color: #333; 
-            transition: 0.2s;
         }
 
         .result-item:hover { 
@@ -72,16 +68,10 @@
 
         #selectedProduct { 
             margin-top: 30px; 
-            font-size: 20px; 
+            font-size: 22px; 
             font-weight: 900; 
             color: #27ae60; 
-            background: #e8f8f5;
-            padding: 15px;
-            border-radius: 8px;
-            display: none; /* आधी लपवून ठेवले आहे */
-            width: max-content;
-            margin-left: auto;
-            margin-right: auto;
+            display: none; 
         }
 
         #loadingStatus {
@@ -90,31 +80,77 @@
             font-size: 14px;
             margin-bottom: 10px;
         }
+
+        /* टेबलची डिझाईन */
+        .scheme-table {
+            width: 100%;
+            max-width: 800px;
+            margin: 20px auto;
+            border-collapse: collapse;
+            background: white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+            display: none; /* आधी लपवून ठेवले आहे */
+        }
+
+        .scheme-table th {
+            background: #0984e3;
+            color: white;
+            padding: 12px;
+            font-size: 14px;
+        }
+
+        .scheme-table td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .scheme-table tr:hover { background: #f8fafc; }
     </style>
 </head>
 <body>
 
-    <h2>🔍 Search Product</h2>
+    <h2>🔍 Search Product & Schemes</h2>
     
-    <!-- डेटा लोड होईपर्यंत हा मेसेज दिसेल -->
     <div id="loadingStatus">⏳ Loading Master Data... Please wait.</div>
 
-    <!-- मुख्य सर्च बॉक्स -->
     <div class="search-container">
-        <!-- डेटा लोड झाल्यावरच इनपुट चालू होईल -->
         <input type="text" id="searchInput" onkeyup="searchModel()" placeholder="Type model name here..." disabled>
-        
         <div id="searchResults"></div>
     </div>
 
-    <!-- सिलेक्ट केलेले मॉडेल दिसण्यासाठी जागा -->
     <div id="selectedProduct"></div>
+    
+    <!-- स्कीम्स दिसण्यासाठी टेबल -->
+    <table id="schemeTable" class="scheme-table">
+        <thead>
+            <tr>
+                <th>Scheme (T/A)</th>
+                <th>Fixed EMI</th>
+                <th>DBD %</th>
+                <th>ROI %</th>
+                <th>PF</th>
+            </tr>
+        </thead>
+        <tbody id="schemeBody">
+            <!-- डायनॅमिक डेटा इथे येईल -->
+        </tbody>
+    </table>
 
     <script>
         let db_records = [];
         const GITHUB_RAW_URL = "https://raw.githubusercontent.com/luckyjathar/testcalculator/main/master_data.xlsx";
 
-        // 1. पेज उघडताच Excel फाईल लोड करणे
+        // हेल्पर फंक्शन: योग्य कॉलम शोधण्यासाठी
+        function findKey(row, targets) {
+            let key = Object.keys(row).find(k => targets.includes(k.toUpperCase().replace(/\s/g, '')));
+            return key ? row[key] : null;
+        }
+
         async function loadExcelData() {
             try {
                 let res = await fetch(GITHUB_RAW_URL + '?t=' + new Date().getTime());
@@ -123,20 +159,26 @@
                 
                 let sheetData = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: "" });
                 
-                // फक्त मॉडेलची नावे वेगळी काढणे
-                db_records = sheetData.map(r => {
-                    let keys = Object.keys(r);
-                    let modelKey = keys.find(k => ['MODEL', 'PRODUCT', 'MODEL NAME'].includes(k.toUpperCase().trim()));
-                    return { model: modelKey ? String(r[modelKey]).trim().toUpperCase() : "" };
+                // एक्सेल मधून पूर्ण स्कीम डेटा वाचणे
+                db_records = sheetData.map(row => {
+                    let model = findKey(row, ['MODEL', 'PRODUCT', 'MODELNAME']);
+                    return { 
+                        model: model ? String(model).trim().toUpperCase() : "",
+                        tenure: parseInt(findKey(row, ['TOTALTENURE', 'TENURE', 'TA'])) || 0,
+                        advEmi: parseInt(findKey(row, ['ADVANCEEMI', 'ADV'])) || 0,
+                        dbd: parseFloat(findKey(row, ['DBD', 'DBD%'])) || 0,
+                        roi: parseFloat(findKey(row, ['ROI', 'ROI%'])) || 0,
+                        pf: parseInt(findKey(row, ['PF', 'PROCESSINGFEE'])) || 0,
+                        fixedEmi: parseFloat(findKey(row, ['FIXEDEMI', 'FIXED'])) || 0
+                    };
                 }).filter(x => x.model !== "");
                 
-                // डेटा लोड झाल्यावर सर्च बॉक्स चालू (Enable) करणे
                 document.getElementById('loadingStatus').style.display = 'none';
                 document.getElementById('searchInput').disabled = false;
                 document.getElementById('searchInput').placeholder = "Start typing model name...";
                 document.getElementById('searchInput').focus();
 
-                console.log("Excel Data Loaded successfully!");
+                console.log("Excel Data & Schemes Loaded!");
             } catch(err) {
                 console.error("Error loading Excel:", err);
                 document.getElementById('loadingStatus').innerText = "⚠️ Error loading data. Please refresh.";
@@ -144,14 +186,12 @@
             }
         }
 
-        // 2. मॉडेल सर्च करणे
         function searchModel() {
             let q = document.getElementById('searchInput').value.toUpperCase().trim();
             let resultsDiv = document.getElementById('searchResults');
             
             if (!q) { resultsDiv.style.display = 'none'; return; }
             
-            // टाईप केलेल्या शब्दानुसार मॉडेल शोधणे (टॉप 15)
             let matches = db_records.filter(r => r.model.includes(q)).map(r => r.model);
             matches = [...new Set(matches)].slice(0, 15); 
             
@@ -165,19 +205,36 @@
             resultsDiv.style.display = 'block';
         }
 
-        // 3. मॉडेल सिलेक्ट झाल्यावर काय करायचे
         function selectModel(modelName) {
-            // ड्रॉपडाऊन लपवणे आणि इनपुट बॉक्स रिकामा करणे
             document.getElementById('searchInput').value = '';
             document.getElementById('searchResults').style.display = 'none';
             
-            // सिलेक्ट केलेले मॉडेल स्क्रीनवर दाखवणे
             let displayBox = document.getElementById('selectedProduct');
             displayBox.innerText = "✅ " + modelName;
             displayBox.style.display = 'block';
+
+            // त्या मॉडेलच्या सर्व स्कीम्स शोधणे
+            let schemes = db_records.filter(r => r.model === modelName);
+            
+            // टेबलमध्ये स्कीम्स दाखवणे
+            let tbody = document.getElementById('schemeBody');
+            tbody.innerHTML = schemes.map(s => {
+                let fixedEmiDisplay = s.fixedEmi > 0 ? "₹" + s.fixedEmi : "N/A";
+                return `
+                    <tr>
+                        <td style="color: var(--indigo);">${s.tenure} / ${s.advEmi}</td>
+                        <td style="color: #d35400;">${fixedEmiDisplay}</td>
+                        <td>${s.dbd}%</td>
+                        <td>${s.roi}%</td>
+                        <td>₹${s.pf}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            // टेबल दृश्यमान (visible) करणे
+            document.getElementById('schemeTable').style.display = 'table';
         }
 
-        // फाईल रन होताच डेटा लोड सुरू करा
         window.onload = loadExcelData;
     </script>
 
