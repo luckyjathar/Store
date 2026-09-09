@@ -1007,11 +1007,22 @@ function maskName(str) { if (!str || str === "-") return str; return str.split('
 function selectQueueItem(idx) { selectedQueueIndex = idx; renderCustomerQueue(); updateUniversalActionButtons(); }
 
 function updateUniversalActionButtons() {
-    let copyB = document.getElementById('uniCopyBtn'); let selB = document.getElementById('uniSelectBtn'); let editB = document.getElementById('uniEditBtn'); let delB = document.getElementById('uniDeleteBtn'); let invB = document.getElementById('uniInviteBtn');
-    if (selectedQueueIndex !== -1 && customerQueue[selectedQueueIndex]) { copyB.style.opacity = '1'; copyB.style.pointerEvents = 'auto'; selB.style.opacity = '1'; selB.style.pointerEvents = 'auto'; editB.style.opacity = '1'; editB.style.pointerEvents = 'auto'; delB.style.opacity = '1'; delB.style.pointerEvents = 'auto'; invB.style.opacity = '1'; invB.style.pointerEvents = 'auto'; } 
-    else { copyB.style.opacity = '0.5'; copyB.style.pointerEvents = 'none'; selB.style.opacity = '0.5'; selB.style.pointerEvents = 'none'; editB.style.opacity = '0.5'; editB.style.pointerEvents = 'none'; delB.style.opacity = '0.5'; delB.style.pointerEvents = 'none'; invB.style.opacity = '0.5'; invB.style.pointerEvents = 'none'; }
+    let copyB = document.getElementById('uniCopyBtn'); 
+    let selB = document.getElementById('uniSelectBtn'); 
+    let editB = document.getElementById('uniEditBtn'); 
+    let delB = document.getElementById('uniDeleteBtn'); 
+    let invB = document.getElementById('uniInviteBtn');
+    
+    // कस्टमर सिलेक्ट केला आहे की नाही ते चेक करा
+    let isActive = (selectedQueueIndex !== -1 && customerQueue[selectedQueueIndex]);
+    
+    // जे बटण पेजवर अस्तित्वात असेल, फक्त त्याचीच स्टाईल बदला (एरर टाळण्यासाठी)
+    if (copyB) { copyB.style.opacity = isActive ? '1' : '0.5'; copyB.style.pointerEvents = isActive ? 'auto' : 'none'; }
+    if (selB) { selB.style.opacity = isActive ? '1' : '0.5'; selB.style.pointerEvents = isActive ? 'auto' : 'none'; }
+    if (editB) { editB.style.opacity = isActive ? '1' : '0.5'; editB.style.pointerEvents = isActive ? 'auto' : 'none'; }
+    if (delB) { delB.style.opacity = isActive ? '1' : '0.5'; delB.style.pointerEvents = isActive ? 'auto' : 'none'; }
+    if (invB) { invB.style.opacity = isActive ? '1' : '0.5'; invB.style.pointerEvents = isActive ? 'auto' : 'none'; }
 }
-
 function uniCopy() { if(selectedQueueIndex !== -1) copyCustomerDetails(selectedQueueIndex, document.getElementById('uniCopyBtn')); }
 function uniSelect() { if(selectedQueueIndex !== -1) setActiveCustomer(selectedQueueIndex); }
 function uniEdit() { if(selectedQueueIndex === -1) return; let c = customerQueue[selectedQueueIndex]; document.getElementById('ecName').value = c.name; document.getElementById('ecMobile').value = c.mobile || ''; document.getElementById('ecLimit').value = c.limit; document.getElementById('ecLtv').value = c.ltv || 100; document.getElementById('ecType').value = c.type; document.getElementById('ecCap').value = c.cap || ''; document.getElementById('editCustomerModal').style.display='flex'; }
