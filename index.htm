@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pro Scheme Calculator (Mobile View)</title>
+    <title>Pro Scheme Calculator</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
@@ -62,10 +62,9 @@
         .btn-secondary { flex: 1; padding: 10px; background: #e2e8f0; color: #334155; border: none; border-radius: 4px; font-size: 12px; font-weight: bold; cursor: pointer; }
         .btn-secondary:hover { background: #cbd5e1; }
 
-        /* Session Summary */
-        .summary-row { display: flex; justify-content: space-between; border-bottom: 1px dashed #eee; padding: 6px 0; font-size: 12px; }
-        .summary-label { font-weight: bold; color: #666; }
-        .summary-value { font-weight: 900; color: #034887; }
+        /* Selected Product Area in Search */
+        #selectedProductArea { display: none; margin-top: 15px; padding-top: 12px; border-top: 1px dashed #ccc; }
+        #selectedProduct { font-size: 14px; font-weight: 900; color: #034887; text-align: center; margin-bottom: 10px; padding: 10px; background: #e3f2fd; border-radius: 6px; }
 
         /* Multiple Product Headers in Final Calc */
         .product-header {
@@ -120,6 +119,21 @@
                 <input type="text" id="searchInput" onkeyup="searchModel()" placeholder="Type model name here..." disabled>
                 <div id="searchResults"></div>
             </div>
+            
+            <div id="selectedProductArea">
+                <div id="selectedProduct"></div>
+                <div class="form-grid">
+                    <div class="input-group">
+                        <label>Invoice Amount (₹) *</label>
+                        <input type="number" id="custInvoice" placeholder="E.g. 35000" oninput="onInvoiceChange()" style="border-color:#27ae60; background:#f0fdf4;">
+                    </div>
+                    <div class="input-group">
+                        <label>Loan Amount (₹)</label>
+                        <input type="number" id="custLoan" placeholder="Optional" oninput="handleInputUpdate()">
+                    </div>
+                </div>
+            </div>
+
             <div class="action-buttons">
                 <button class="btn-secondary" onclick="openNonTieupModal()">+ NON TIE-UP</button>
                 <button class="btn-secondary" onclick="openManualModal()">+ MANUAL SCHEME</button>
@@ -161,41 +175,22 @@
             <span class="toggle-icon" id="advancedIcon">▶</span>
         </div>
         <div id="advancedContent" class="card-content">
-            <div class="form-grid full" style="margin-bottom: 8px;">
-                <div class="input-group">
-                    <label>Invoice Amount (₹) *</label>
-                    <input type="number" id="custInvoice" placeholder="E.g. 35000" oninput="onInvoiceChange()" style="border-color:#27ae60; background:#f0fdf4;">
-                </div>
-            </div>
             <div class="form-grid">
                 <div class="input-group"><label>Target DP (₹)</label><input type="number" id="advTarget" placeholder="0" oninput="handleInputUpdate()"></div>
-                
                 <div class="input-group">
                     <label>GTL (₹)</label>
                     <select id="advGtl" onchange="handleInputUpdate()">
-                        <option value="0">0</option>
-                        <option value="699">699</option>
-                        <option value="1199">1199</option>
-                        <option value="1499">1499</option>
-                        <option value="1799">1799</option>
-                        <option value="2398">2398</option>
+                        <option value="0">0</option><option value="699">699</option><option value="1199">1199</option>
+                        <option value="1499">1499</option><option value="1799">1799</option><option value="2398">2398</option>
                     </select>
                 </div>
                 <div class="input-group">
                     <label>RFC (₹)</label>
                     <select id="advRfc" onchange="handleInputUpdate()">
-                        <option value="0">0</option>
-                        <option value="1109">1109</option>
-                        <option value="1631">1631</option>
-                        <option value="2147">2147</option>
-                        <option value="2695">2695</option>
-                        <option value="3215">3215</option>
-                        <option value="3648">3648</option>
-                        <option value="4219">4219</option>
-                        <option value="5720">5720</option>
-                        <option value="8686">8686</option>
-                        <option value="11438">11438</option>
-                        <option value="16677">16677</option>
+                        <option value="0">0</option><option value="1109">1109</option><option value="1631">1631</option>
+                        <option value="2147">2147</option><option value="2695">2695</option><option value="3215">3215</option>
+                        <option value="3648">3648</option><option value="4219">4219</option><option value="5720">5720</option>
+                        <option value="8686">8686</option><option value="11438">11438</option><option value="16677">16677</option>
                     </select>
                 </div>
                 <div class="input-group"><label>EXW (₹)</label><input type="number" id="advExw" placeholder="0" oninput="handleInputUpdate()"></div>
@@ -205,26 +200,32 @@
         </div>
     </div>
 
-    <!-- 📋 Session Summary -->
-    <div class="card">
-        <div class="card-header active" onclick="toggleSimpleAccordion('summaryContent', 'summaryIcon', this)" style="display:flex; justify-content:space-between; padding:12px; cursor:pointer;">
-            <h4 style="margin:0; color:#555;">📋 Session Summary</h4>
-            <span id="summaryIcon" style="font-size:12px;">▼</span>
-        </div>
-        <div id="summaryContent" class="card-content" style="display: block; padding-top:0;">
-            <div class="summary-row"><span class="summary-label">Card Type:</span><span class="summary-value" id="sumType">-</span></div>
-            <div class="summary-row"><span class="summary-label">Card Fee:</span><span class="summary-value">₹<span id="sumFee">0</span></span></div>
-            <div class="summary-row"><span class="summary-label">Invoice Amount:</span><span class="summary-value">₹<span id="sumInv">0</span></span></div>
-            <div class="summary-row"><span class="summary-label">NBFC Limit:</span><span class="summary-value">₹<span id="sumLimit">0</span></span></div>
-            <div class="summary-row"><span class="summary-label">Target DP:</span><span class="summary-value">₹<span id="sumTarget">0</span></span></div>
-        </div>
-    </div>
-
-    <!-- 📊 Final Calculation -->
+    <!-- 📊 Final Calculation (With Compact Summary) -->
     <div class="card" id="finalCalcSection" style="display: none;">
+        <!-- Header -->
         <div style="padding: 12px; background: #e3f2fd; border-radius: 8px 8px 0 0; border-bottom: 2px solid #0984e3;">
             <h3 style="margin:0; text-align:center; color:#034887;">📊 Final Calculation</h3>
         </div>
+        
+        <!-- Compact Summary inside Final Calc -->
+        <div id="compactSummary" style="padding: 10px 12px; background: #fff; font-size: 11px; border-bottom: 1px solid #ddd;">
+            <div style="color: #034887; font-weight: 900; font-size: 13px; text-align: center; margin-bottom: 8px;" id="csProduct">📱 -</div>
+            <div style="display: flex; gap: 10px;">
+                <div style="flex: 1; background: #f8fafc; padding: 6px; border-radius: 4px; border: 1px solid #eee;">
+                    <div style="color: #555; font-weight: bold; font-size: 9px; margin-bottom: 4px;">👤 ELIGIBILITY</div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:2px;"><span>Type:</span> <b id="csType" style="color:#d35400;">-</b></div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:2px;"><span>Limit:</span> <b style="color:#27ae60;">₹<span id="csLimit">0</span></b></div>
+                    <div style="display:flex; justify-content:space-between;"><span>LTV:</span> <b style="color:#0984e3;"><span id="csLtv">100</span>%</b></div>
+                </div>
+                <div style="flex: 1; background: #f8fafc; padding: 6px; border-radius: 4px; border: 1px solid #eee;">
+                    <div style="color: #555; font-weight: bold; font-size: 9px; margin-bottom: 4px;">⚙️ CHARGES</div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:2px;"><span>Inv:</span> <b style="color:#0984e3;">₹<span id="csInv">0</span></b></div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:2px;"><span>Fee:</span> <b style="color:#e67e22;">₹<span id="csFee">0</span></b></div>
+                    <div style="display:flex; justify-content:space-between;"><span>Target DP:</span> <b style="color:#0984e3;">₹<span id="csTarget">0</span></b></div>
+                </div>
+            </div>
+        </div>
+
         <div class="card-content" style="display: block; background: #f8fafc; padding: 10px;">
             <button class="btn-copy-img" onclick="copyImage()">🖼️ COPY IMAGE</button>
             <div id="productsContainer"></div>
@@ -235,7 +236,6 @@
     <div id="nonTieupModal" class="modal">
         <div class="modal-content">
             <h3 style="color:#034887; margin-top:0;">Select Category (Non Tie-up)</h3>
-            <!-- Category options will be loaded dynamically from Excel -->
             <select id="ntCategory" style="margin-bottom: 15px;"></select>
             <div style="display:flex; gap:10px;">
                 <button class="btn-secondary" style="background:#27ae60; color:white;" onclick="addNonTieupProduct()">Add Product</button>
@@ -291,13 +291,6 @@
             }
         }
 
-        function toggleSimpleAccordion(contentId, iconId, headerEl) {
-            let content = document.getElementById(contentId);
-            let icon = document.getElementById(iconId);
-            if (content.style.display === "none") { content.style.display = "block"; icon.innerText = "▼"; } 
-            else { content.style.display = "none"; icon.innerText = "▶"; }
-        }
-
         function handleCardTypeChange() {
             let type = document.getElementById('custType').value;
             if (type === "") {
@@ -323,6 +316,18 @@
             return 0;
         }
 
+        function standardizeCategoryName(cat) {
+            if (!cat) return "OTHER";
+            let c = String(cat).toUpperCase().trim();
+            let cNoSpace = c.replace(/\s+/g, '');
+            if (cNoSpace.includes('PHONE') || cNoSpace.includes('MOBILE') || cNoSpace.includes('TABLET') || cNoSpace.includes('WATCH')) return "PHONE(WEB-MOBILE)";
+            if (cNoSpace.includes('AC') || cNoSpace.includes('AIRCONDITIONER') || cNoSpace.includes('AIRCOOLER')) return "AC";
+            if (cNoSpace.includes('TV') || cNoSpace.includes('LED') || cNoSpace.includes('TELEVISION')) return "LED TV";
+            if (cNoSpace.includes('WASHING')) return "WASHING MACHINE";
+            if (cNoSpace.includes('REF') || cNoSpace.includes('FRIDGE')) return "REFRIGERATOR";
+            return c;
+        }
+
         function findKey(row, targets) {
             let key = Object.keys(row).find(k => targets.includes(k.toUpperCase().replace(/\s/g, '')));
             return key ? row[key] : null;
@@ -331,7 +336,8 @@
         function mapData(row, type) {
             let model = findKey(row, ['MODEL', 'PRODUCT', 'MODELNAME']);
             if (!model && type !== 'NON TIEUP') return null;
-            let cat = String(findKey(row, ['CATEGORY', 'CAT']) || "").toUpperCase();
+            let rawCat = findKey(row, ['CATEGORY', 'CAT', 'ASSET', 'ASSETCATEGORY']);
+            let cat = standardizeCategoryName(rawCat);
             return {
                 model: type === 'NON TIEUP' ? 'NON TIEUP' : String(model).trim().toUpperCase(),
                 category: cat,
@@ -341,8 +347,8 @@
                 roi: parseFloat(findKey(row, ['ROI', 'ROI%'])) || 0,
                 pf: parseInt(findKey(row, ['PF', 'PROCESSINGFEE'])) || 0,
                 fixedEmi: parseFloat(findKey(row, ['FIXEDEMI', 'FIXED'])) || 0,
-                minLoan: parseFloat(findKey(row, ['MINLOAN'])) || 0,
-                maxLoan: parseFloat(findKey(row, ['MAXLOAN'])) || 9999999
+                minLoan: parseFloat(findKey(row, ['MINLOAN', 'MINL', 'MIN'])) || 0,
+                maxLoan: parseFloat(findKey(row, ['MAXLOAN', 'MAXL', 'MAX'])) || 9999999
             };
         }
 
@@ -351,10 +357,12 @@
                 let res = await fetch(GITHUB_RAW_URL + '?t=' + new Date().getTime());
                 let dataBuffer = await res.arrayBuffer();
                 let wb = XLSX.read(new Uint8Array(dataBuffer), { type: 'array' });
+                
                 let sheet1Data = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: "" }).map(r => mapData(r, "REG"));
                 let sheet2Data = wb.SheetNames.length > 1 ? XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[1]], { defval: "" }).map(r => mapData(r, "NON TIEUP")) : [];
                 
                 db_records = [...sheet1Data, ...sheet2Data].filter(x => x && x.model !== "");
+                
                 document.getElementById('loadingStatus').style.display = 'none';
                 document.getElementById('searchInput').disabled = false;
             } catch(err) {
@@ -397,14 +405,18 @@
             }
             activeCategory = cat;
 
-            // Auto set Invoice from MRP
+            document.getElementById('selectedProduct').innerText = "📱 " + modelName;
+            document.getElementById('selectedProductArea').style.display = 'block';
+
             document.getElementById('custInvoice').value = mrp > 0 ? mrp : "";
+            document.getElementById('custLoan').value = "";
             onInvoiceChange(); 
 
             let pInputs = {
                 type: document.getElementById('custType').value || '',
                 limit: parseFloat(document.getElementById('custLimit').value) || 0,
                 inv: parseFloat(document.getElementById('custInvoice').value) || 0,
+                loan: parseFloat(document.getElementById('custLoan').value) || 0,
                 ltv: parseFloat(document.getElementById('custLtv').value) || 100,
                 cap: parseFloat(document.getElementById('custCap').value) || 0,
                 target: parseFloat(document.getElementById('advTarget').value) || 0,
@@ -442,9 +454,10 @@
             if (current_products.length === 0) {
                 activeProductIndex = -1;
                 document.getElementById('finalCalcSection').style.display = 'none';
+                document.getElementById('selectedProductArea').style.display = 'none';
                 
-                // Clear fields on empty
-                ['custInvoice','custCap','advTarget','advExw','advMargin','advDealer'].forEach(id => document.getElementById(id).value = '');
+                // Clear fields
+                ['custInvoice','custLoan','advTarget','advExw','advMargin','advDealer'].forEach(id => document.getElementById(id).value = '');
                 document.getElementById('advGtl').value = '0';
                 document.getElementById('advRfc').value = '0';
                 updateSummary();
@@ -457,7 +470,7 @@
 
         function switchActiveProduct(index) {
             if(activeProductIndex === index) {
-                activeProductIndex = -1; 
+                activeProductIndex = -1; // Toggle off
             } else {
                 activeProductIndex = index;
                 syncUIWithActiveProduct();
@@ -467,12 +480,19 @@
         }
 
         function syncUIWithActiveProduct() {
-            if(activeProductIndex === -1) return;
+            if(activeProductIndex === -1) {
+                document.getElementById('selectedProductArea').style.display = 'none';
+                return;
+            }
             let p = current_products[activeProductIndex];
             
+            document.getElementById('selectedProductArea').style.display = 'block';
+            document.getElementById('selectedProduct').innerText = "📱 " + p.name;
+
             document.getElementById('custType').value = p.inputs.type;
             document.getElementById('custLimit').value = p.inputs.limit || "";
             document.getElementById('custInvoice').value = p.inputs.inv || "";
+            document.getElementById('custLoan').value = p.inputs.loan || "";
             document.getElementById('custLtv').value = p.inputs.ltv || 100;
             document.getElementById('custCap').value = p.inputs.cap || "";
             
@@ -520,6 +540,7 @@
             p.inputs.type = document.getElementById('custType').value || '';
             p.inputs.limit = parseFloat(document.getElementById('custLimit').value) || 0;
             p.inputs.inv = parseFloat(document.getElementById('custInvoice').value) || 0;
+            p.inputs.loan = parseFloat(document.getElementById('custLoan').value) || 0;
             p.inputs.ltv = parseFloat(document.getElementById('custLtv').value) || 100;
             p.inputs.cap = parseFloat(document.getElementById('custCap').value) || 0;
             
@@ -537,24 +558,24 @@
 
         function updateSummary() {
             if(activeProductIndex === -1) {
-                document.getElementById('sumType').innerText = "-";
-                document.getElementById('sumFee').innerText = "0";
-                document.getElementById('sumLimit').innerText = "0";
-                document.getElementById('sumInv').innerText = "0";
-                document.getElementById('sumTarget').innerText = "0";
+                document.getElementById('compactSummary').style.display = 'none';
                 return;
             }
+            document.getElementById('compactSummary').style.display = 'block';
+
             let p = current_products[activeProductIndex];
             let fee = 0;
             if (p.inputs.type === 'EMI CARD' || p.inputs.type === 'INSTA EMI CARD') fee = 270;
             else if (p.inputs.type === 'W/O CARD') fee = 320;
             else if (p.inputs.type === 'NEW') fee = 850;
 
-            document.getElementById('sumType').innerText = p.inputs.type || "-";
-            document.getElementById('sumFee').innerText = fee;
-            document.getElementById('sumLimit').innerText = p.inputs.limit || "0";
-            document.getElementById('sumInv').innerText = p.inputs.inv || "0";
-            document.getElementById('sumTarget').innerText = p.inputs.target || "0";
+            document.getElementById('csProduct').innerText = `📱 ${p.name.replace('NON TIEUP - ','')}`;
+            document.getElementById('csType').innerText = p.inputs.type || "-";
+            document.getElementById('csLimit').innerText = p.inputs.limit ? p.inputs.limit.toLocaleString() : "0";
+            document.getElementById('csLtv').innerText = p.inputs.ltv || "100";
+            document.getElementById('csInv').innerText = p.inputs.inv ? p.inputs.inv.toLocaleString() : "0";
+            document.getElementById('csTarget').innerText = p.inputs.target ? p.inputs.target.toLocaleString() : "0";
+            document.getElementById('csFee').innerText = fee;
         }
 
         function overrideSchemeLoan(pIndex, sKey, newLoanVal) {
@@ -603,6 +624,7 @@
                         loan = Math.max(0, Math.floor((numerator / denominator) / s.fixedEmi) * s.fixedEmi);
                         currentTenure = Math.floor(loan / s.fixedEmi) || 1;
                     }
+                    if (inp.loan > 0 && !isOverridden) { loan = inp.loan; currentTenure = Math.floor(loan / s.fixedEmi) || 1; }
                     if (inp.inv > 0 && loan > inp.inv) loan = Math.floor(inp.inv / s.fixedEmi) * s.fixedEmi;
                     if (isOverridden) { loan = overrideVal; currentTenure = Math.floor(loan / s.fixedEmi) || 1; }
                     
@@ -614,13 +636,14 @@
                     if (inp.target > 0 && inp.inv > 0) {
                         loan = Math.min(loan, Math.max(0, Math.floor((inp.target - inp.inv - totalFees) / ((s.advEmi / s.tenure) + dbdRate + roiRateDP - 1))));
                     }
-                    if (isOverridden) { loan = overrideVal; }
+                    if (inp.loan > 0 && !isOverridden) { loan = inp.loan; }
+                    if (isOverridden) loan = overrideVal;
 
                     inst = s.tenure - s.advEmi; if (inst < 1) inst = 1;
                     let baseEmi = Math.max(900, loan / s.tenure);
                     emi = baseEmi + (insTotal / inst) + (loan * roiRate);
                     
-                    if (inp.cap > 0 && emi > inp.cap && !isOverridden) {
+                    if (inp.cap > 0 && emi > inp.cap && !isOverridden && inp.loan === 0) {
                         loan = Math.max(0, (inp.cap - (insTotal / inst)) / ((1 / s.tenure) + roiRate));
                         if (inp.inv > 0 && loan > inp.inv) loan = inp.inv;
                         emi = Math.max(900, loan / s.tenure) + (insTotal / inst) + (loan * roiRate);
@@ -630,9 +653,10 @@
 
                 let ltv = currentTenure > 0 ? ((currentTenure - s.advEmi) / currentTenure) * 100 : 0;
                 let daily = emi / 30;
-                let boundCheck = p.isNonTieup ? (loan >= s.minLoan && loan <= s.maxLoan) : true;
+                let boundCheck = true;
+                if (p.isNonTieup && loan > 0) { boundCheck = (loan >= s.minLoan && loan <= s.maxLoan); }
 
-                if (isOverridden || (ltv <= inp.ltv && loan > 0 && boundCheck)) {
+                if (isOverridden || inp.loan > 0 || (ltv <= inp.ltv && loan > 0 && boundCheck)) {
                     processedSchemes.push({ ...s, loan, dp, emi, inst, daily, currentTenure, ltv, sKey });
                 }
             });
@@ -647,14 +671,13 @@
 
             current_products.forEach((p, index) => {
                 let isActive = (index === activeProductIndex);
-                let invText = p.inputs.inv > 0 ? ` (₹${p.inputs.inv})` : "";
                 
                 let html = `
                 <div style="margin-bottom: ${isActive ? '10px' : '6px'};">
                     <div class="product-header ${isActive ? 'active' : ''}" onclick="switchActiveProduct(${index})">
                         <div style="display:flex; align-items:center; gap:8px;">
                             <span>${isActive ? '▼' : '▶'}</span>
-                            <span>📱 ${p.name.replace('NON TIEUP - ','')}${invText}</span>
+                            <span>📱 ${p.name.replace('NON TIEUP - ','')}</span>
                         </div>
                         <button class="remove-btn" onclick="removeProduct(${index}, event)">✖</button>
                     </div>
@@ -663,8 +686,8 @@
                             <thead>
                                 <tr>
                                     <th style="width:16%;">T/A</th>
-                                    <th style="width:30%;">LOAN (₹)</th>
-                                    <th style="width:20%;">DP</th>
+                                    <th style="width:28%;">LOAN (₹)</th>
+                                    <th style="width:22%;">DP</th>
                                     <th style="width:22%;">EMI</th>
                                     <th style="width:12%;">ACT</th>
                                 </tr>
@@ -683,7 +706,7 @@
                                 </tr>
                                 <tr class="row-sub">
                                     <td colspan="5">
-                                        <b>DBD:</b> ${s.dbd}% (₹${Math.round(s.loan * (s.dbd * 1.18 / 100))}) | <b>PF:</b> ₹${s.pf} | <b>ROI:</b> ${s.roi}% | <b>FIXED:</b> ${s.fixedEmi>0 ? '₹'+s.fixedEmi : 'No'} | <b>DAILY SAVE:</b> <span style="color:#27ae60;">₹${Math.round(s.daily)}</span>
+                                        <b>DBD:</b> ${s.dbd.toFixed(2)}% (₹${Math.round(s.loan * (s.dbd * 1.18 / 100))}) | <b>PF:</b> ₹${s.pf} | <b>ROI:</b> ${s.roi.toFixed(2)}% | <b>FIXED:</b> ${s.fixedEmi>0 ? '₹'+s.fixedEmi : 'No'} | <b>DAILY SAVE:</b> <span style="color:#27ae60;">₹${Math.round(s.daily)}</span>
                                     </td>
                                 </tr>
                                 `).join('') : '<tr><td colspan="5" style="color:red; padding:15px;">No eligible schemes found.</td></tr>'}
@@ -733,8 +756,8 @@
             let p = current_products[pIndex]; let s = p.calculatedData[sIndex];
             let text = `📱 *${p.name.replace('NON TIEUP - ','')}*\n\n👤 *ELIGIBILITY:*\n*Type:* ${p.inputs.type} | *Limit:* ₹${p.inputs.limit.toLocaleString()}\n*LTV:* ${p.inputs.ltv}% ${p.inputs.cap > 0 ? '| *Cap:* ₹'+p.inputs.cap : ''}\n`;
             if(p.inputs.inv > 0) text += `*Invoice:* ₹${p.inputs.inv.toLocaleString()}\n`;
-            text += `------------------------\n✅ *Scheme:* ${s.currentTenure}/${s.advEmi}\n💳 *Loan:* ₹${Math.floor(s.loan).toLocaleString()}\n💰 *DP:* ₹${Math.round(s.dp).toLocaleString()}\n🗓️ *EMI:* ₹${Math.round(s.emi).toLocaleString()} x ${s.inst} Months\n`;
-            text += `⚙️ *Rules:* DBD: ${s.dbd}% (₹${Math.round(s.loan * (s.dbd * 1.18 / 100))}) | PF: ₹${s.pf} | ROI: ${s.roi}%\n✨ *Daily Save:* ₹${Math.round(s.daily).toLocaleString()}`;
+            text += `------------------------\n✅ *Scheme:* ${s.currentTenure}/${s.advEmi}\n💰 *DP:* ₹${Math.round(s.dp).toLocaleString()}\n🗓️ *EMI:* ₹${Math.round(s.emi).toLocaleString()} x ${s.inst} Months\n`;
+            text += `✨ *Daily Save:* ₹${Math.round(s.daily).toLocaleString()}`;
 
             if (navigator.clipboard) {
                 navigator.clipboard.writeText(text).then(() => {
@@ -763,7 +786,7 @@
                     <td style="padding: 15px; font-size: 24px; font-weight: 900; color: #27ae60; border-bottom: 1px solid #e2e8f0;">₹${Math.round(s.dp).toLocaleString()}</td>
                     <td style="padding: 15px; font-size: 24px; font-weight: 900; color: #0984e3; border-bottom: 1px solid #e2e8f0;">₹${Math.round(s.emi).toLocaleString()}</td>
                     <td style="padding: 15px; font-size: 24px; font-weight: 900; color: #333333; border-bottom: 1px solid #e2e8f0;">${s.inst}</td>
-                    <td style="padding: 15px; font-size: 24px; font-weight: 900; color: #e67e22; border-bottom: 1px solid #e2e8f0;">₹${Math.round(s.daily).toLocaleString()}</td>
+                    <td style="padding: 15px; font-size: 24px; font-weight: 900; color: #27ae60; border-bottom: 1px solid #e2e8f0;">₹${Math.round(s.daily).toLocaleString()}</td>
                 </tr>`;
             }).join('');
 
@@ -772,13 +795,7 @@
                 <div style="border: 3px solid #034887; border-radius: 12px; overflow: hidden; background-color: #ffffff;">
                     <div style="background-color: #034887; color: #ffffff; padding: 25px; text-align: center;">
                         <div style="font-size: 34px; font-weight: 900; margin: 0; padding-bottom: 15px;">📱 ${p.name.replace('NON TIEUP - ','').toUpperCase()}</div>
-                        <div style="display: flex; justify-content: space-evenly; flex-wrap: wrap; gap: 10px; margin-top: 15px; font-size: 18px; font-weight: bold; color: #e0f2fe;">
-                            <span>TYPE: <span style="color:#f1c40f;">${p.inputs.type}</span></span>
-                            <span>LIMIT: <span style="color:#2ecc71;">₹${p.inputs.limit.toLocaleString()}</span></span>
-                            <span>LTV: <span style="color:#fff;">${p.inputs.ltv}%</span></span>
-                            ${p.inputs.cap > 0 ? `<span>CAP: <span style="color:#e74c3c;">₹${p.inputs.cap}</span></span>` : ''}
-                        </div>
-                        ${p.inputs.inv > 0 ? `<div style="margin-top: 15px; font-size: 22px; font-weight: 900; background: rgba(255,255,255,0.1); padding: 8px; border-radius: 6px;">INVOICE AMOUNT: ₹${p.inputs.inv.toLocaleString()}</div>` : ''}
+                        ${p.inputs.inv > 0 ? `<div style="font-size: 20px; font-weight: bold; color: #e0f2fe;">INVOICE AMOUNT: ₹${p.inputs.inv.toLocaleString()}</div>` : ''}
                     </div>
                     <table style="width: 100%; border-collapse: collapse; text-align: center; background-color: #ffffff;">
                         <thead style="background-color: #f1f5f9; color: #334155;">
