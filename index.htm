@@ -9,70 +9,79 @@
     
     <style>
         /* Ultra Compact Mobile View */
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; padding: 4px; background-color: #e2e8f0; margin: 0 auto; max-width: 480px; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; padding: 6px; background-color: #e2e8f0; margin: 0 auto; max-width: 480px; }
         
-        .card { background: white; margin-bottom: 5px; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        .acc-header { padding: 10px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: #fff; border-radius: 6px; }
+        /* App Header */
+        .app-header { background: #034887; color: white; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
+        .app-header h2 { margin: 0; font-size: 15px; font-weight: 900; letter-spacing: 0.5px; }
+        .history-btn { background: rgba(255,255,255,0.2); border: none; color: white; font-size: 16px; padding: 6px 10px; border-radius: 6px; cursor: pointer; transition: 0.2s; }
+        .history-btn:hover { background: rgba(255,255,255,0.4); }
+
+        .card { background: white; margin-bottom: 6px; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .acc-header { padding: 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: #fff; border-radius: 6px; }
         .acc-header.active { background: #f0f8ff; border-bottom: 1px solid #ddd; border-radius: 6px 6px 0 0; }
         .acc-header h3 { margin: 0; color: #034887; font-size: 13px; font-weight: 900; text-transform: uppercase; }
-        .toggle-icon { font-size: 11px; color: #0984e3; font-weight: bold; }
-        .acc-content { padding: 6px 8px; display: none; }
+        .toggle-icon { font-size: 12px; color: #0984e3; font-weight: bold; }
+        .acc-content { padding: 8px; display: none; }
         
-        /* Compact Inputs without Spinners */
+        /* Compact Inputs */
         input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         input[type=number] { -moz-appearance: textfield; }
-        input, select { padding: 2px 6px; font-size: 12px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; outline: none; width: 100%; height: 30px; font-weight: 700; color: #333; }
+        input, select { padding: 4px 8px; font-size: 13px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; outline: none; width: 100%; height: 34px; font-weight: 700; color: #333; }
         input:focus, select:focus { border-color: #0984e3; background: #f0f8ff; }
         input:disabled, select:disabled { background: #e9ecef; color: #888; }
-        label { font-size: 9px; font-weight: 900; color: #666; text-transform: uppercase; margin-bottom: 2px; display: block; }
+        label { font-size: 10px; font-weight: 900; color: #666; text-transform: uppercase; margin-bottom: 3px; display: block; }
 
-        /* Grids */
-        .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
-        .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; margin-top: 6px; }
-        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+        .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+        .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-top: 6px; }
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
 
         /* Search Results & Buttons */
         #searchResults { position: absolute; top: 100%; left: 0; right: 0; background: white; max-height: 200px; overflow-y: auto; border: 1px solid #ccc; box-shadow: 0 4px 8px rgba(0,0,0,0.1); display: none; z-index: 1000; }
-        .result-item { padding: 10px; border-bottom: 1px solid #eee; font-size: 12px; font-weight: bold; color: #333; cursor: pointer; }
+        .result-item { padding: 10px; border-bottom: 1px solid #eee; font-size: 13px; font-weight: bold; color: #333; cursor: pointer; }
         .result-item:hover { background: #e3f2fd; color: #0984e3; }
-        .btn-secondary { flex: 1; padding: 8px; background: #e2e8f0; color: #334155; border: none; border-radius: 4px; font-size: 11px; font-weight: 900; cursor: pointer; margin-top: 6px; }
-        .btn-action { padding: 4px 6px; font-size: 9px; font-weight: bold; color: white; background: #0984e3; border: none; border-radius: 3px; cursor: pointer; }
+        .btn-secondary { flex: 1; padding: 10px; background: #e2e8f0; color: #334155; border: none; border-radius: 4px; font-size: 11px; font-weight: 900; cursor: pointer; margin-top: 6px; }
+        .btn-action { padding: 5px 8px; font-size: 10px; font-weight: bold; color: white; background: #0984e3; border: none; border-radius: 3px; cursor: pointer; }
 
         /* Final Calculation Styles */
-        .product-header { background: #034887; color: white; padding: 8px 10px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-weight: bold; cursor: pointer; border-radius: 6px; margin-bottom: 6px; }
+        .product-header { background: #034887; color: white; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: bold; cursor: pointer; border-radius: 6px; margin-bottom: 6px; }
         .product-header.active { border-radius: 6px 6px 0 0; margin-bottom: 0; background: #0984e3; }
-        .product-body { padding: 4px; background: #fff; border: 1px solid #0984e3; border-top: none; border-radius: 0 0 6px 6px; margin-bottom: 10px; }
+        .product-body { padding: 6px; background: #fff; border: 1px solid #0984e3; border-top: none; border-radius: 0 0 6px 6px; margin-bottom: 10px; }
         .remove-btn { color: #ffcccc; background: none; border: none; font-size: 14px; font-weight: bold; padding: 0 5px; cursor: pointer; }
 
-        /* Compact Realtime Info Bar */
-        .info-bar { background: #f8fafc; padding: 6px; border-bottom: 1px solid #e2e8f0; font-size: 10px; display: flex; flex-wrap: wrap; gap: 4px 12px; color: #555; }
+        .info-bar { background: #f8fafc; padding: 8px; border-bottom: 1px solid #e2e8f0; font-size: 11px; display: flex; flex-wrap: wrap; gap: 6px 14px; color: #555; }
         .info-bar b { color: #034887; font-weight: 900; }
-        .alert-banner { background: #ffebee; color: #c62828; font-size: 10px; font-weight: 900; padding: 4px 8px; text-align: center; border-bottom: 1px solid #ffcdd2; }
+        .alert-banner { background: #ffebee; color: #c62828; font-size: 11px; font-weight: 900; padding: 6px; text-align: center; border-bottom: 1px solid #ffcdd2; }
 
         /* Clean Table */
         .scheme-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-        .scheme-table th, .scheme-table td { padding: 4px 2px; font-size: 11px; font-weight: bold; text-align: center; }
-        .scheme-table th { background: #f1f5f9; color: #334155; font-size: 9px; text-transform: uppercase; border-bottom: 2px solid #cbd5e1; }
-        .row-main td { padding-top: 6px; }
-        .row-sub td { padding: 2px 4px 6px 4px; font-size: 9px; color: #666; text-align: left; border-bottom: 1px dashed #ddd; background: #f8fafc; }
+        .scheme-table th, .scheme-table td { padding: 6px 2px; font-size: 12px; font-weight: bold; text-align: center; }
+        .scheme-table th { background: #f1f5f9; color: #334155; font-size: 10px; text-transform: uppercase; border-bottom: 2px solid #cbd5e1; }
+        .row-main td { padding-top: 8px; }
+        .row-sub td { padding: 4px 6px 8px 6px; font-size: 10px; color: #666; text-align: left; border-bottom: 1px dashed #ddd; background: #f8fafc; }
         
-        /* Invisible Loan Input */
-        .loan-input { width: 100%; height: 20px; padding: 0; font-size: 11px; text-align: center; border: none; border-bottom: 1px dashed #d35400; background: transparent; color: #d35400; font-weight: 900; }
+        .loan-input { width: 100%; height: 22px; padding: 0; font-size: 12px; text-align: center; border: none; border-bottom: 1px dashed #d35400; background: transparent; color: #d35400; font-weight: 900; }
         .loan-input:focus { outline: none; background: #fff3e0; }
 
-        .btn-copy-img { width: 100%; padding: 8px; font-size: 12px; font-weight: 900; color: white; background: #27ae60; border: none; border-radius: 4px; margin-bottom: 6px; cursor: pointer; }
+        .btn-copy-img { width: 100%; padding: 10px; font-size: 13px; font-weight: 900; color: white; background: #27ae60; border: none; border-radius: 4px; margin-bottom: 8px; cursor: pointer; }
 
         /* Modals */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 2000; align-items: center; justify-content: center; }
         .modal-content { background: transparent; padding: 0; width: 90%; max-width: 400px; text-align: center; }
-        #previewImg { width: 100%; border-radius: 6px; border: 2px solid #fff; max-height: 80vh; object-fit: contain; background: #fff; }
+        #previewImg { width: 100%; border-radius: 8px; border: 2px solid #fff; max-height: 80vh; object-fit: contain; background: #fff; }
     </style>
 </head>
 <body>
 
-    <div id="loadingStatus" style="text-align: center; font-size: 11px; color: #e67e22; font-weight: bold; margin-bottom: 4px;">⏳ Loading Master Data...</div>
+    <div id="loadingStatus" style="text-align: center; font-size: 12px; color: #e67e22; font-weight: bold; margin-bottom: 6px;">⏳ Loading Master Data...</div>
 
-    <!-- 1. 👤 Customer Eligibility (TOP) -->
+    <!-- 0. App Header -->
+    <div class="app-header">
+        <h2>🚀 PRO RCD CALCULATOR</h2>
+        <button class="history-btn" onclick="alert('History feature coming soon!')" title="View History">🕒</button>
+    </div>
+
+    <!-- 1. 👤 Customer Eligibility -->
     <div class="card">
         <div class="acc-header active" onclick="toggleAcc('eligibilityContent', 'eligibilityIcon', this)">
             <h3>👤 Customer Eligibility</h3>
@@ -109,16 +118,15 @@
                 <div id="searchResults"></div>
             </div>
             
-            <!-- Compact Invoice Section (Removed Global Loan) -->
-            <div id="selectedProductArea" style="display: none; margin-top: 8px; border-top: 1px dashed #ccc; padding-top: 6px;">
-                <div style="text-align:center; font-weight:900; color:#034887; font-size:12px; margin-bottom:6px;" id="selectedProduct"></div>
+            <div id="selectedProductArea" style="display: none; margin-top: 10px; border-top: 1px dashed #ccc; padding-top: 8px;">
+                <div style="text-align:center; font-weight:900; color:#034887; font-size:14px; margin-bottom:8px;" id="selectedProduct"></div>
                 <div>
-                    <label style="color:#27ae60;">Invoice Amount (₹) *</label>
-                    <input type="number" id="custInvoice" oninput="onInvoiceChange()" style="border-color:#27ae60; background:#f0fdf4; text-align: center; font-size: 14px;">
+                    <label style="color:#27ae60; font-size: 11px;">Invoice Amount (₹) *</label>
+                    <input type="number" id="custInvoice" oninput="onInvoiceChange()" style="border-color:#27ae60; background:#f0fdf4; font-size: 15px; text-align: center;">
                 </div>
             </div>
 
-            <div style="display:flex; gap:6px;">
+            <div style="display:flex; gap:8px;">
                 <button class="btn-secondary" onclick="openNonTieupModal()">+ NON TIE-UP</button>
                 <button class="btn-secondary" onclick="openManualModal()">+ MANUAL</button>
             </div>
@@ -155,11 +163,11 @@
     </div>
 
     <!-- 📊 Final Calculation -->
-    <div id="finalCalcSection" style="display: none; margin-top: 8px;">
-        <div style="text-align:center; background:#0984e3; padding:8px; border-radius:6px 6px 0 0;">
-            <h3 style="margin:0; color:#fff; font-size:14px; font-weight:900;">📊 FINAL CALCULATION</h3>
+    <div id="finalCalcSection" style="display: none; margin-top: 12px;">
+        <div style="text-align:center; background:#0984e3; padding:10px; border-radius:6px 6px 0 0;">
+            <h3 style="margin:0; color:#fff; font-size:15px; font-weight:900;">📊 FINAL CALCULATION</h3>
         </div>
-        <div style="background:#fff; border:1px solid #0984e3; border-top:none; border-radius:0 0 6px 6px; padding:6px;">
+        <div style="background:#fff; border:1px solid #0984e3; border-top:none; border-radius:0 0 6px 6px; padding:8px;">
             <button class="btn-copy-img" onclick="copyImage()">🖼️ COPY IMAGE</button>
             <div id="productsContainer"></div>
         </div>
@@ -169,7 +177,7 @@
     <div id="previewModal" class="modal">
         <div class="modal-content">
             <img id="previewImg" />
-            <button class="btn-secondary" style="width:100%; background:#0984e3; color:#fff; margin-top:10px; height:35px;" onclick="document.getElementById('previewModal').style.display='none'">Close</button>
+            <button class="btn-secondary" style="width:100%; background:#0984e3; color:#fff; margin-top:10px; height:38px; font-size: 14px;" onclick="document.getElementById('previewModal').style.display='none'">Close</button>
         </div>
     </div>
 
@@ -353,29 +361,25 @@
             document.getElementById('selectedProductArea').style.display = 'block';
 
             document.getElementById('custInvoice').value = mrp > 0 ? mrp : "";
-            onInvoiceChange(); 
-
+            
             let pInputs = {
                 type: document.getElementById('custType').value || '',
                 limit: parseFloat(document.getElementById('custLimit').value) || 0,
+                mrp: mrp || 0,
                 inv: parseFloat(document.getElementById('custInvoice').value) || 0,
                 ltv: parseFloat(document.getElementById('custLtv').value) || 100,
                 cap: parseFloat(document.getElementById('custCap').value) || 0,
                 target: parseFloat(document.getElementById('advTarget').value) || 0,
-                gtl: parseFloat(document.getElementById('advGtl').value) || 0,
-                rfc: parseFloat(document.getElementById('advRfc').value) || 0,
-                exw: parseFloat(document.getElementById('advExw').value) || 0,
-                margin: parseFloat(document.getElementById('advMargin').value) || 0,
-                dealer: parseFloat(document.getElementById('advDealer').value) || 0,
-                overrides: {}
+                gtl: 0, rfc: 0, exw: 0, margin: 0, dealer: 0, overrides: {}
             };
 
             current_products.push({ name: isNonTieup ? `NON TIEUP - ${activeCategory}` : modelName, category: activeCategory, isNonTieup, inputs: pInputs, rawSchemes, calculatedData: [] });
             activeProductIndex = current_products.length - 1;
 
+            onInvoiceChange(); // Update rules properly
+
             document.getElementById('finalCalcSection').style.display = 'block';
             toggleAcc('none', 'none', document.createElement('div')); 
-            recalculateProduct(activeProductIndex);
         }
 
         function removeProduct(index, event) {
@@ -445,6 +449,8 @@
 
             if (activeProductIndex !== -1) {
                 let p = current_products[activeProductIndex];
+                p.inputs.gtl = gtl;
+                
                 if (isMobileCat(p.category)) {
                     let rfc = getRfcSlab(inv);
                     document.getElementById('advRfc').innerHTML = `<option value="0">0</option>` + (rfc > 0 ? `<option value="${rfc}">${rfc}</option>` : '');
@@ -452,11 +458,14 @@
                     document.getElementById('advRfc').disabled = false;
                     document.getElementById('advExw').value = "";
                     document.getElementById('advExw').disabled = true;
+                    p.inputs.rfc = rfc;
+                    p.inputs.exw = 0;
                 } else { 
                     document.getElementById('advRfc').innerHTML = `<option value="0">0</option>`;
                     document.getElementById('advRfc').value = "0"; 
                     document.getElementById('advRfc').disabled = true;
                     document.getElementById('advExw').disabled = false;
+                    p.inputs.rfc = 0;
                 }
             }
             handleInputUpdate();
@@ -520,7 +529,7 @@
                     if (slabPf !== null) { dynamicPf = slabPf; } 
                 }
 
-                // Bajaj Default Logic: Gross Limit Formula
+                // Proper Bajaj Gross Loan Calculation
                 let nbfcMaxL = (actualLimit * s.tenure) / (s.tenure - s.advEmi || 1);
                 
                 if (s.fixedEmi > 0) {
@@ -530,11 +539,6 @@
                     if (currentTenure < 1) currentTenure = 1; 
                     
                     loan = currentTenure * s.fixedEmi; 
-                    if (invoiceVal > 0 && loan > invoiceVal) {
-                        currentTenure = Math.floor(invoiceVal / s.fixedEmi);
-                        loan = currentTenure * s.fixedEmi;
-                    }
-
                     if (parseFloat(inp.target) > 0) { 
                         let numerator = parseFloat(inp.target) - invoiceVal - (s.fixedEmi * s.advEmi) - dynamicPf - totalFees; 
                         let denominator = dbdRate + roiRateDP - 1; 
@@ -586,8 +590,8 @@
             let userLtv = inp.ltv > 0 ? inp.ltv : 100;
             let validSchemes = processed.filter(d => {
                 let isOverridden = inp.overrides && inp.overrides[d.sKey] !== undefined;
-                if (isOverridden) return true; // manual override skips restrictions
-                let isLtvB = d.curLTV > userLtv; // Strict LTV Hide
+                if (isOverridden) return true; 
+                let isLtvB = d.curLTV > userLtv; 
                 return (!isLtvB && !d.isInv50Breach && d.boundCheck && d.loan > 0);
             });
 
@@ -679,47 +683,51 @@
             }
         }
 
+        // Exact Clean Image Generation
         function copyImage() {
             if(activeProductIndex === -1) return;
             let p = current_products[activeProductIndex]; if(!p.calculatedData.length) return;
             let btn = document.querySelector('.btn-copy-img'); let oldBtn = btn.innerHTML; btn.innerHTML = "⏳ COPYING...";
 
             let div = document.createElement('div');
-            div.style.cssText = "width:700px; position:absolute; left:-9999px; background:#fff; font-family:sans-serif; padding:20px;";
+            div.style.cssText = "width:750px; position:absolute; left:-9999px; background:#fff; font-family:sans-serif; padding:15px;";
             
             let missingElig = (!p.inputs.type || p.inputs.type === "");
-            let alertHtml = missingElig ? `<div style="background:#ffebee; color:#c62828; text-align:center; padding:12px; font-size:16px; font-weight:bold; margin-bottom:15px; border-radius:6px; border:2px solid #ef9a9a;">⚠️ Eligibility Details Missing! Base calculation applied.</div>` : '';
+            let alertHtml = missingElig ? `<div style="background:#ffebee; color:#c62828; text-align:center; padding:10px; font-size:16px; font-weight:bold; margin-bottom:12px; border-radius:6px; border:2px solid #ef9a9a;">⚠️ Eligibility Details Missing! Base calculation applied.</div>` : '';
 
-            // Render Rows WITHOUT Loan Column
             let trs = p.calculatedData.map((s,i) => `
-                <tr style="background:${i%2===0?'#fff':'#f8fafc'};">
-                    <td style="padding:15px 10px; font-size:24px; font-weight:900; color:#1e293b; border-bottom:1px solid #e2e8f0;">${s.currentTenure}/${s.advEmi}</td>
-                    <td style="padding:15px 10px; font-size:24px; font-weight:900; color:#27ae60; border-bottom:1px solid #e2e8f0;">₹${Math.round(s.dp).toLocaleString()}</td>
-                    <td style="padding:15px 10px; font-size:24px; font-weight:900; color:#0984e3; border-bottom:1px solid #e2e8f0;">₹${Math.round(s.emi).toLocaleString()}</td>
-                    <td style="padding:15px 10px; font-size:24px; font-weight:900; color:#333; border-bottom:1px solid #e2e8f0;">${s.inst}</td>
-                    <td style="padding:15px 10px; font-size:24px; font-weight:900; color:#27ae60; border-bottom:1px solid #e2e8f0;">₹${Math.round(s.daily).toLocaleString()}</td>
+                <tr style="background:${i%2===0?'#ffffff':'#f8f9fa'};">
+                    <td style="padding:15px 10px; font-size:22px; font-weight:900; color:#1e293b; border-bottom:1px solid #e2e8f0;">${s.currentTenure} / ${s.advEmi}</td>
+                    <td style="padding:15px 10px; font-size:22px; font-weight:900; color:#27ae60; border-bottom:1px solid #e2e8f0;">₹${Math.round(s.dp).toLocaleString()}</td>
+                    <td style="padding:15px 10px; font-size:22px; font-weight:900; color:#0984e3; border-bottom:1px solid #e2e8f0;">₹${Math.round(s.emi).toLocaleString()}</td>
+                    <td style="padding:15px 10px; font-size:22px; font-weight:900; color:#333; border-bottom:1px solid #e2e8f0;">${s.inst}</td>
+                    <td style="padding:15px 10px; font-size:22px; font-weight:900; color:#d35400; border-bottom:1px solid #e2e8f0;">₹${Math.round(s.daily).toLocaleString()}</td>
                 </tr>`).join('');
 
             div.innerHTML = `
                 ${alertHtml}
-                <div style="border:3px solid #034887; border-radius:12px; overflow:hidden;">
-                    <div style="background:#034887; color:#fff; padding:25px 15px; text-align:center;">
-                        <div style="font-size:28px; font-weight:900; margin-bottom:15px; line-height:1.3; word-wrap:break-word;">📱 ${p.name.replace('NON TIEUP - ','').toUpperCase()}</div>
-                        <div style="display:flex; justify-content:space-evenly; font-size:18px; font-weight:bold; color:#e0f2fe;">
-                            <span>TYPE: <span style="color:#f1c40f;">${p.inputs.type||'N/A'}</span></span>
+                <div style="border:2px solid #063970; border-radius:8px; overflow:hidden;">
+                    
+                    <div style="background:#063970; color:#fff; padding:20px; text-align:center;">
+                        <div style="font-size:28px; font-weight:900; line-height:1.4; margin-bottom:15px; text-transform:uppercase;">📱 ${p.name.replace('NON TIEUP - ','')}</div>
+                        
+                        <div style="display:flex; justify-content:space-around; border-top:1px dashed rgba(255,255,255,0.3); padding-top:15px; font-size:16px; font-weight:bold; color:#e0f2fe;">
+                            <span>TYPE: <span style="color:#f1c40f;">${p.inputs.type||'NEW'}</span></span>
                             <span>LIMIT: <span style="color:#2ecc71;">₹${p.inputs.limit.toLocaleString()}</span></span>
                             <span>LTV: <span style="color:#fff;">${p.inputs.ltv}%</span></span>
                         </div>
-                        ${p.inputs.inv>0 ? `<div style="margin-top:15px; font-size:20px; font-weight:900;">INVOICE: ₹${p.inputs.inv.toLocaleString()}</div>`:''}
+                        
+                        ${p.inputs.inv>0 ? `<div style="margin-top:12px; font-size:18px; font-weight:900; letter-spacing:1px;">INVOICE: ₹${p.inputs.inv.toLocaleString()}</div>`:''}
                     </div>
+
                     <table style="width:100%; border-collapse:collapse; text-align:center;">
-                        <thead style="background:#f1f5f9; color:#334155;">
+                        <thead style="background:#f1f5f9; color:#063970;">
                             <tr>
-                                <th style="padding:18px 10px; font-size:18px; font-weight:900; border-bottom:2px solid #cbd5e1; width:20%;">SCHEME<br><span style="font-size:14px; font-weight:normal;">(T / A)</span></th>
-                                <th style="padding:18px 10px; font-size:18px; font-weight:900; border-bottom:2px solid #cbd5e1; width:22%;">NET&nbsp;DP</th>
-                                <th style="padding:18px 10px; font-size:18px; font-weight:900; border-bottom:2px solid #cbd5e1; width:24%;">EMI</th>
-                                <th style="padding:18px 10px; font-size:18px; font-weight:900; border-bottom:2px solid #cbd5e1; width:16%;">MONTHS</th>
-                                <th style="padding:18px 10px; font-size:18px; font-weight:900; border-bottom:2px solid #cbd5e1; width:18%;">DAILY SAVE</th>
+                                <th style="padding:15px 10px; font-size:16px; font-weight:900; border-bottom:2px solid #cbd5e1; width:20%;">SCHEME<br><span style="font-size:12px; font-weight:normal;">(T / A)</span></th>
+                                <th style="padding:15px 10px; font-size:16px; font-weight:900; border-bottom:2px solid #cbd5e1; width:22%;">NET&nbsp;DP</th>
+                                <th style="padding:15px 10px; font-size:16px; font-weight:900; border-bottom:2px solid #cbd5e1; width:22%;">EMI</th>
+                                <th style="padding:15px 10px; font-size:16px; font-weight:900; border-bottom:2px solid #cbd5e1; width:16%;">MONTHS</th>
+                                <th style="padding:15px 10px; font-size:16px; font-weight:900; border-bottom:2px solid #cbd5e1; width:20%;">DAILY</th>
                             </tr>
                         </thead>
                         <tbody>${trs}</tbody>
@@ -734,6 +742,7 @@
                             btn.innerHTML = "✅ COPIED"; 
                             setTimeout(() => { btn.innerHTML = oldBtn; }, 2000); 
                             document.body.removeChild(div);
+                            
                             document.getElementById('previewImg').src = URL.createObjectURL(blob);
                             document.getElementById('previewModal').style.display = 'flex';
                         }).catch(e => { btn.innerHTML = "⚠️ ERROR"; document.body.removeChild(div); });
