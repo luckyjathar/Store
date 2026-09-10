@@ -67,8 +67,8 @@
         .btn-copy-img { width: 100%; padding: 10px; font-size: 13px; font-weight: 900; color: white; background: #27ae60; border: none; border-radius: 4px; margin-bottom: 8px; cursor: pointer; }
 
         /* Modals */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 2000; align-items: center; justify-content: center; padding: 10px; box-sizing: border-box; }
-        .modal-content { background: white; padding: 15px; border-radius: 8px; width: 100%; max-width: 400px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; align-items: center; justify-content: center; padding: 10px; box-sizing: border-box; }
+        .modal-content { background: white; padding: 15px; border-radius: 8px; width: 100%; max-width: 400px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
         #previewImg { width: 100%; border-radius: 8px; border: 2px solid #ddd; max-height: 50vh; object-fit: contain; background: #fff; margin-bottom: 10px; }
         
         .link-box { display: flex; gap: 5px; margin-bottom: 10px; }
@@ -83,7 +83,7 @@
     <div class="app-header">
         <h2>🚀 PRO RCD CALCULATOR</h2>
         <div class="header-btns">
-            <button class="action-icon-btn" onclick="openLoadLinkModal()" title="Paste Link">🔗</button>
+            <button class="action-icon-btn" onclick="openLoadLinkModal()" title="Paste Link">🔗 Link</button>
             <button class="action-icon-btn" onclick="alert('History feature coming soon!')" title="View History">🕒</button>
         </div>
     </div>
@@ -186,6 +186,7 @@
             <h3 style="margin-top:0; color:#034887;">✅ Image Generated</h3>
             <img id="previewImg" />
             
+            <p style="font-size: 11px; color:#555; text-align: left; margin:5px 0;">Share this link to load this calculation instantly:</p>
             <div class="link-box">
                 <input type="text" id="shareLinkInput" class="link-input" readonly>
                 <button class="btn-secondary" style="background:#27ae60; color:white; margin:0;" onclick="copyShareLink()">COPY LINK</button>
@@ -200,7 +201,7 @@
         <div class="modal-content">
             <h3 style="margin-top:0; color:#034887;">🔗 Load Calculation Link</h3>
             <p style="font-size:12px; color:#555;">Paste the link shared with you below to load the exact calculation.</p>
-            <input type="text" id="pasteLinkInput" placeholder="Paste link here..." style="margin-bottom: 15px;">
+            <input type="text" id="pasteLinkInput" placeholder="Paste link here..." style="margin-bottom: 15px; text-align: left;">
             <div style="display:flex; gap:10px;">
                 <button class="btn-secondary" style="background:#0984e3; color:white;" onclick="processPastedLink()">LOAD DATA</button>
                 <button class="btn-secondary" onclick="document.getElementById('loadLinkModal').style.display='none'">Cancel</button>
@@ -402,7 +403,6 @@
 
             if(manualState) {
                 pInputs = manualState.inputs;
-                // update DOM visually
                 document.getElementById('custType').value = pInputs.type || '';
                 document.getElementById('custLimit').value = pInputs.limit || '';
                 document.getElementById('custInvoice').value = pInputs.inv || '';
@@ -426,7 +426,6 @@
                     rfcSel.disabled = true;
                     document.getElementById('advExw').disabled = false;
                 }
-
             } else {
                 document.getElementById('custInvoice').value = mrp > 0 ? mrp : "";
                 onInvoiceChange(); 
@@ -680,6 +679,7 @@
             current_products.forEach((p, index) => {
                 let isActive = (index === activeProductIndex);
                 let missingElig = (!p.inputs.type || p.inputs.type === "");
+                let fee = (p.inputs.type === 'EMI CARD' || p.inputs.type === 'INSTA EMI CARD') ? 270 : (p.inputs.type === 'W/O CARD' ? 320 : (p.inputs.type === 'NEW' ? 850 : 0));
                 
                 let html = `<div style="margin-bottom: ${isActive ? '8px' : '4px'};">
                     <div class="product-header ${isActive ? 'active' : ''}" onclick="switchActiveProduct(${index})">
@@ -689,6 +689,11 @@
                     <div class="product-body" style="display: ${isActive ? 'block' : 'none'};">`;
 
                 if (missingElig) html += `<div class="alert-banner">⚠️ Eligibility Details Missing! Base calculation applied.</div>`;
+
+                html += `<div class="info-bar">
+                    <span>Type: <b>${p.inputs.type || '-'}</b></span> | <span>Limit: <b style="color:#27ae60;">₹${p.inputs.limit.toLocaleString()}</b></span> | <span>LTV: <b>${p.inputs.ltv}%</b></span><br>
+                    <span>Inv: <b style="color:#d35400;">₹${p.inputs.inv.toLocaleString()}</b></span> | <span>Target: <b>₹${p.inputs.target.toLocaleString()}</b></span> | <span>Fee: <b>₹${fee}</b></span>
+                </div>`;
 
                 html += `<table class="scheme-table">
                             <thead><tr><th style="width:14%;">T/A</th><th style="width:26%;">LOAN (₹)</th><th style="width:22%;">DP</th><th style="width:25%;">EMI</th><th style="width:13%;">ACT</th></tr></thead>
@@ -716,25 +721,20 @@
             });
         }
 
-        // URL ENCODING FOR SHARE LINK
+        // SHARE LINK URL GENERATOR
         function getShareLinkUrl(pIndex) {
             let p = current_products[pIndex];
-            let data = {
-                name: p.name,
-                cat: p.category,
-                nt: p.isNonTieup,
-                inputs: p.inputs
-            };
+            let data = { name: p.name, cat: p.category, nt: p.isNonTieup, inputs: p.inputs };
             let jsonStr = JSON.stringify(data);
             let b64 = btoa(encodeURIComponent(jsonStr));
-            return window.location.origin + window.location.pathname + "?data=" + b64;
+            return window.location.href.split('?')[0] + "?data=" + b64;
         }
 
         function loadFromSharedData(b64Data) {
             try {
                 let jsonStr = decodeURIComponent(atob(b64Data));
                 let data = JSON.parse(jsonStr);
-                selectModel(data.name, data.nt, data.cat, null, data);
+                selectModel(data.name, data.nt, null, data);
             } catch(e) {
                 alert("Invalid or broken link!");
             }
@@ -812,7 +812,7 @@
             }
         }
 
-        // Exact Clean WhatsApp Image Generation + Link Display
+        // Exactly Matching WhatsApp Design
         function copyImage() {
             if(activeProductIndex === -1) return;
             let p = current_products[activeProductIndex]; if(!p.calculatedData.length) return;
@@ -821,34 +821,41 @@
             let div = document.createElement('div');
             div.style.cssText = "width:750px; position:absolute; left:-9999px; background:#fff; font-family:sans-serif; padding:15px;";
             
+            let missingElig = (!p.inputs.type || p.inputs.type === "");
+            let alertHtml = missingElig ? `<div style="background:#ffebee; color:#c62828; text-align:center; padding:10px; font-size:16px; font-weight:bold; margin-bottom:12px; border-radius:6px; border:2px solid #ef9a9a;">⚠️ Eligibility Details Missing! Base calculation applied.</div>` : '';
+
             let trs = p.calculatedData.map((s,i) => `
                 <tr style="background:${i%2===0?'#ffffff':'#f8f9fa'};">
-                    <td style="padding:18px 10px; font-size:24px; font-weight:900; color:#1e293b; border-bottom:1px solid #e2e8f0;">${s.currentTenure} / ${s.advEmi}</td>
-                    <td style="padding:18px 10px; font-size:24px; font-weight:900; color:#27ae60; border-bottom:1px solid #e2e8f0;">₹${Math.round(s.dp).toLocaleString()}</td>
-                    <td style="padding:18px 10px; font-size:24px; font-weight:900; color:#0984e3; border-bottom:1px solid #e2e8f0;">₹${Math.round(s.emi).toLocaleString()}</td>
-                    <td style="padding:18px 10px; font-size:24px; font-weight:900; color:#333; border-bottom:1px solid #e2e8f0;">${s.inst}</td>
-                    <td style="padding:18px 10px; font-size:24px; font-weight:900; color:#d35400; border-bottom:1px solid #e2e8f0;">₹${Math.round(s.daily).toLocaleString()}</td>
+                    <td style="padding:20px 10px; font-size:24px; font-weight:900; color:#1e293b; border-bottom:1px solid #e2e8f0;">${s.currentTenure} / ${s.advEmi}</td>
+                    <td style="padding:20px 10px; font-size:24px; font-weight:900; color:#27ae60; border-bottom:1px solid #e2e8f0;">₹${Math.round(s.dp).toLocaleString()}</td>
+                    <td style="padding:20px 10px; font-size:24px; font-weight:900; color:#0984e3; border-bottom:1px solid #e2e8f0;">₹${Math.round(s.emi).toLocaleString()}</td>
+                    <td style="padding:20px 10px; font-size:24px; font-weight:900; color:#333; border-bottom:1px solid #e2e8f0;">${s.inst}</td>
+                    <td style="padding:20px 10px; font-size:24px; font-weight:900; color:#d35400; border-bottom:1px solid #e2e8f0;">₹${Math.round(s.daily).toLocaleString()}</td>
                 </tr>`).join('');
 
             div.innerHTML = `
-                <div style="border:2px solid #063970; border-radius:8px; overflow:hidden;">
+                ${alertHtml}
+                <div style="border:2px solid #063970; border-radius:8px; overflow:hidden; background:#fff;">
                     <div style="background:#063970; color:#fff; padding:25px; text-align:center;">
                         <div style="font-size:32px; font-weight:900; line-height:1.4; margin-bottom:15px; text-transform:uppercase;">📱 ${p.name.replace('NON TIEUP - ','')}</div>
+                        
                         <div style="display:flex; justify-content:space-around; border-top:1px dashed rgba(255,255,255,0.3); padding-top:15px; font-size:18px; font-weight:bold; color:#e0f2fe;">
                             <span>TYPE: <span style="color:#f1c40f;">${p.inputs.type||'NEW'}</span></span>
                             <span>LIMIT: <span style="color:#2ecc71;">₹${p.inputs.limit.toLocaleString()}</span></span>
                             <span>LTV: <span style="color:#fff;">${p.inputs.ltv}%</span></span>
                         </div>
-                        ${p.inputs.inv>0 ? `<div style="margin-top:15px; font-size:22px; font-weight:900; letter-spacing:1px;">INVOICE: ₹${p.inputs.inv.toLocaleString()}</div>`:''}
+                        
+                        ${p.inputs.inv>0 ? `<div style="margin-top:12px; font-size:20px; font-weight:900; letter-spacing:1px;">INVOICE: ₹${p.inputs.inv.toLocaleString()}</div>`:''}
                     </div>
+
                     <table style="width:100%; border-collapse:collapse; text-align:center;">
-                        <thead style="background:#f1f5f9; color:#063970;">
+                        <thead style="background:#063970; color:#ffffff;">
                             <tr>
-                                <th style="padding:18px 10px; font-size:18px; font-weight:900; border-bottom:2px solid #cbd5e1; width:20%;">SCHEME<br><span style="font-size:14px; font-weight:normal;">(T / A)</span></th>
-                                <th style="padding:18px 10px; font-size:18px; font-weight:900; border-bottom:2px solid #cbd5e1; width:22%;">NET&nbsp;DP</th>
-                                <th style="padding:18px 10px; font-size:18px; font-weight:900; border-bottom:2px solid #cbd5e1; width:22%;">EMI</th>
-                                <th style="padding:18px 10px; font-size:18px; font-weight:900; border-bottom:2px solid #cbd5e1; width:16%;">MONTHS</th>
-                                <th style="padding:18px 10px; font-size:18px; font-weight:900; border-bottom:2px solid #cbd5e1; width:20%;">DAILY</th>
+                                <th style="padding:15px 10px; font-size:16px; font-weight:900; width:20%;">SCHEME<br><span style="font-size:12px; font-weight:normal;">(T / A)</span></th>
+                                <th style="padding:15px 10px; font-size:16px; font-weight:900; width:22%;">NET&nbsp;DP</th>
+                                <th style="padding:15px 10px; font-size:16px; font-weight:900; width:22%;">EMI</th>
+                                <th style="padding:15px 10px; font-size:16px; font-weight:900; width:16%;">MONTHS</th>
+                                <th style="padding:15px 10px; font-size:16px; font-weight:900; width:20%;">DAILY</th>
                             </tr>
                         </thead>
                         <tbody>${trs}</tbody>
@@ -856,20 +863,22 @@
                 </div>`;
             
             document.body.appendChild(div);
+            
             setTimeout(() => {
                 html2canvas(div, { scale: 2, useCORS: true, backgroundColor: "#ffffff", logging: false }).then(canvas => {
                     canvas.toBlob(blob => {
-                        navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]).then(() => {
-                            btn.innerHTML = "✅ COPIED"; 
-                            setTimeout(() => { btn.innerHTML = oldBtn; }, 2000); 
-                            document.body.removeChild(div);
-                            
-                            // Generate URL and Show Modal
-                            let shareUrl = getShareLinkUrl(activeProductIndex);
-                            document.getElementById('shareLinkInput').value = shareUrl;
-                            document.getElementById('previewImg').src = URL.createObjectURL(blob);
-                            document.getElementById('previewModal').style.display = 'flex';
-                        }).catch(e => { btn.innerHTML = "⚠️ ERROR"; document.body.removeChild(div); });
+                        document.body.removeChild(div);
+                        btn.innerHTML = "✅ COPIED"; 
+                        setTimeout(() => { btn.innerHTML = oldBtn; }, 2000); 
+                        
+                        let shareUrl = getShareLinkUrl(activeProductIndex);
+                        document.getElementById('shareLinkInput').value = shareUrl;
+                        document.getElementById('previewImg').src = URL.createObjectURL(blob);
+                        document.getElementById('previewModal').style.display = 'flex';
+
+                        if (navigator.clipboard && window.isSecureContext) {
+                            navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]).catch(e => console.log("Auto-copy blocked"));
+                        }
                     }, "image/png");
                 });
             }, 300);
