@@ -8,123 +8,120 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
     <style>
-        /* Mobile / Portrait View Styling */
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            padding: 10px; 
-            background-color: #f0f2f5; 
-            margin: 0 auto;
-            max-width: 480px; 
-        }
-
-        .card { background: white; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); margin-bottom: 12px; }
-
-        /* Accordion Headers */
-        .main-accordion-header {
-            background: #ffffff; padding: 12px 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;
-            border-radius: 8px; transition: 0.2s; border: 1px solid transparent;
-        }
-        .main-accordion-header.active { border-radius: 8px 8px 0 0; border-bottom: 1px solid #eee; background: #f0f8ff; border-color: #bee3f8; }
-        .main-accordion-header h3 { margin: 0; color: #034887; font-size: 15px; }
-        .toggle-icon { font-size: 12px; color: #0984e3; font-weight: bold; }
-        .card-content { padding: 12px; display: none; }
+        /* Compact Mobile View Styling */
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; padding: 5px; background-color: #f0f2f5; margin: 0 auto; max-width: 480px; }
         
-        /* Compact Inputs without Spinners */
-        input[type=number]::-webkit-inner-spin-button, 
-        input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        /* Minimalist Accordions to save space */
+        .section-card { background: white; margin-bottom: 6px; border-bottom: 1px solid #ddd; }
+        .acc-header { padding: 10px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: #fff; }
+        .acc-header.active { background: #f0f8ff; border-bottom: 1px solid #eee; }
+        .acc-header h3 { margin: 0; color: #034887; font-size: 14px; }
+        .acc-content { padding: 8px 10px; display: none; }
+        
+        /* Inputs styling optimized for space */
+        input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         input[type=number] { -moz-appearance: textfield; }
+        input, select { padding: 4px 6px; font-size: 12px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; outline: none; width: 100%; height: 32px; font-weight: bold; color: #333; }
+        input:focus, select:focus { border-color: #0984e3; background: #f0f8ff; }
+        input:disabled, select:disabled { background: #e9ecef; color: #888; }
+        label { font-size: 9px; font-weight: bold; color: #666; text-transform: uppercase; margin-bottom: 2px; display: block; }
 
-        input, select { 
-            padding: 8px 10px; font-size: 13px; box-sizing: border-box; border: 1px solid #ccc; 
-            border-radius: 4px; outline: none; width: 100%; height: 38px; background: #fff;
-        }
-        input:focus, select:focus { border-color: #0984e3; box-shadow: 0 0 3px rgba(9,132,227,0.3); }
-        input:disabled, select:disabled { background: #e9ecef; color: #666; cursor: not-allowed; }
+        /* Grid Layouts */
+        .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+        .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-top: 6px; }
 
-        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        .form-grid.full { grid-template-columns: 1fr; }
-        .input-group { display: flex; flex-direction: column; gap: 2px; }
-        .input-group label { font-size: 10px; font-weight: bold; color: #666; text-transform: uppercase; }
-
-        /* Search Results */
-        #searchResults { 
-            position: absolute; top: 100%; left: 0; right: 0; background: white; max-height: 200px; overflow-y: auto; 
-            border: 1px solid #ccc; border-radius: 6px; box-shadow: 0 8px 16px rgba(0,0,0,0.2); display: none; z-index: 1000; 
-        }
-        .result-item { padding: 10px 12px; border-bottom: 1px solid #eee; cursor: pointer; font-size: 13px; font-weight: bold; color: #333; }
+        /* Search Results & Buttons */
+        #searchResults { position: absolute; top: 100%; left: 0; right: 0; background: white; max-height: 200px; overflow-y: auto; border: 1px solid #ccc; box-shadow: 0 4px 8px rgba(0,0,0,0.1); display: none; z-index: 1000; }
+        .result-item { padding: 10px; border-bottom: 1px solid #eee; font-size: 12px; font-weight: bold; color: #333; }
         .result-item:hover { background: #e3f2fd; color: #0984e3; }
-
-        .action-buttons { display: flex; gap: 8px; margin-top: 10px; }
-        .btn-secondary { flex: 1; padding: 10px; background: #e2e8f0; color: #334155; border: none; border-radius: 4px; font-size: 12px; font-weight: bold; cursor: pointer; }
-        .btn-secondary:hover { background: #cbd5e1; }
-
-        /* Selected Product Area in Search */
-        #selectedProductArea { display: none; margin-top: 15px; padding-top: 12px; border-top: 1px dashed #ccc; }
-        #selectedProduct { font-size: 14px; font-weight: 900; color: #034887; text-align: center; margin-bottom: 10px; padding: 10px; background: #e3f2fd; border-radius: 6px; }
-
-        /* Multiple Product Headers in Final Calc */
-        .product-header {
-            background: #034887; color: white; padding: 10px 12px; border-radius: 6px; 
-            display: flex; justify-content: space-between; align-items: center; 
-            font-size: 13px; font-weight: bold; margin-bottom: 8px; cursor: pointer;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .product-header.active { border-radius: 6px 6px 0 0; margin-bottom: 0; background: #0984e3; }
-        .product-body {
-            border: 1px solid #0984e3; border-top: none; border-radius: 0 0 6px 6px; 
-            padding: 6px; background: #fff; display: none; margin-bottom: 12px;
-        }
-        
-        .remove-btn { color: #ffcccc; background: none; border: none; font-size: 14px; font-weight: bold; padding: 0 5px; cursor: pointer; }
-        .remove-btn:hover { color: white; }
-
-        /* Compact Scroll-proof Table with Sub-rows */
-        .scheme-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-        .scheme-table th, .scheme-table td { padding: 6px 2px; font-size: 11px; font-weight: bold; text-align: center; word-wrap: break-word; }
-        .scheme-table th { background: #034887; color: white; font-size: 10px; text-transform: uppercase; border-bottom: none; }
-        
-        .row-main td { border-bottom: none; padding-top: 8px; }
-        .row-sub td { padding: 4px 6px 8px 6px; font-size: 9px; color: #666; text-align: left; border-bottom: 2px solid #ddd; background: #f8fafc; }
-
-        .loan-input {
-            width: 95%; height: 26px; padding: 2px; font-size: 11px; text-align: center; 
-            font-weight: bold; border: 1px solid #0984e3; color: #d35400; border-radius: 3px; background: #fff3e0;
-        }
-        .loan-input:focus { background: #fff; }
-
+        .btn-secondary { flex: 1; padding: 8px; background: #e2e8f0; color: #334155; border: none; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; }
         .btn-action { padding: 4px 6px; font-size: 9px; font-weight: bold; color: white; background: #0984e3; border: none; border-radius: 3px; cursor: pointer; }
-        .btn-copy-img { width: 100%; padding: 10px; font-size: 13px; font-weight: bold; color: white; background: #27ae60; border: none; border-radius: 4px; cursor: pointer; margin-bottom: 10px; }
+
+        /* Final Calculation Styles */
+        .final-calc-wrapper { background: #fff; border: 2px solid #0984e3; border-radius: 6px; margin-top: 10px; overflow: hidden; }
+        .product-header { background: #0984e3; color: white; padding: 8px 10px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: bold; cursor: pointer; }
+        .product-body { padding: 6px; background: #f8fafc; }
+        .remove-btn { color: #ffcccc; background: none; border: none; font-size: 14px; font-weight: bold; padding: 0 5px; cursor: pointer; }
+
+        /* Realtime Info Bar in Final Calc */
+        .info-bar { background: #fff; padding: 6px; border-radius: 4px; border: 1px solid #ddd; font-size: 10px; margin-bottom: 8px; display: flex; flex-wrap: wrap; gap: 4px 10px; }
+        .info-bar span { color: #555; }
+        .info-bar b { color: #034887; }
+
+        /* Alert Banner */
+        .alert-banner { background: #ffebee; color: #c62828; font-size: 10px; font-weight: bold; padding: 4px 8px; border-radius: 4px; margin-bottom: 6px; text-align: center; border: 1px solid #ffcdd2; }
+
+        /* Compact Table */
+        .scheme-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        .scheme-table th, .scheme-table td { padding: 4px 2px; font-size: 11px; font-weight: bold; text-align: center; }
+        .scheme-table th { background: #034887; color: white; font-size: 9px; text-transform: uppercase; }
+        .row-main td { padding-top: 6px; }
+        .row-sub td { padding: 2px 4px 6px 4px; font-size: 9px; color: #666; text-align: left; border-bottom: 2px solid #ddd; background: #f8fafc; }
+        
+        /* Ultra Compact Loan Input */
+        .loan-input { width: 90%; height: 20px; padding: 0; font-size: 11px; text-align: center; border: none; border-bottom: 1px dashed #d35400; background: transparent; color: #d35400; font-weight: 900; }
+        .loan-input:focus { background: #fff3e0; outline: none; }
+
+        .btn-copy-img { width: 100%; padding: 8px; font-size: 12px; font-weight: bold; color: white; background: #27ae60; border: none; border-radius: 4px; margin-bottom: 8px; }
 
         /* Modals */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; align-items: center; justify-content: center; }
-        .modal-content { background: white; padding: 20px; border-radius: 8px; width: 90%; max-width: 400px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        .modal-content { background: white; padding: 15px; border-radius: 6px; width: 90%; max-width: 400px; text-align: center; }
+        #previewImg { width: 100%; border: 1px solid #ccc; border-radius: 6px; margin: 10px 0; max-height: 70vh; object-fit: contain; }
     </style>
 </head>
 <body>
 
-    <div id="loadingStatus">⏳ Loading Master Data...</div>
+    <div id="loadingStatus" style="text-align: center; font-size: 12px; color: #e67e22; font-weight: bold;">⏳ Loading Master Data...</div>
 
-    <!-- 1. 🔍 Search Product -->
-    <div class="card">
-        <div class="main-accordion-header active" onclick="toggleMainAccordion('searchContent', 'searchIcon', this)">
-            <h3>🔍 Search Product</h3>
-            <span class="toggle-icon" id="searchIcon">▼</span>
+    <!-- 1. 👤 Customer Eligibility (Moved to Top) -->
+    <div class="section-card">
+        <div class="acc-header active" onclick="toggleAcc('eligibilityContent', 'eligibilityIcon', this)">
+            <h3>👤 Customer Eligibility</h3>
+            <span id="eligibilityIcon">▼</span>
         </div>
-        <div id="searchContent" class="card-content" style="display: block;">
+        <div id="eligibilityContent" class="acc-content" style="display: block;">
+            <!-- All 4 columns in one line -->
+            <div class="grid-4">
+                <div>
+                    <label>Type</label>
+                    <select id="custType" onchange="handleInputUpdate()">
+                        <option value="" selected>None</option>
+                        <option value="NEW">NEW</option>
+                        <option value="EMI CARD">EMI</option>
+                        <option value="INSTA EMI CARD">INSTA</option>
+                        <option value="W/O CARD">W/O</option>
+                    </select>
+                </div>
+                <div><label>Limit</label><input type="number" id="custLimit" placeholder="0" oninput="handleInputUpdate()"></div>
+                <div><label>LTV %</label><input type="number" id="custLtv" value="100" oninput="handleInputUpdate()"></div>
+                <div><label>EMI Cap</label><input type="number" id="custCap" placeholder="0" oninput="handleInputUpdate()"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. 🔍 Search Product -->
+    <div class="section-card">
+        <div class="acc-header" onclick="toggleAcc('searchContent', 'searchIcon', this)">
+            <h3>🔍 Search Product</h3>
+            <span id="searchIcon">▶</span>
+        </div>
+        <div id="searchContent" class="acc-content">
             <div style="position: relative;">
-                <input type="text" id="searchInput" onkeyup="searchModel()" placeholder="Type model name here..." disabled>
+                <input type="text" id="searchInput" onkeyup="searchModel()" placeholder="Type model name..." disabled>
                 <div id="searchResults"></div>
             </div>
             
-            <div id="selectedProductArea">
-                <div id="selectedProduct"></div>
-                <div class="form-grid">
-                    <div class="input-group">
-                        <label>Invoice Amount (₹) *</label>
-                        <input type="number" id="custInvoice" placeholder="E.g. 35000" oninput="onInvoiceChange()" style="border-color:#27ae60; background:#f0fdf4;">
+            <div id="selectedProductArea" style="display: none; margin-top: 10px; border-top: 1px dashed #ccc; padding-top: 8px;">
+                <div style="text-align:center; font-weight:900; color:#034887; font-size:13px; margin-bottom:8px;" id="selectedProduct"></div>
+                <div class="grid-2">
+                    <div>
+                        <label style="color:#27ae60;">Invoice Amount (₹)</label>
+                        <input type="number" id="custInvoice" oninput="onInvoiceChange()" style="border-color:#27ae60; background:#f0fdf4;">
                     </div>
-                    <div class="input-group">
-                        <label>Loan Amount (₹)</label>
+                    <div>
+                        <label>Global Loan (₹)</label>
                         <input type="number" id="custLoan" placeholder="Optional" oninput="handleInputUpdate()">
                     </div>
                 </div>
@@ -132,144 +129,87 @@
 
             <div class="action-buttons">
                 <button class="btn-secondary" onclick="openNonTieupModal()">+ NON TIE-UP</button>
-                <button class="btn-secondary" onclick="openManualModal()">+ MANUAL SCHEME</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 2. 👤 Customer Eligibility -->
-    <div class="card">
-        <div class="main-accordion-header" onclick="toggleMainAccordion('eligibilityContent', 'eligibilityIcon', this)">
-            <h3>👤 Customer Eligibility</h3>
-            <span class="toggle-icon" id="eligibilityIcon">▶</span>
-        </div>
-        <div id="eligibilityContent" class="card-content">
-            <div class="form-grid full">
-                <div class="input-group">
-                    <label>Card Type *</label>
-                    <select id="custType" onchange="handleCardTypeChange()">
-                        <option value="" selected>-- Select Card --</option>
-                        <option value="NEW">NEW</option>
-                        <option value="EMI CARD">EMI CARD</option>
-                        <option value="INSTA EMI CARD">INSTA EMI CARD</option>
-                        <option value="W/O CARD">W/O CARD</option>
-                    </select>
-                </div>
-            </div>
-            <div class="form-grid" style="margin-top: 8px;">
-                <div class="input-group"><label>NBFC Limit (₹)</label><input type="number" id="custLimit" placeholder="0" oninput="handleInputUpdate()"></div>
-                <div class="input-group"><label>Max LTV (%)</label><input type="number" id="custLtv" value="100" oninput="handleInputUpdate()"></div>
-                <div class="input-group"><label>EMI Capping (₹)</label><input type="number" id="custCap" placeholder="Max EMI" oninput="handleInputUpdate()"></div>
+                <button class="btn-secondary" onclick="openManualModal()">+ MANUAL</button>
             </div>
         </div>
     </div>
 
     <!-- 3. ⚙️ Charges & Margin -->
-    <div class="card">
-        <div class="main-accordion-header" onclick="toggleMainAccordion('advancedContent', 'advancedIcon', this)">
+    <div class="section-card">
+        <div class="acc-header" onclick="toggleAcc('advancedContent', 'advancedIcon', this)">
             <h3>⚙️ Charges & Margin</h3>
-            <span class="toggle-icon" id="advancedIcon">▶</span>
+            <span id="advancedIcon">▶</span>
         </div>
-        <div id="advancedContent" class="card-content">
-            <div class="form-grid">
-                <div class="input-group"><label>Target DP (₹)</label><input type="number" id="advTarget" placeholder="0" oninput="handleInputUpdate()"></div>
-                
-                <div class="input-group">
+        <div id="advancedContent" class="acc-content">
+            <div class="grid-3">
+                <div><label>Target DP</label><input type="number" id="advTarget" placeholder="0" oninput="handleInputUpdate()"></div>
+                <div>
                     <label>GTL (₹)</label>
                     <select id="advGtl" onchange="handleInputUpdate()">
-                        <option value="0">0</option>
-                        <option value="699">699</option>
-                        <option value="1199">1199</option>
-                        <option value="1499">1499</option>
-                        <option value="1799">1799</option>
-                        <option value="2398">2398</option>
+                        <option value="0">0</option><option value="699">699</option><option value="1199">1199</option>
+                        <option value="1499">1499</option><option value="1799">1799</option><option value="2398">2398</option>
                     </select>
                 </div>
-                <div class="input-group">
+                <div>
                     <label>RFC (₹)</label>
                     <select id="advRfc" onchange="handleInputUpdate()">
                         <option value="0">0</option>
-                        <option value="1109">1109</option>
-                        <option value="1631">1631</option>
-                        <option value="2147">2147</option>
-                        <option value="2695">2695</option>
-                        <option value="3215">3215</option>
-                        <option value="3648">3648</option>
-                        <option value="4219">4219</option>
-                        <option value="5720">5720</option>
-                        <option value="8686">8686</option>
-                        <option value="11438">11438</option>
-                        <option value="16677">16677</option>
+                        <!-- Dynamic options will appear here based on slab -->
                     </select>
                 </div>
-                <div class="input-group"><label>EXW (₹)</label><input type="number" id="advExw" placeholder="0" oninput="handleInputUpdate()"></div>
-                <div class="input-group"><label>Margin (₹)</label><input type="number" id="advMargin" placeholder="0" oninput="handleInputUpdate()"></div>
-                <div class="input-group"><label>Dealer Contri (₹)</label><input type="number" id="advDealer" placeholder="0" oninput="handleInputUpdate()"></div>
+                <div><label>EXW (₹)</label><input type="number" id="advExw" placeholder="0" oninput="handleInputUpdate()"></div>
+                <div><label>Margin (₹)</label><input type="number" id="advMargin" placeholder="0" oninput="handleInputUpdate()"></div>
+                <div><label>Dealer</label><input type="number" id="advDealer" placeholder="0" oninput="handleInputUpdate()"></div>
             </div>
         </div>
     </div>
 
     <!-- 📊 Final Calculation -->
-    <div class="card" id="finalCalcSection" style="display: none;">
-        <!-- Header -->
-        <div style="padding: 12px; background: #e3f2fd; border-radius: 8px 8px 0 0; border-bottom: 2px solid #0984e3;">
-            <h3 style="margin:0; text-align:center; color:#034887;">📊 Final Calculation</h3>
+    <div id="finalCalcSection" style="display: none; margin-top: 10px;">
+        <div style="text-align:center; background:#e3f2fd; padding:6px; border-radius:6px 6px 0 0; border:2px solid #0984e3; border-bottom:none;">
+            <h3 style="margin:0; color:#034887; font-size:14px;">📊 Final Calculation</h3>
         </div>
-        
-        <!-- Compact Summary inside Final Calc -->
-        <div id="compactSummary" style="padding: 10px 12px; background: #fff; font-size: 11px; border-bottom: 1px solid #ddd;">
-            <div style="color: #034887; font-weight: 900; font-size: 13px; text-align: center; margin-bottom: 8px;" id="csProduct">📱 -</div>
-            <div style="display: flex; gap: 10px;">
-                <div style="flex: 1; background: #f0fdf4; padding: 6px; border-radius: 4px; border: 1px solid #c6f6d5;">
-                    <div style="color: #27ae60; font-weight: bold; font-size: 10px; margin-bottom: 4px; border-bottom: 1px solid #c6f6d5; padding-bottom: 2px;">👤 ELIGIBILITY</div>
-                    <div style="display:flex; justify-content:space-between; margin-bottom:2px;"><span>Type:</span> <b id="csType" style="color:#d35400;">-</b></div>
-                    <div style="display:flex; justify-content:space-between; margin-bottom:2px;"><span>Limit:</span> <b style="color:#27ae60;">₹<span id="csLimit">0</span></b></div>
-                    <div style="display:flex; justify-content:space-between;"><span>LTV:</span> <b style="color:#0984e3;"><span id="csLtv">100</span>%</b></div>
-                </div>
-                <div style="flex: 1; background: #fff5f5; padding: 6px; border-radius: 4px; border: 1px solid #fed7d7;">
-                    <div style="color: #e53e3e; font-weight: bold; font-size: 10px; margin-bottom: 4px; border-bottom: 1px solid #fed7d7; padding-bottom: 2px;">⚙️ CHARGES</div>
-                    <div style="display:flex; justify-content:space-between; margin-bottom:2px;"><span>Inv:</span> <b style="color:#e53e3e;">₹<span id="csInv">0</span></b></div>
-                    <div style="display:flex; justify-content:space-between; margin-bottom:2px;"><span>Fee:</span> <b style="color:#e67e22;">₹<span id="csFee">0</span></b></div>
-                    <div style="display:flex; justify-content:space-between;"><span>Target DP:</span> <b style="color:#0984e3;">₹<span id="csTarget">0</span></b></div>
-                </div>
-            </div>
-        </div>
-
-        <div class="card-content" style="display: block; background: #f8fafc; padding: 10px;">
+        <div style="background:#fff; border:2px solid #0984e3; border-top:none; border-radius:0 0 6px 6px; padding:6px;">
             <button class="btn-copy-img" onclick="copyImage()">🖼️ COPY IMAGE</button>
             <div id="productsContainer"></div>
         </div>
     </div>
 
-    <!-- Modals -->
+    <!-- Image Preview Modal -->
+    <div id="previewModal" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-top:0; color:#27ae60;">✅ Copied to Clipboard!</h3>
+            <p style="font-size:11px; color:#666; margin:0;">You can now paste this image anywhere.</p>
+            <img id="previewImg" />
+            <button class="btn-secondary" style="width:100%; background:#0984e3; color:#fff;" onclick="document.getElementById('previewModal').style.display='none'">Close</button>
+        </div>
+    </div>
+
+    <!-- Modals for Non-Tieup & Manual -->
     <div id="nonTieupModal" class="modal">
         <div class="modal-content">
-            <h3 style="color:#034887; margin-top:0;">Select Category (Non Tie-up)</h3>
-            <select id="ntCategory" style="margin-bottom: 15px;"></select>
+            <h3 style="color:#034887; margin-top:0;">Select Category</h3>
+            <select id="ntCategory" style="margin-bottom: 10px; width:100%; height:35px;"></select>
             <div style="display:flex; gap:10px;">
-                <button class="btn-secondary" style="background:#27ae60; color:white;" onclick="addNonTieupProduct()">Add Product</button>
+                <button class="btn-secondary" style="background:#27ae60; color:white;" onclick="addNonTieupProduct()">Add</button>
                 <button class="btn-secondary" onclick="document.getElementById('nonTieupModal').style.display='none'">Cancel</button>
             </div>
         </div>
     </div>
-
     <div id="manualModal" class="modal">
         <div class="modal-content">
-            <h3 style="color:#034887; margin-top:0;">Add Manual Scheme</h3>
-            <div class="input-group" style="margin-bottom: 10px;">
-                <label>Product Name (Optional)</label>
-                <input type="text" id="manProdName" placeholder="E.g. VIVO V27 8/128GB">
+            <h3 style="color:#034887; margin-top:0;">Manual Scheme</h3>
+            <div style="margin-bottom:8px;"><label>Product Name</label><input type="text" id="manProdName" placeholder="E.g. VIVO V27"></div>
+            <div class="grid-2">
+                <div><label>Tenure</label><input type="number" id="manTen" placeholder="12"></div>
+                <div><label>Advance</label><input type="number" id="manAdv" placeholder="4"></div>
+                <div><label>DBD %</label><input type="number" id="manDbd" placeholder="0"></div>
+                <div><label>PF (₹)</label><input type="number" id="manPf" placeholder="0"></div>
+                <div><label>ROI %</label><input type="number" id="manRoi" placeholder="0"></div>
+                <div><label>Fixed EMI</label><input type="number" id="manFix" placeholder="0"></div>
             </div>
-            <div class="form-grid">
-                <div class="input-group"><label>Tenure</label><input type="number" id="manTen" placeholder="e.g. 12"></div>
-                <div class="input-group"><label>Advance</label><input type="number" id="manAdv" placeholder="e.g. 4"></div>
-                <div class="input-group"><label>DBD %</label><input type="number" id="manDbd" placeholder="0"></div>
-                <div class="input-group"><label>PF (₹)</label><input type="number" id="manPf" placeholder="0"></div>
-                <div class="input-group"><label>ROI %</label><input type="number" id="manRoi" placeholder="0"></div>
-                <div class="input-group"><label>Fixed EMI (₹)</label><input type="number" id="manFix" placeholder="0"></div>
-            </div>
-            <div style="display:flex; gap:10px; margin-top:15px;">
-                <button class="btn-secondary" style="background:#0984e3; color:white;" onclick="addManualProduct()">Add Scheme</button>
+            <div style="display:flex; gap:10px; margin-top:10px;">
+                <button class="btn-secondary" style="background:#0984e3; color:white;" onclick="addManualProduct()">Add</button>
                 <button class="btn-secondary" onclick="document.getElementById('manualModal').style.display='none'">Cancel</button>
             </div>
         </div>
@@ -282,11 +222,11 @@
         let activeCategory = "";
         const GITHUB_RAW_URL = "https://raw.githubusercontent.com/luckyjathar/testcalculator/main/master_data.xlsx";
 
-        function toggleMainAccordion(contentId, iconId, headerEl) {
+        // Accordion Toggle
+        function toggleAcc(contentId, iconId, headerEl) {
             const sections = ['searchContent', 'eligibilityContent', 'advancedContent'];
             const icons = ['searchIcon', 'eligibilityIcon', 'advancedIcon'];
-            const headers = document.querySelectorAll('.main-accordion-header');
-
+            const headers = document.querySelectorAll('.acc-header');
             let isOpen = document.getElementById(contentId).style.display === "block";
 
             sections.forEach(id => document.getElementById(id).style.display = "none");
@@ -295,26 +235,15 @@
 
             if (!isOpen) {
                 document.getElementById(contentId).style.display = "block";
-                if(iconId !== 'none') document.getElementById(iconId).innerText = "▼";
-                if(headerEl) headerEl.classList.add('active');
+                document.getElementById(iconId).innerText = "▼";
+                headerEl.classList.add('active');
             }
         }
 
-        function handleCardTypeChange() {
-            let type = document.getElementById('custType').value;
-            if (type === "") {
-                ['custLimit','custInvoice','custCap','advTarget','advExw','advMargin','advDealer'].forEach(id => document.getElementById(id).value = '');
-                document.getElementById('custLtv').value = '100';
-                document.getElementById('advGtl').value = '0';
-                document.getElementById('advRfc').value = '0';
-            }
-            handleInputUpdate();
-        }
-
+        // Standard Rules
         function isMobileCat(cat) {
-            if (!cat) return false;
-            let c = String(cat).toUpperCase().replace(/\s+/g, '').trim();
-            return c.includes('PHONE') || c.includes('TABLET') || c.includes('SMARTWATCH') || c.includes('MOBILE');
+            let c = String(cat).toUpperCase().replace(/\s+/g, '');
+            return c.includes('PHONE') || c.includes('TABLET') || c.includes('WATCH') || c.includes('MOBILE');
         }
 
         function getRfcSlab(val) {
@@ -325,40 +254,15 @@
             return 0;
         }
 
-        function standardizeCategoryName(cat) {
+        function standardizeCategory(cat) {
             if (!cat) return "OTHER";
-            let c = String(cat).toUpperCase().trim();
-            let cNoSpace = c.replace(/\s+/g, '');
-            if (cNoSpace.includes('PHONE') || cNoSpace.includes('MOBILE') || cNoSpace.includes('TABLET') || cNoSpace.includes('WATCH')) return "PHONE(WEB-MOBILE)";
-            if (cNoSpace.includes('AC') || cNoSpace.includes('AIRCONDITIONER') || cNoSpace.includes('AIRCOOLER')) return "AC";
-            if (cNoSpace.includes('TV') || cNoSpace.includes('LED') || cNoSpace.includes('TELEVISION')) return "LED TV";
-            if (cNoSpace.includes('WASHING')) return "WASHING MACHINE";
-            if (cNoSpace.includes('REF') || cNoSpace.includes('FRIDGE')) return "REFRIGERATOR";
-            return c;
-        }
-
-        function findKey(row, targets) {
-            let key = Object.keys(row).find(k => targets.includes(k.toUpperCase().replace(/\s/g, '')));
-            return key ? row[key] : null;
-        }
-
-        function mapData(row, type) {
-            let model = findKey(row, ['MODEL', 'PRODUCT', 'MODELNAME']);
-            if (!model && type !== 'NON TIEUP') return null;
-            let rawCat = findKey(row, ['CATEGORY', 'CAT', 'ASSET', 'ASSETCATEGORY']);
-            let cat = standardizeCategoryName(rawCat);
-            return {
-                model: type === 'NON TIEUP' ? 'NON TIEUP' : String(model).trim().toUpperCase(),
-                category: cat,
-                tenure: parseInt(findKey(row, ['TOTALTENURE', 'TENURE', 'TA'])) || 0,
-                advEmi: parseInt(findKey(row, ['ADVANCEEMI', 'ADV'])) || 0,
-                dbd: parseFloat(findKey(row, ['DBD', 'DBD%'])) || 0,
-                roi: parseFloat(findKey(row, ['ROI', 'ROI%'])) || 0,
-                pf: parseInt(findKey(row, ['PF', 'PROCESSINGFEE'])) || 0,
-                fixedEmi: parseFloat(findKey(row, ['FIXEDEMI', 'FIXED'])) || 0,
-                minLoan: parseFloat(findKey(row, ['MINLOAN', 'MINL', 'MIN'])) || 0,
-                maxLoan: parseFloat(findKey(row, ['MAXLOAN', 'MAXL', 'MAX'])) || 9999999
-            };
+            let c = String(cat).toUpperCase().replace(/\s+/g, '');
+            if (c.includes('PHONE') || c.includes('MOBILE') || c.includes('TABLET')) return "PHONE(WEB-MOBILE)";
+            if (c.includes('AC') || c.includes('AIR')) return "AC";
+            if (c.includes('TV') || c.includes('LED') || c.includes('TELEVISION')) return "LED TV";
+            if (c.includes('WASHING')) return "WASHING MACHINE";
+            if (c.includes('REF') || c.includes('FRIDGE')) return "REFRIGERATOR";
+            return String(cat).toUpperCase().trim();
         }
 
         async function loadExcelData() {
@@ -367,52 +271,60 @@
                 let dataBuffer = await res.arrayBuffer();
                 let wb = XLSX.read(new Uint8Array(dataBuffer), { type: 'array' });
                 
-                let sheet1Data = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: "" }).map(r => mapData(r, "REG"));
-                let sheet2Data = wb.SheetNames.length > 1 ? XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[1]], { defval: "" }).map(r => mapData(r, "NON TIEUP")) : [];
+                let s1 = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {defval:""});
+                let s2 = wb.SheetNames.length > 1 ? XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[1]], {defval:""}) : [];
                 
-                db_records = [...sheet1Data, ...sheet2Data].filter(x => x && x.model !== "");
+                function mapR(row, type) {
+                    let keys = Object.keys(row);
+                    let mKey = keys.find(k => ['MODEL','PRODUCT','MODELNAME'].includes(k.toUpperCase().replace(/\s/g,'')));
+                    let cKey = keys.find(k => ['CATEGORY','CAT','ASSET'].includes(k.toUpperCase().replace(/\s/g,'')));
+                    let model = mKey ? row[mKey] : null;
+                    if (!model && type !== 'NON TIEUP') return null;
+                    return {
+                        model: type === 'NON TIEUP' ? 'NON TIEUP' : String(model).trim().toUpperCase(),
+                        category: standardizeCategory(cKey ? row[cKey] : ""),
+                        mrp: parseFloat(row[keys.find(k=>k.toUpperCase().includes('MRP'))]) || 0,
+                        tenure: parseInt(row[keys.find(k=>k.toUpperCase().includes('TENURE')||k.toUpperCase()=='TA')]) || 0,
+                        advEmi: parseInt(row[keys.find(k=>k.toUpperCase().includes('ADV'))]) || 0,
+                        dbd: parseFloat(row[keys.find(k=>k.toUpperCase().includes('DBD'))]) || 0,
+                        roi: parseFloat(row[keys.find(k=>k.toUpperCase().includes('ROI'))]) || 0,
+                        pf: parseInt(row[keys.find(k=>k.toUpperCase().includes('PF')||k.toUpperCase().includes('PROCESSING'))]) || 0,
+                        fixedEmi: parseFloat(row[keys.find(k=>k.toUpperCase().includes('FIXED'))]) || 0,
+                        minLoan: parseFloat(row[keys.find(k=>k.toUpperCase().includes('MIN'))]) || 0,
+                        maxLoan: parseFloat(row[keys.find(k=>k.toUpperCase().includes('MAX'))]) || 9999999
+                    };
+                }
                 
+                db_records = [...s1.map(r=>mapR(r,"REG")), ...s2.map(r=>mapR(r,"NON TIEUP"))].filter(x=>x && x.model !== "");
                 document.getElementById('loadingStatus').style.display = 'none';
                 document.getElementById('searchInput').disabled = false;
-            } catch(err) {
-                document.getElementById('loadingStatus').innerText = "⚠️ Error loading data. Please refresh.";
-            }
+            } catch(e) { document.getElementById('loadingStatus').innerText = "⚠️ Error loading data."; }
         }
 
         function searchModel() {
             let q = document.getElementById('searchInput').value.toUpperCase().trim();
-            let resultsDiv = document.getElementById('searchResults');
-            if (!q) { resultsDiv.style.display = 'none'; return; }
+            let resDiv = document.getElementById('searchResults');
+            if (!q) { resDiv.style.display = 'none'; return; }
             
-            let matches = db_records.filter(r => r.model !== 'NON TIEUP' && r.model.includes(q)).map(r => r.model);
-            matches = [...new Set(matches)].slice(0, 15); 
-            
-            if (matches.length === 0) {
-                resultsDiv.innerHTML = '<div style="padding:15px; color:red; font-size: 13px; text-align:center;">No matching models found.</div>';
-            } else {
-                resultsDiv.innerHTML = matches.map(m => `<div class="result-item" onclick="selectModel('${m.replace(/'/g, "\\'")}', false, 'OTHER')">📱 ${m}</div>`).join('');
-            }
-            resultsDiv.style.display = 'block';
+            let matches = [...new Set(db_records.filter(r => r.model !== 'NON TIEUP' && r.model.includes(q)).map(r => r.model))].slice(0, 15);
+            resDiv.innerHTML = matches.length ? matches.map(m => `<div class="result-item" onclick="selectModel('${m.replace(/'/g, "\\'")}', false)">📱 ${m}</div>`).join('') : '<div style="padding:10px; color:red; font-size:12px; text-align:center;">No match found.</div>';
+            resDiv.style.display = 'block';
         }
 
-        function selectModel(modelName, isNonTieup = false, category = "OTHER", manualSchemes = null) {
+        function selectModel(modelName, isNonTieup = false, manualSchemes = null) {
             document.getElementById('searchInput').value = '';
             document.getElementById('searchResults').style.display = 'none';
 
-            let cat = category;
-            let rawSchemes = [];
-            let mrp = 0;
-            
+            let rawSchemes = [], mrp = 0;
             if (manualSchemes) { 
                 rawSchemes = manualSchemes; 
             } else if (!isNonTieup) {
                 let rec = db_records.find(r => r.model === modelName);
-                if(rec) { cat = rec.category; mrp = rec.mrp || 0; }
+                if(rec) { activeCategory = rec.category; mrp = rec.mrp; }
                 rawSchemes = db_records.filter(r => r.model === modelName);
             } else {
-                rawSchemes = db_records.filter(r => r.model === "NON TIEUP" && r.category === cat);
+                rawSchemes = db_records.filter(r => r.model === "NON TIEUP" && r.category === activeCategory);
             }
-            activeCategory = cat;
 
             document.getElementById('selectedProduct').innerText = "📱 " + modelName;
             document.getElementById('selectedProductArea').style.display = 'block';
@@ -437,24 +349,12 @@
                 overrides: {}
             };
 
-            let newProd = {
-                name: isNonTieup ? `NON TIEUP - ${cat}` : modelName,
-                category: cat,
-                isNonTieup: isNonTieup,
-                inputs: pInputs,
-                rawSchemes: rawSchemes,
-                calculatedData: []
-            };
-
-            current_products.push(newProd);
+            current_products.push({ name: isNonTieup ? `NON TIEUP - ${activeCategory}` : modelName, category: activeCategory, isNonTieup, inputs: pInputs, rawSchemes, calculatedData: [] });
             activeProductIndex = current_products.length - 1;
 
             document.getElementById('finalCalcSection').style.display = 'block';
-            toggleMainAccordion('none', 'none', document.createElement('div')); 
-            
+            toggleAcc('none', 'none', document.createElement('div')); 
             recalculateProduct(activeProductIndex);
-            renderFinalCalculation();
-            updateSummary();
         }
 
         function removeProduct(index, event) {
@@ -464,56 +364,50 @@
                 activeProductIndex = -1;
                 document.getElementById('finalCalcSection').style.display = 'none';
                 document.getElementById('selectedProductArea').style.display = 'none';
-                
                 ['custInvoice','custLoan','advTarget','advExw','advMargin','advDealer'].forEach(id => document.getElementById(id).value = '');
                 document.getElementById('advGtl').value = '0';
-                document.getElementById('advRfc').value = '0';
-                updateSummary();
+                document.getElementById('advRfc').innerHTML = '<option value="0">0</option>';
             } else {
                 activeProductIndex = current_products.length - 1;
                 syncUIWithActiveProduct();
-                renderFinalCalculation();
+                recalculateProduct(activeProductIndex);
             }
         }
 
         function switchActiveProduct(index) {
-            if(activeProductIndex === index) {
-                activeProductIndex = -1; 
-            } else {
-                activeProductIndex = index;
-                syncUIWithActiveProduct();
-            }
+            activeProductIndex = (activeProductIndex === index) ? -1 : index;
+            syncUIWithActiveProduct();
             renderFinalCalculation();
-            updateSummary();
         }
 
         function syncUIWithActiveProduct() {
-            if(activeProductIndex === -1) {
-                document.getElementById('selectedProductArea').style.display = 'none';
-                return;
-            }
+            if(activeProductIndex === -1) { document.getElementById('selectedProductArea').style.display = 'none'; return; }
             let p = current_products[activeProductIndex];
-            
             document.getElementById('selectedProductArea').style.display = 'block';
             document.getElementById('selectedProduct').innerText = "📱 " + p.name;
-
-            document.getElementById('custType').value = p.inputs.type;
-            document.getElementById('custLimit').value = p.inputs.limit || "";
-            document.getElementById('custInvoice').value = p.inputs.inv || "";
-            document.getElementById('custLoan').value = p.inputs.loan || "";
-            document.getElementById('custLtv').value = p.inputs.ltv || 100;
-            document.getElementById('custCap').value = p.inputs.cap || "";
             
-            document.getElementById('advTarget').value = p.inputs.target || "";
-            document.getElementById('advGtl').value = p.inputs.gtl || "0";
+            let ids = ['custType','custLimit','custInvoice','custLoan','custLtv','custCap','advTarget','advGtl','advExw','advMargin','advDealer'];
+            let keys = ['type','limit','inv','loan','ltv','cap','target','gtl','exw','margin','dealer'];
+            ids.forEach((id, i) => document.getElementById(id).value = p.inputs[keys[i]] || (id==='custLtv'?100:''));
+            
+            updateRfcDropdown(p.inputs.inv, p.category);
             document.getElementById('advRfc').value = p.inputs.rfc || "0";
-            document.getElementById('advExw').value = p.inputs.exw || "";
-            document.getElementById('advMargin').value = p.inputs.margin || "";
-            document.getElementById('advDealer').value = p.inputs.dealer || "";
+        }
 
-            let isMobile = isMobileCat(p.category);
-            document.getElementById('advRfc').disabled = !isMobile;
-            document.getElementById('advExw').disabled = isMobile;
+        function updateRfcDropdown(inv, cat) {
+            let rfcSel = document.getElementById('advRfc');
+            rfcSel.innerHTML = `<option value="0">0</option>`;
+            if (isMobileCat(cat)) {
+                let slab = getRfcSlab(inv);
+                if(slab > 0) rfcSel.innerHTML += `<option value="${slab}">${slab}</option>`;
+                document.getElementById('advExw').disabled = true;
+                rfcSel.disabled = false;
+                return slab;
+            } else {
+                rfcSel.disabled = true;
+                document.getElementById('advExw').disabled = false;
+                return 0;
+            }
         }
 
         function onInvoiceChange() {
@@ -522,21 +416,8 @@
             document.getElementById('advGtl').value = gtl > 0 ? gtl : "0";
 
             if (activeProductIndex !== -1) {
-                let p = current_products[activeProductIndex];
-                let isMobile = isMobileCat(p.category);
-                if (isMobile) {
-                    let rfc = getRfcSlab(inv);
-                    document.getElementById('advRfc').value = rfc > 0 ? rfc : "0";
-                    document.getElementById('advRfc').disabled = false;
-                    document.getElementById('advExw').value = "";
-                    document.getElementById('advExw').disabled = true;
-                } else { 
-                    document.getElementById('advRfc').value = "0"; 
-                    document.getElementById('advRfc').disabled = true;
-                    document.getElementById('advExw').disabled = false;
-                }
-            } else {
-                document.getElementById('advRfc').value = "0";
+                let slab = updateRfcDropdown(inv, current_products[activeProductIndex].category);
+                document.getElementById('advRfc').value = slab;
             }
             handleInputUpdate();
         }
@@ -544,113 +425,57 @@
         function handleInputUpdate() {
             if (activeProductIndex === -1) return;
             let p = current_products[activeProductIndex];
-            
-            p.inputs.type = document.getElementById('custType').value || '';
-            p.inputs.limit = parseFloat(document.getElementById('custLimit').value) || 0;
-            p.inputs.inv = parseFloat(document.getElementById('custInvoice').value) || 0;
-            p.inputs.loan = parseFloat(document.getElementById('custLoan').value) || 0;
-            p.inputs.ltv = parseFloat(document.getElementById('custLtv').value) || 100;
-            p.inputs.cap = parseFloat(document.getElementById('custCap').value) || 0;
-            
-            p.inputs.target = parseFloat(document.getElementById('advTarget').value) || 0;
-            p.inputs.gtl = parseFloat(document.getElementById('advGtl').value) || 0;
-            p.inputs.rfc = parseFloat(document.getElementById('advRfc').value) || 0;
-            p.inputs.exw = parseFloat(document.getElementById('advExw').value) || 0;
-            p.inputs.margin = parseFloat(document.getElementById('advMargin').value) || 0;
-            p.inputs.dealer = parseFloat(document.getElementById('advDealer').value) || 0;
-
+            let keys = ['type','limit','inv','loan','ltv','cap','target','gtl','rfc','exw','margin','dealer'];
+            let ids = ['custType','custLimit','custInvoice','custLoan','custLtv','custCap','advTarget','advGtl','advRfc','advExw','advMargin','advDealer'];
+            keys.forEach((k, i) => { p.inputs[k] = (k==='type') ? document.getElementById(ids[i]).value : parseFloat(document.getElementById(ids[i]).value)||0; });
+            if(!document.getElementById('custLtv').value) p.inputs.ltv = 100;
             recalculateProduct(activeProductIndex);
-            renderFinalCalculation();
-            updateSummary();
-        }
-
-        function updateSummary() {
-            if(activeProductIndex === -1) {
-                document.getElementById('compactSummary').style.display = 'none';
-                return;
-            }
-            document.getElementById('compactSummary').style.display = 'block';
-
-            let p = current_products[activeProductIndex];
-            let fee = 0;
-            if (p.inputs.type === 'EMI CARD' || p.inputs.type === 'INSTA EMI CARD') fee = 270;
-            else if (p.inputs.type === 'W/O CARD') fee = 320;
-            else if (p.inputs.type === 'NEW') fee = 850;
-
-            document.getElementById('csProduct').innerText = `📱 ${p.name.replace('NON TIEUP - ','')}`;
-            document.getElementById('csType').innerText = p.inputs.type || "-";
-            document.getElementById('csLimit').innerText = p.inputs.limit ? p.inputs.limit.toLocaleString() : "0";
-            document.getElementById('csLtv').innerText = p.inputs.ltv || "100";
-            document.getElementById('csInv').innerText = p.inputs.inv ? p.inputs.inv.toLocaleString() : "0";
-            document.getElementById('csTarget').innerText = p.inputs.target ? p.inputs.target.toLocaleString() : "0";
-            document.getElementById('csFee').innerText = fee;
         }
 
         function overrideSchemeLoan(pIndex, sKey, newLoanVal) {
-            let val = parseFloat(newLoanVal) || 0;
-            let p = current_products[pIndex];
-            p.inputs.overrides[sKey] = val > 0 ? val : undefined;
+            current_products[pIndex].inputs.overrides[sKey] = parseFloat(newLoanVal) > 0 ? parseFloat(newLoanVal) : undefined;
             recalculateProduct(pIndex);
-            renderFinalCalculation();
         }
 
         function recalculateProduct(index) {
-            let p = current_products[index];
-            let inp = p.inputs;
-
-            let fee = 0;
-            if (inp.type === 'EMI CARD' || inp.type === 'INSTA EMI CARD') fee = 270;
-            else if (inp.type === 'W/O CARD') fee = 320;
-            else if (inp.type === 'NEW') fee = 850;
-
+            let p = current_products[index]; let inp = p.inputs;
+            let fee = (inp.type === 'EMI CARD' || inp.type === 'INSTA EMI CARD') ? 270 : (inp.type === 'W/O CARD' ? 320 : (inp.type === 'NEW' ? 850 : 0));
             let insTotal = inp.gtl + inp.rfc + inp.exw;
-            let processedSchemes = [];
+            let processed = [];
+
+            // Determine Limits (If missing eligibility, assume defaults)
+            let maxL = inp.limit > 0 ? inp.limit : 999999;
+            let userLtv = inp.ltv > 0 ? inp.ltv : 100;
 
             p.rawSchemes.forEach(s => {
                 let sKey = `${s.tenure}_${s.advEmi}_${s.fixedEmi}`;
-                let isOverridden = inp.overrides && inp.overrides[sKey] !== undefined;
-                let overrideVal = isOverridden ? inp.overrides[sKey] : 0;
-
-                let loan = 0, emi = 0, dp = 0, inst = 0, currentTenure = s.tenure;
-                let dbdRate = s.dbd * 1.18 / 100;
-                let roiRate = s.roi / 1200;
-                let roiRateDP = roiRate * s.advEmi;
+                let isOverridden = inp.overrides[sKey] !== undefined;
+                let loan = 0, dp = 0, emi = 0, currentTenure = s.tenure;
+                let dbdRate = s.dbd * 1.18 / 100; let roiRate = s.roi / 1200; let roiRateDP = roiRate * s.advEmi;
                 let totalFees = fee + inp.margin + inp.dealer + s.pf;
-                let nbfcMaxL = inp.limit > 0 ? (inp.limit * s.tenure) / (s.tenure - s.advEmi || 1) : 999999;
 
                 if (s.fixedEmi > 0) {
-                    let maxTotalTenure = inp.limit > 0 ? Math.floor(inp.limit / s.fixedEmi) + s.advEmi : 99;
+                    let maxT = maxL < 999999 ? Math.floor(maxL / s.fixedEmi) + s.advEmi : 99;
                     currentTenure = inp.inv > 0 ? Math.floor(inp.inv / s.fixedEmi) : s.tenure;
-                    if (currentTenure > maxTotalTenure) currentTenure = maxTotalTenure;
-                    if (currentTenure < 1) currentTenure = 1;
+                    if (currentTenure > maxT) currentTenure = maxT; if (currentTenure < 1) currentTenure = 1;
                     
                     loan = currentTenure * s.fixedEmi;
-                    if (inp.target > 0) {
-                        let numerator = inp.target - inp.inv - (s.fixedEmi * s.advEmi) - totalFees;
-                        let denominator = dbdRate + roiRateDP - 1;
-                        loan = Math.max(0, Math.floor((numerator / denominator) / s.fixedEmi) * s.fixedEmi);
-                        currentTenure = Math.floor(loan / s.fixedEmi) || 1;
-                    }
-                    if (inp.loan > 0 && !isOverridden) { loan = inp.loan; currentTenure = Math.floor(loan / s.fixedEmi) || 1; }
+                    if (inp.target > 0) loan = Math.max(0, Math.floor(((inp.target - inp.inv - totalFees) / (dbdRate + roiRateDP - 1)) / s.fixedEmi) * s.fixedEmi);
+                    if (inp.loan > 0 && !isOverridden) loan = inp.loan;
+                    if (inp.inv > 0 && loan > inp.inv) loan = Math.floor(inp.inv / s.fixedEmi) * s.fixedEmi;
+                    if (isOverridden) loan = inp.overrides[sKey];
                     
-                    if (inp.limit > 0 && loan > inp.limit && !isOverridden) return; 
-                    if (inp.inv > 0 && loan > inp.inv && !isOverridden) loan = Math.floor(inp.inv / s.fixedEmi) * s.fixedEmi;
-                    
-                    if (isOverridden) { loan = overrideVal; currentTenure = Math.floor(loan / s.fixedEmi) || 1; }
-                    
-                    inst = currentTenure - s.advEmi; if (inst < 1) inst = 1;
+                    currentTenure = Math.floor(loan / s.fixedEmi) || 1;
+                    let inst = currentTenure - s.advEmi; if (inst < 1) inst = 1;
                     emi = s.fixedEmi + (insTotal / inst) + (loan * roiRate);
-                    let baseInv = inp.inv > 0 ? inp.inv : loan;
-                    dp = Math.ceil((baseInv - loan + (s.fixedEmi * s.advEmi) + (loan * dbdRate) + totalFees + (loan * roiRateDP)) / 10) * 10;
+                    dp = Math.ceil(((inp.inv||loan) - loan + (s.fixedEmi * s.advEmi) + (loan * dbdRate) + totalFees + (loan * roiRateDP)) / 10) * 10;
                 } else {
-                    loan = Math.min(nbfcMaxL, inp.inv > 0 ? inp.inv : 999999);
-                    if (inp.target > 0 && inp.inv > 0) {
-                        loan = Math.min(loan, Math.max(0, Math.floor((inp.target - inp.inv - totalFees) / ((s.advEmi / s.tenure) + dbdRate + roiRateDP - 1))));
-                    }
-                    if (inp.loan > 0 && !isOverridden) { loan = inp.loan; }
-                    if (isOverridden) loan = overrideVal;
+                    loan = Math.min((maxL * s.tenure) / (s.tenure - s.advEmi || 1), inp.inv > 0 ? inp.inv : 999999);
+                    if (inp.target > 0 && inp.inv > 0) loan = Math.min(loan, Math.max(0, (inp.target - inp.inv - totalFees) / ((s.advEmi/s.tenure) + dbdRate + roiRateDP - 1)));
+                    if (inp.loan > 0 && !isOverridden) loan = inp.loan;
+                    if (isOverridden) loan = inp.overrides[sKey];
 
-                    inst = s.tenure - s.advEmi; if (inst < 1) inst = 1;
+                    let inst = s.tenure - s.advEmi; if (inst < 1) inst = 1;
                     let baseEmi = Math.max(900, loan / s.tenure);
                     emi = baseEmi + (insTotal / inst) + (loan * roiRate);
                     
@@ -659,22 +484,21 @@
                         if (inp.inv > 0 && loan > inp.inv) loan = inp.inv;
                         emi = Math.max(900, loan / s.tenure) + (insTotal / inst) + (loan * roiRate);
                     }
-                    let baseInv = inp.inv > 0 ? inp.inv : loan;
-                    dp = Math.ceil((baseInv - loan + (Math.max(900, loan/s.tenure) * s.advEmi) + (loan * dbdRate) + totalFees + (loan * roiRateDP)) / 10) * 10;
+                    dp = Math.ceil(((inp.inv||loan) - loan + (Math.max(900, loan/s.tenure) * s.advEmi) + (loan * dbdRate) + totalFees + (loan * roiRateDP)) / 10) * 10;
                 }
 
                 let ltv = currentTenure > 0 ? ((currentTenure - s.advEmi) / currentTenure) * 100 : 0;
                 let daily = emi / 30;
-                let boundCheck = true;
-                if (p.isNonTieup && loan > 0) { boundCheck = (loan >= s.minLoan && loan <= s.maxLoan); }
+                let boundCheck = p.isNonTieup ? (loan >= s.minLoan && loan <= s.maxLoan) : true;
 
-                if (isOverridden || inp.loan > 0 || (ltv <= inp.ltv && loan > 0 && boundCheck)) {
-                    processedSchemes.push({ ...s, loan, dp, emi, inst, daily, currentTenure, ltv, sKey });
+                // Strict LTV Filter applied here
+                if (isOverridden || inp.loan > 0 || (ltv <= userLtv && loan > 0 && boundCheck)) {
+                    processed.push({ ...s, loan, dp, emi, inst: (currentTenure - s.advEmi || 1), daily, currentTenure, ltv, sKey });
                 }
             });
 
-            processedSchemes.sort((a, b) => b.ltv - a.ltv);
-            p.calculatedData = processedSchemes;
+            p.calculatedData = processed.sort((a, b) => b.ltv - a.ltv);
+            renderFinalCalculation();
         }
 
         function renderFinalCalculation() {
@@ -683,156 +507,145 @@
 
             current_products.forEach((p, index) => {
                 let isActive = (index === activeProductIndex);
+                let missingElig = (!p.inputs.type || p.inputs.type === "");
+                let fee = (p.inputs.type === 'EMI CARD' || p.inputs.type === 'INSTA EMI CARD') ? 270 : (p.inputs.type === 'W/O CARD' ? 320 : (p.inputs.type === 'NEW' ? 850 : 0));
                 
-                let html = `
-                <div style="margin-bottom: ${isActive ? '10px' : '6px'};">
+                let html = `<div style="margin-bottom: ${isActive ? '8px' : '4px'};">
                     <div class="product-header ${isActive ? 'active' : ''}" onclick="switchActiveProduct(${index})">
-                        <div style="display:flex; align-items:center; gap:8px;">
-                            <span>${isActive ? '▼' : '▶'}</span>
-                            <span>📱 ${p.name.replace('NON TIEUP - ','')}</span>
-                        </div>
+                        <div style="display:flex; align-items:center; gap:8px;"><span>${isActive ? '▼' : '▶'}</span><span>📱 ${p.name.replace('NON TIEUP - ','')}</span></div>
                         <button class="remove-btn" onclick="removeProduct(${index}, event)">✖</button>
                     </div>
-                    <div class="product-body" style="display: ${isActive ? 'block' : 'none'};">
-                        <table class="scheme-table">
-                            <thead>
-                                <tr>
-                                    <th style="width:16%;">T/A</th>
-                                    <th style="width:26%;">LOAN (₹)</th>
-                                    <th style="width:22%;">DP</th>
-                                    <th style="width:24%;">EMI</th>
-                                    <th style="width:12%;">ACT</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${p.calculatedData.length > 0 ? p.calculatedData.map((s, i) => `
-                                <tr class="row-main">
-                                    <td style="color:var(--indigo); font-size:13px;">${s.currentTenure}/${s.advEmi}</td>
-                                    <td>
-                                        <input type="number" class="loan-input" value="${Math.floor(s.loan)}" 
-                                               onchange="overrideSchemeLoan(${index}, '${s.sKey}', this.value)" title="Edit Loan">
-                                    </td>
-                                    <td style="color:#27ae60; font-size:12px;">₹${Math.round(s.dp).toLocaleString()}</td>
-                                    <td style="color:#0984e3; line-height:1.1; font-size:12px;">₹${Math.round(s.emi).toLocaleString()}<br><span style="font-size:9px;color:#666;">x${s.inst}M</span></td>
-                                    <td><button class="btn-action" onclick="copyText(${index}, ${i}, this)">COPY</button></td>
-                                </tr>
-                                <tr class="row-sub">
-                                    <td colspan="5">
-                                        <b>DBD:</b> ${parseFloat(s.dbd.toFixed(2))}% (₹${Math.round(s.loan * (s.dbd * 1.18 / 100))}) | <b>PF:</b> ₹${s.pf} | <b>ROI:</b> ${parseFloat(s.roi.toFixed(2))}% | <b>FIXED:</b> ${s.fixedEmi>0 ? '₹'+s.fixedEmi : 'No'} | <b>DAILY SAVE:</b> <span style="color:#27ae60;">₹${Math.round(s.daily)}</span>
-                                    </td>
-                                </tr>
-                                `).join('') : '<tr><td colspan="5" style="color:red; padding:15px;">No eligible schemes found.</td></tr>'}
-                            </tbody>
-                        </table>
-                    </div>
+                    <div class="product-body" style="display: ${isActive ? 'block' : 'none'};">`;
+
+                if (missingElig) html += `<div class="alert-banner">⚠️ Eligibility Details Missing! Schemes calculated based on Invoice.</div>`;
+
+                // Realtime Compact Summary
+                html += `<div class="info-bar">
+                    <span>Type: <b>${p.inputs.type || '-'}</b></span> | <span>Limit: <b>₹${p.inputs.limit.toLocaleString()}</b></span> | <span>LTV: <b>${p.inputs.ltv}%</b></span><br>
+                    <span>Inv: <b style="color:#27ae60;">₹${p.inputs.inv.toLocaleString()}</b></span> | <span>Target: <b>₹${p.inputs.target.toLocaleString()}</b></span> | <span>Fee: <b style="color:#e67e22;">₹${fee}</b></span>
                 </div>`;
+
+                html += `<table class="scheme-table">
+                            <thead><tr><th style="width:15%;">T/A</th><th style="width:25%;">LOAN (₹)</th><th style="width:22%;">DP</th><th style="width:25%;">EMI</th><th style="width:13%;">ACT</th></tr></thead>
+                            <tbody>`;
+                
+                if (p.calculatedData.length > 0) {
+                    html += p.calculatedData.map((s, i) => `
+                        <tr class="row-main">
+                            <td style="color:var(--indigo); font-size:12px;">${s.currentTenure}/${s.advEmi}</td>
+                            <td><input type="number" class="loan-input" value="${Math.floor(s.loan)}" onchange="overrideSchemeLoan(${index}, '${s.sKey}', this.value)"></td>
+                            <td style="color:#27ae60; font-size:11px;">₹${Math.round(s.dp).toLocaleString()}</td>
+                            <td style="color:#0984e3; line-height:1.1; font-size:11px;">₹${Math.round(s.emi).toLocaleString()}<br><span style="font-size:8px;color:#666;">x${s.inst}M</span></td>
+                            <td><button class="btn-action" onclick="copyText(${index}, ${i}, this)">COPY</button></td>
+                        </tr>
+                        <tr class="row-sub">
+                            <td colspan="5">
+                                <b>DBD:</b> ${parseFloat(s.dbd.toFixed(2))}% (₹${Math.round(s.loan * (s.dbd * 1.18 / 100))}) | <b>PF:</b> ₹${s.pf} | <b>ROI:</b> ${parseFloat(s.roi.toFixed(2))}% | <b>FIX:</b> ${s.fixedEmi>0?'₹'+s.fixedEmi:'No'} | <b style="color:#27ae60;">DAILY SAVE: ₹${Math.round(s.daily)}</b>
+                            </td>
+                        </tr>`).join('');
+                } else {
+                    html += `<tr><td colspan="5" style="color:red; padding:15px;">No eligible schemes found (Check LTV or Limits).</td></tr>`;
+                }
+                html += `</tbody></table></div></div>`;
                 container.innerHTML += html;
             });
         }
 
+        // Modals Logic
         function openNonTieupModal() {
-            let ntRecords = db_records.filter(r => r.model === 'NON TIEUP');
-            let categories = [...new Set(ntRecords.map(r => r.category))].filter(Boolean);
-            if (categories.length === 0) categories = ["PHONE(WEB-MOBILE)", "LED TV", "REFRIGERATOR", "WASHING MACHINE", "AC", "OTHER"];
-            
-            document.getElementById('ntCategory').innerHTML = categories.map(c => `<option value="${c}">${c}</option>`).join('');
+            let cats = [...new Set(db_records.filter(r=>r.model==='NON TIEUP').map(r=>r.category))].filter(Boolean);
+            if(!cats.length) cats = ["PHONE(WEB-MOBILE)", "LED TV", "REFRIGERATOR", "WASHING MACHINE", "AC", "OTHER"];
+            document.getElementById('ntCategory').innerHTML = cats.map(c=>`<option value="${c}">${c}</option>`).join('');
             document.getElementById('nonTieupModal').style.display='flex'; 
         }
-        
         function openManualModal() { document.getElementById('manualModal').style.display='flex'; }
         
         function addNonTieupProduct() {
-            let cat = document.getElementById('ntCategory').value;
+            selectModel('NON TIEUP', true);
             document.getElementById('nonTieupModal').style.display='none';
-            selectModel('NON TIEUP', true, cat);
         }
-
         function addManualProduct() {
-            let prodName = document.getElementById('manProdName').value.trim().toUpperCase() || 'MANUAL SCHEME';
-            let ten = parseInt(document.getElementById('manTen').value) || 0;
-            let adv = parseInt(document.getElementById('manAdv').value) || 0;
-            let dbd = parseFloat(document.getElementById('manDbd').value) || 0;
-            let pf = parseInt(document.getElementById('manPf').value) || 0;
-            let roi = parseFloat(document.getElementById('manRoi').value) || 0;
-            let fix = parseInt(document.getElementById('manFix').value) || 0;
-
-            if(ten === 0 && fix === 0) { alert("Please enter valid tenure or Fixed EMI"); return; }
-            let manualSchemes = [{ tenure: ten, advEmi: adv, dbd: dbd, pf: pf, roi: roi, fixedEmi: fix, minLoan: 0, maxLoan: 9999999 }];
-            
+            let name = document.getElementById('manProdName').value.trim().toUpperCase() || 'MANUAL SCHEME';
+            let ten = parseInt(document.getElementById('manTen').value)||0, adv = parseInt(document.getElementById('manAdv').value)||0, fix = parseInt(document.getElementById('manFix').value)||0;
+            if(ten === 0 && fix === 0) { alert("Enter valid Tenure or Fixed EMI"); return; }
+            let man = [{ tenure: ten, advEmi: adv, dbd: parseFloat(document.getElementById('manDbd').value)||0, pf: parseInt(document.getElementById('manPf').value)||0, roi: parseFloat(document.getElementById('manRoi').value)||0, fixedEmi: fix }];
             document.getElementById('manualModal').style.display='none';
-            ['manProdName','manTen','manAdv','manDbd','manPf','manRoi','manFix'].forEach(id => document.getElementById(id).value = '');
-            selectModel(prodName, false, 'OTHER', manualSchemes);
+            ['manProdName','manTen','manAdv','manDbd','manPf','manRoi','manFix'].forEach(id=>document.getElementById(id).value='');
+            selectModel(name, false, 'OTHER', man);
         }
 
-        function copyText(pIndex, sIndex, btnElement) {
+        // Clean Copy Text
+        function copyText(pIndex, sIndex, btn) {
             let p = current_products[pIndex]; let s = p.calculatedData[sIndex];
-            let text = `📱 *${p.name.replace('NON TIEUP - ','')}*\n\n👤 *ELIGIBILITY:*\n*Type:* ${p.inputs.type || 'N/A'} | *Limit:* ₹${p.inputs.limit.toLocaleString()}\n*LTV:* ${p.inputs.ltv}% ${p.inputs.cap > 0 ? '| *Cap:* ₹'+p.inputs.cap : ''}\n`;
-            if(p.inputs.inv > 0) text += `*Invoice:* ₹${p.inputs.inv.toLocaleString()}\n`;
-            text += `------------------------\n✅ *Scheme:* ${s.currentTenure}/${s.advEmi}\n💰 *DP:* ₹${Math.round(s.dp).toLocaleString()}\n🗓️ *EMI:* ₹${Math.round(s.emi).toLocaleString()} x ${s.inst} Months\n`;
-            text += `✨ *Daily Save:* ₹${Math.round(s.daily).toLocaleString()}`;
-
-            if (navigator.clipboard) {
-                navigator.clipboard.writeText(text).then(() => {
-                    let oldText = btnElement.innerText; btnElement.innerText = "COPIED"; btnElement.style.background = "#27ae60";
-                    setTimeout(() => { btnElement.innerText = oldText; btnElement.style.background = "#0984e3"; }, 2000);
+            let txt = `📱 *${p.name.replace('NON TIEUP - ','')}*\n\n👤 *ELIGIBILITY:*\n*Type:* ${p.inputs.type||'N/A'} | *Limit:* ₹${p.inputs.limit.toLocaleString()} | *LTV:* ${p.inputs.ltv}%\n${p.inputs.inv>0?`*Invoice:* ₹${p.inputs.inv.toLocaleString()}\n`:''}`;
+            txt += `------------------------\n✅ *Scheme:* ${s.currentTenure}/${s.advEmi}\n💰 *DP:* ₹${Math.round(s.dp).toLocaleString()}\n🗓️ *EMI:* ₹${Math.round(s.emi).toLocaleString()} x ${s.inst} Months\n✨ *Daily Save:* ₹${Math.round(s.daily).toLocaleString()}`;
+            if(navigator.clipboard) {
+                navigator.clipboard.writeText(txt).then(()=>{
+                    let old = btn.innerText; btn.innerText="COPIED"; btn.style.background="#27ae60";
+                    setTimeout(()=>{btn.innerText=old;btn.style.background="#0984e3";},2000);
                 });
             }
         }
 
+        // Clean Copy Image with Preview
         function copyImage() {
             if(activeProductIndex === -1) return;
-            let p = current_products[activeProductIndex];
-            if(p.calculatedData.length === 0) return;
+            let p = current_products[activeProductIndex]; if(!p.calculatedData.length) return;
+            let btn = document.querySelector('.btn-copy-img'); let oldBtn = btn.innerHTML; btn.innerHTML = "⏳ COPYING...";
+
+            let div = document.createElement('div');
+            div.style.cssText = "width:700px; position:absolute; left:-9999px; background:#fff; font-family:sans-serif; padding:20px;";
             
-            let btn = document.querySelector('.btn-copy-img');
-            let origText = btn.innerHTML; btn.innerHTML = "⏳ COPYING...";
+            let missingElig = (!p.inputs.type || p.inputs.type === "");
+            let alertHtml = missingElig ? `<div style="background:#ffebee; color:#c62828; text-align:center; padding:8px; font-size:14px; font-weight:bold; margin-bottom:10px; border-radius:6px; border:2px solid #ef9a9a;">⚠️ Eligibility Details Missing! Base calculation applied.</div>` : '';
 
-            let printDiv = document.createElement('div');
-            printDiv.style.width = "700px"; printDiv.style.position = "absolute"; printDiv.style.left = "-9999px"; printDiv.style.backgroundColor = "#ffffff"; printDiv.style.fontFamily = "Arial, sans-serif";
+            let trs = p.calculatedData.map((s,i) => `
+                <tr style="background:${i%2===0?'#fff':'#f8fafc'};">
+                    <td style="padding:15px; font-size:24px; font-weight:900; color:#1e293b; border-bottom:1px solid #e2e8f0;">${s.currentTenure}/${s.advEmi}</td>
+                    <td style="padding:15px; font-size:24px; font-weight:900; color:#27ae60; border-bottom:1px solid #e2e8f0;">₹${Math.round(s.dp).toLocaleString()}</td>
+                    <td style="padding:15px; font-size:24px; font-weight:900; color:#0984e3; border-bottom:1px solid #e2e8f0;">₹${Math.round(s.emi).toLocaleString()}</td>
+                    <td style="padding:15px; font-size:24px; font-weight:900; color:#333; border-bottom:1px solid #e2e8f0;">${s.inst}</td>
+                    <td style="padding:15px; font-size:24px; font-weight:900; color:#27ae60; border-bottom:1px solid #e2e8f0;">₹${Math.round(s.daily).toLocaleString()}</td>
+                </tr>`).join('');
 
-            let trs = p.calculatedData.map((s, i) => {
-                let bgCol = i % 2 === 0 ? '#ffffff' : '#f8fafc';
-                return `
-                <tr style="background-color: ${bgCol};">
-                    <td style="padding: 15px; font-size: 24px; font-weight: 900; color: #1e293b; border-bottom: 1px solid #e2e8f0;">${s.currentTenure} / ${s.advEmi}</td>
-                    <td style="padding: 15px; font-size: 24px; font-weight: 900; color: #27ae60; border-bottom: 1px solid #e2e8f0;">₹${Math.round(s.dp).toLocaleString()}</td>
-                    <td style="padding: 15px; font-size: 24px; font-weight: 900; color: #0984e3; border-bottom: 1px solid #e2e8f0;">₹${Math.round(s.emi).toLocaleString()}</td>
-                    <td style="padding: 15px; font-size: 24px; font-weight: 900; color: #333333; border-bottom: 1px solid #e2e8f0;">${s.inst}</td>
-                    <td style="padding: 15px; font-size: 24px; font-weight: 900; color: #27ae60; border-bottom: 1px solid #e2e8f0;">₹${Math.round(s.daily).toLocaleString()}</td>
-                </tr>`;
-            }).join('');
-
-            printDiv.innerHTML = `
-            <div style="padding: 20px; background-color: #ffffff;">
-                <div style="border: 3px solid #034887; border-radius: 12px; overflow: hidden; background-color: #ffffff;">
-                    <div style="background-color: #034887; color: #ffffff; padding: 25px; text-align: center;">
-                        <div style="font-size: 34px; font-weight: 900; margin: 0; padding-bottom: 15px;">📱 ${p.name.replace('NON TIEUP - ','').toUpperCase()}</div>
-                        ${p.inputs.inv > 0 ? `<div style="font-size: 20px; font-weight: bold; color: #e0f2fe;">INVOICE AMOUNT: ₹${p.inputs.inv.toLocaleString()}</div>` : ''}
+            div.innerHTML = `
+                ${alertHtml}
+                <div style="border:3px solid #034887; border-radius:12px; overflow:hidden;">
+                    <div style="background:#034887; color:#fff; padding:25px; text-align:center;">
+                        <div style="font-size:32px; font-weight:900; margin-bottom:10px;">📱 ${p.name.replace('NON TIEUP - ','').toUpperCase()}</div>
+                        <div style="display:flex; justify-content:space-evenly; font-size:18px; font-weight:bold; color:#e0f2fe;">
+                            <span>TYPE: <span style="color:#f1c40f;">${p.inputs.type||'N/A'}</span></span>
+                            <span>LIMIT: <span style="color:#2ecc71;">₹${p.inputs.limit.toLocaleString()}</span></span>
+                            <span>LTV: <span style="color:#fff;">${p.inputs.ltv}%</span></span>
+                        </div>
+                        ${p.inputs.inv>0 ? `<div style="margin-top:12px; font-size:20px; font-weight:900;">INVOICE: ₹${p.inputs.inv.toLocaleString()}</div>`:''}
                     </div>
-                    <table style="width: 100%; border-collapse: collapse; text-align: center; background-color: #ffffff;">
-                        <thead style="background-color: #f1f5f9; color: #334155;">
+                    <table style="width:100%; border-collapse:collapse; text-align:center;">
+                        <thead style="background:#f1f5f9; color:#334155;">
                             <tr>
-                                <th style="padding: 18px 10px; font-size: 18px; font-weight: 900; border-bottom: 2px solid #cbd5e1;">SCHEME<br><span style="font-size:14px; font-weight:normal;">(T / A)</span></th>
-                                <th style="padding: 18px 10px; font-size: 18px; font-weight: 900; border-bottom: 2px solid #cbd5e1;">NET&nbsp;DP</th>
-                                <th style="padding: 18px 10px; font-size: 18px; font-weight: 900; border-bottom: 2px solid #cbd5e1;">EMI</th>
-                                <th style="padding: 18px 10px; font-size: 18px; font-weight: 900; border-bottom: 2px solid #cbd5e1;">MONTHS</th>
-                                <th style="padding: 18px 10px; font-size: 18px; font-weight: 900; border-bottom: 2px solid #cbd5e1;">DAILY SAVE</th>
+                                <th style="padding:18px; font-size:18px; font-weight:900; border-bottom:2px solid #cbd5e1;">SCHEME<br><span style="font-size:14px; font-weight:normal;">(T / A)</span></th>
+                                <th style="padding:18px; font-size:18px; font-weight:900; border-bottom:2px solid #cbd5e1;">NET&nbsp;DP</th>
+                                <th style="padding:18px; font-size:18px; font-weight:900; border-bottom:2px solid #cbd5e1;">EMI</th>
+                                <th style="padding:18px; font-size:18px; font-weight:900; border-bottom:2px solid #cbd5e1;">MONTHS</th>
+                                <th style="padding:18px; font-size:18px; font-weight:900; border-bottom:2px solid #cbd5e1;">DAILY SAVE</th>
                             </tr>
                         </thead>
                         <tbody>${trs}</tbody>
                     </table>
-                </div>
-            </div>`;
+                </div>`;
             
-            document.body.appendChild(printDiv);
+            document.body.appendChild(div);
             setTimeout(() => {
-                html2canvas(printDiv, { scale: 2, useCORS: true, backgroundColor: "#ffffff", logging: false }).then(canvas => {
+                html2canvas(div, { scale: 2, useCORS: true, backgroundColor: "#ffffff", logging: false }).then(canvas => {
                     canvas.toBlob(blob => {
                         navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]).then(() => {
-                            btn.innerHTML = "✅ COPIED"; setTimeout(() => { btn.innerHTML = origText; }, 2000); document.body.removeChild(printDiv);
-                        }).catch(err => {
-                            btn.innerHTML = "⚠️ ERROR"; setTimeout(() => { btn.innerHTML = origText; }, 2000); document.body.removeChild(printDiv);
-                        });
+                            btn.innerHTML = "✅ COPIED"; 
+                            setTimeout(() => { btn.innerHTML = oldBtn; }, 2000); 
+                            document.body.removeChild(div);
+                            // Show Preview Modal
+                            document.getElementById('previewImg').src = URL.createObjectURL(blob);
+                            document.getElementById('previewModal').style.display = 'flex';
+                        }).catch(e => { btn.innerHTML = "⚠️ ERROR"; document.body.removeChild(div); });
                     }, "image/png");
                 });
             }, 300);
