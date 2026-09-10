@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pro Scheme Calculator</title>
+    <title>PRO RCD CALCULATOR</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
@@ -83,7 +83,7 @@
     <div class="app-header">
         <h2>🚀 PRO RCD CALCULATOR</h2>
         <div class="header-btns">
-            <button class="action-icon-btn" onclick="openLoadLinkModal()" title="Paste Link">🔗 Link</button>
+            <button class="action-icon-btn" onclick="openLoadLinkModal()" title="Paste Link">🔗</button>
             <button class="action-icon-btn" onclick="alert('History feature coming soon!')" title="View History">🕒</button>
         </div>
     </div>
@@ -248,10 +248,18 @@
 
         // URL DATA LOADING (On Start)
         window.onload = async function() {
-            await loadExcelData();
             let params = new URLSearchParams(window.location.search);
-            if(params.has('data')) {
-                loadFromSharedData(params.get('data'));
+            let sharedData = params.get('s') || params.get('data');
+            
+            if(sharedData) {
+                document.getElementById('loadingStatus').innerText = "⏳ Loading Shared Calculation...";
+            }
+            
+            await loadExcelData();
+            
+            if(sharedData) {
+                loadFromSharedData(sharedData);
+                window.history.replaceState({}, document.title, window.location.pathname);
             }
         };
 
@@ -267,8 +275,8 @@
 
             if (!isOpen) {
                 document.getElementById(contentId).style.display = "block";
-                document.getElementById(iconId).innerText = "▼";
-                headerEl.classList.add('active');
+                if(iconId !== 'none') document.getElementById(iconId).innerText = "▼";
+                if(headerEl) headerEl.classList.add('active');
             }
         }
 
@@ -342,27 +350,6 @@
                 let s1 = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {defval:""});
                 let s2 = wb.SheetNames.length > 1 ? XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[1]], {defval:""}) : [];
                 
-                function mapR(row, type) {
-                    let keys = Object.keys(row);
-                    let mKey = keys.find(k => ['MODEL','PRODUCT','MODELNAME'].includes(k.toUpperCase().replace(/\s/g,'')));
-                    let cKey = keys.find(k => ['CATEGORY','CAT','ASSET'].includes(k.toUpperCase().replace(/\s/g,'')));
-                    let model = mKey ? row[mKey] : null;
-                    if (!model && type !== 'NON TIEUP') return null;
-                    return {
-                        model: type === 'NON TIEUP' ? 'NON TIEUP' : String(model).trim().toUpperCase(),
-                        category: standardizeCategory(cKey ? row[cKey] : ""),
-                        mrp: parseFloat(row[keys.find(k=>k.toUpperCase().includes('MRP'))]) || 0,
-                        tenure: parseInt(row[keys.find(k=>k.toUpperCase().includes('TENURE')||k.toUpperCase()=='TA')]) || 0,
-                        advEmi: parseInt(row[keys.find(k=>k.toUpperCase().includes('ADV'))]) || 0,
-                        dbd: parseFloat(row[keys.find(k=>k.toUpperCase().includes('DBD'))]) || 0,
-                        roi: parseFloat(row[keys.find(k=>k.toUpperCase().includes('ROI'))]) || 0,
-                        pf: parseInt(row[keys.find(k=>k.toUpperCase().includes('PF')||k.toUpperCase().includes('PROCESSING'))]) || 0,
-                        fixedEmi: parseFloat(row[keys.find(k=>k.toUpperCase().includes('FIXED'))]) || 0,
-                        minLoan: parseFloat(row[keys.find(k=>k.toUpperCase().includes('MIN'))]) || 0,
-                        maxLoan: parseFloat(row[keys.find(k=>k.toUpperCase().includes('MAX'))]) || 9999999
-                    };
-                }
-                
                 db_records = [...s1.map(r=>mapR(r,"REG")), ...s2.map(r=>mapR(r,"NON TIEUP"))].filter(x=>x && x.model !== "");
                 document.getElementById('loadingStatus').style.display = 'none';
                 document.getElementById('searchInput').disabled = false;
@@ -403,6 +390,7 @@
 
             if(manualState) {
                 pInputs = manualState.inputs;
+                
                 document.getElementById('custType').value = pInputs.type || '';
                 document.getElementById('custLimit').value = pInputs.limit || '';
                 document.getElementById('custInvoice').value = pInputs.inv || '';
@@ -426,9 +414,16 @@
                     rfcSel.disabled = true;
                     document.getElementById('advExw').disabled = false;
                 }
+                
+                current_products.push({ name: isNonTieup ? `NON TIEUP - ${cat}` : modelName, category: cat, isNonTieup, inputs: pInputs, rawSchemes, calculatedData: [] });
+                activeProductIndex = current_products.length - 1;
+                
+                document.getElementById('finalCalcSection').style.display = 'block';
+                toggleAcc('none', 'none', document.createElement('div')); 
+                recalculateProduct(activeProductIndex);
+
             } else {
                 document.getElementById('custInvoice').value = mrp > 0 ? mrp : "";
-                onInvoiceChange(); 
                 
                 pInputs = {
                     type: document.getElementById('custType').value || '',
@@ -438,21 +433,17 @@
                     ltv: parseFloat(document.getElementById('custLtv').value) || 100,
                     cap: parseFloat(document.getElementById('custCap').value) || 0,
                     target: parseFloat(document.getElementById('advTarget').value) || 0,
-                    gtl: parseFloat(document.getElementById('advGtl').value) || 0,
-                    rfc: parseFloat(document.getElementById('advRfc').value) || 0,
-                    exw: parseFloat(document.getElementById('advExw').value) || 0,
-                    margin: parseFloat(document.getElementById('advMargin').value) || 0,
-                    dealer: parseFloat(document.getElementById('advDealer').value) || 0,
-                    overrides: {}
+                    gtl: 0, rfc: 0, exw: 0, margin: 0, dealer: 0, overrides: {}
                 };
+
+                current_products.push({ name: isNonTieup ? `NON TIEUP - ${cat}` : modelName, category: cat, isNonTieup, inputs: pInputs, rawSchemes, calculatedData: [] });
+                activeProductIndex = current_products.length - 1;
+
+                onInvoiceChange(); 
+                
+                document.getElementById('finalCalcSection').style.display = 'block';
+                toggleAcc('none', 'none', document.createElement('div')); 
             }
-
-            current_products.push({ name: isNonTieup ? `NON TIEUP - ${cat}` : modelName, category: cat, isNonTieup, inputs: pInputs, rawSchemes, calculatedData: [] });
-            activeProductIndex = current_products.length - 1;
-
-            document.getElementById('finalCalcSection').style.display = 'block';
-            toggleAcc('none', 'none', document.createElement('div')); 
-            recalculateProduct(activeProductIndex);
         }
 
         function removeProduct(index, event) {
@@ -602,7 +593,6 @@
                     if (slabPf !== null) { dynamicPf = slabPf; } 
                 }
 
-                // Proper Bajaj Gross Loan Calculation
                 let nbfcMaxL = (actualLimit * s.tenure) / (s.tenure - s.advEmi || 1);
                 
                 if (s.fixedEmi > 0) {
@@ -721,20 +711,48 @@
             });
         }
 
-        // SHARE LINK URL GENERATOR
+        // SHORT SHARE LINK URL GENERATOR
         function getShareLinkUrl(pIndex) {
             let p = current_products[pIndex];
-            let data = { name: p.name, cat: p.category, nt: p.isNonTieup, inputs: p.inputs };
-            let jsonStr = JSON.stringify(data);
-            let b64 = btoa(encodeURIComponent(jsonStr));
-            return window.location.href.split('?')[0] + "?data=" + b64;
+            let i = p.inputs;
+            let arr = [
+                p.name, p.isNonTieup ? 1 : 0, i.limit || 0, i.inv || 0, 
+                i.ltv || 100, i.cap || 0, i.target || 0, 
+                i.gtl || 0, i.rfc || 0, i.exw || 0, 
+                i.margin || 0, i.dealer || 0, p.category || "OTHER", i.type || ""
+            ];
+            let str = arr.join('|');
+            let encoded = btoa(encodeURIComponent(str)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+            return window.location.href.split('?')[0] + "?s=" + encoded;
         }
 
         function loadFromSharedData(b64Data) {
             try {
-                let jsonStr = decodeURIComponent(atob(b64Data));
-                let data = JSON.parse(jsonStr);
-                selectModel(data.name, data.nt, null, data);
+                let b64 = b64Data.replace(/-/g, '+').replace(/_/g, '/');
+                while (b64.length % 4) { b64 += '='; }
+                let str = decodeURIComponent(atob(b64));
+                let arr = str.split('|');
+                
+                let name = arr[0];
+                let isNT = arr[1] === "1";
+                let inputs = {
+                    limit: parseFloat(arr[2]) || 0,
+                    inv: parseFloat(arr[3]) || 0,
+                    ltv: parseFloat(arr[4]) || 100,
+                    cap: parseFloat(arr[5]) || 0,
+                    target: parseFloat(arr[6]) || 0,
+                    gtl: parseFloat(arr[7]) || 0,
+                    rfc: parseFloat(arr[8]) || 0,
+                    exw: parseFloat(arr[9]) || 0,
+                    margin: parseFloat(arr[10]) || 0,
+                    dealer: parseFloat(arr[11]) || 0,
+                    type: arr[13] || "",
+                    mrp: parseFloat(arr[3]) || 0,
+                    overrides: {}
+                };
+                let cat = arr[12] || "OTHER";
+                
+                selectModel(name, isNT, null, { inputs: inputs, category: cat });
             } catch(e) {
                 alert("Invalid or broken link!");
             }
@@ -749,15 +767,15 @@
             let val = document.getElementById('pasteLinkInput').value.trim();
             try {
                 let url = new URL(val);
-                let dataParam = url.searchParams.get("data");
+                let dataParam = url.searchParams.get("s") || url.searchParams.get("data");
                 if (dataParam) {
                     loadFromSharedData(dataParam);
                     document.getElementById('loadLinkModal').style.display = 'none';
                 } else {
-                    alert("Invalid Link Structure. No data parameter found.");
+                    alert("Invalid Link Structure. No parameter found.");
                 }
             } catch(e) {
-                if(val.length > 50 && !val.includes("http")) {
+                if(val.length > 10 && !val.includes("http")) {
                     loadFromSharedData(val);
                     document.getElementById('loadLinkModal').style.display = 'none';
                 } else {
@@ -812,7 +830,7 @@
             }
         }
 
-        // Exactly Matching WhatsApp Design
+        // Exact Clean WhatsApp Image Generation + Link Display
         function copyImage() {
             if(activeProductIndex === -1) return;
             let p = current_products[activeProductIndex]; if(!p.calculatedData.length) return;
@@ -821,9 +839,6 @@
             let div = document.createElement('div');
             div.style.cssText = "width:750px; position:absolute; left:-9999px; background:#fff; font-family:sans-serif; padding:15px;";
             
-            let missingElig = (!p.inputs.type || p.inputs.type === "");
-            let alertHtml = missingElig ? `<div style="background:#ffebee; color:#c62828; text-align:center; padding:10px; font-size:16px; font-weight:bold; margin-bottom:12px; border-radius:6px; border:2px solid #ef9a9a;">⚠️ Eligibility Details Missing! Base calculation applied.</div>` : '';
-
             let trs = p.calculatedData.map((s,i) => `
                 <tr style="background:${i%2===0?'#ffffff':'#f8f9fa'};">
                     <td style="padding:20px 10px; font-size:24px; font-weight:900; color:#1e293b; border-bottom:1px solid #e2e8f0;">${s.currentTenure} / ${s.advEmi}</td>
@@ -834,7 +849,6 @@
                 </tr>`).join('');
 
             div.innerHTML = `
-                ${alertHtml}
                 <div style="border:2px solid #063970; border-radius:8px; overflow:hidden; background:#fff;">
                     <div style="background:#063970; color:#fff; padding:25px; text-align:center;">
                         <div style="font-size:32px; font-weight:900; line-height:1.4; margin-bottom:15px; text-transform:uppercase;">📱 ${p.name.replace('NON TIEUP - ','')}</div>
@@ -845,7 +859,7 @@
                             <span>LTV: <span style="color:#fff;">${p.inputs.ltv}%</span></span>
                         </div>
                         
-                        ${p.inputs.inv>0 ? `<div style="margin-top:12px; font-size:20px; font-weight:900; letter-spacing:1px;">INVOICE: ₹${p.inputs.inv.toLocaleString()}</div>`:''}
+                        ${p.inputs.inv>0 ? `<div style="margin-top:15px; font-size:22px; font-weight:900; letter-spacing:1px;">INVOICE: ₹${p.inputs.inv.toLocaleString()}</div>`:''}
                     </div>
 
                     <table style="width:100%; border-collapse:collapse; text-align:center;">
