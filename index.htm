@@ -161,12 +161,6 @@
             <span class="toggle-icon" id="advancedIcon">▶</span>
         </div>
         <div id="advancedContent" class="card-content">
-            <!-- GTL & RFC Rule Box -->
-            <div class="rule-box">
-                <strong>GTL Rule:</strong> Up to 10k: ₹699 | 30k: ₹1199 | 50k: ₹1499 | 1L: ₹1799 | >1L: ₹2398<br>
-                <strong>RFC Rule:</strong> 10k: ₹1109 | 15k: ₹1631 | 20k: ₹2147 | 25k: ₹2695 | 30k: ₹3215 | 40k: ₹4219 | 50k: ₹5720
-            </div>
-
             <div class="form-grid full" style="margin-bottom: 8px;">
                 <div class="input-group">
                     <label>Invoice Amount (₹) *</label>
@@ -241,14 +235,8 @@
     <div id="nonTieupModal" class="modal">
         <div class="modal-content">
             <h3 style="color:#034887; margin-top:0;">Select Category (Non Tie-up)</h3>
-            <select id="ntCategory" style="margin-bottom: 15px;">
-                <option value="PHONE(WEB-MOBILE)">Phone / Tablet</option>
-                <option value="LED TV">LED TV</option>
-                <option value="REFRIGERATOR">Refrigerator</option>
-                <option value="WASHING MACHINE">Washing Machine</option>
-                <option value="AC">AC</option>
-                <option value="OTHER">Other</option>
-            </select>
+            <!-- Category options will be loaded dynamically from Excel -->
+            <select id="ntCategory" style="margin-bottom: 15px;"></select>
             <div style="display:flex; gap:10px;">
                 <button class="btn-secondary" style="background:#27ae60; color:white;" onclick="addNonTieupProduct()">Add Product</button>
                 <button class="btn-secondary" onclick="document.getElementById('nonTieupModal').style.display='none'">Cancel</button>
@@ -259,6 +247,10 @@
     <div id="manualModal" class="modal">
         <div class="modal-content">
             <h3 style="color:#034887; margin-top:0;">Add Manual Scheme</h3>
+            <div class="input-group" style="margin-bottom: 10px;">
+                <label>Product Name (Optional)</label>
+                <input type="text" id="manProdName" placeholder="E.g. VIVO V27 8/128GB">
+            </div>
             <div class="form-grid">
                 <div class="input-group"><label>Tenure</label><input type="number" id="manTen" placeholder="e.g. 12"></div>
                 <div class="input-group"><label>Advance</label><input type="number" id="manAdv" placeholder="e.g. 4"></div>
@@ -331,18 +323,6 @@
             return 0;
         }
 
-        function standardizeCategoryName(cat) {
-            if (!cat) return "OTHER";
-            let c = String(cat).toUpperCase().trim();
-            let cNoSpace = c.replace(/\s+/g, '');
-            if (cNoSpace.includes('PHONE') || cNoSpace.includes('MOBILE') || cNoSpace.includes('TABLET') || cNoSpace.includes('WATCH')) return "PHONE(WEB-MOBILE)";
-            if (cNoSpace.includes('AC') || cNoSpace.includes('AIRCONDITIONER') || cNoSpace.includes('AIRCOOLER')) return "AC";
-            if (cNoSpace.includes('TV') || cNoSpace.includes('LED') || cNoSpace.includes('TELEVISION')) return "LED TV";
-            if (cNoSpace.includes('WASHING')) return "WASHING MACHINE";
-            if (cNoSpace.includes('REF') || cNoSpace.includes('FRIDGE')) return "REFRIGERATOR";
-            return c;
-        }
-
         function findKey(row, targets) {
             let key = Object.keys(row).find(k => targets.includes(k.toUpperCase().replace(/\s/g, '')));
             return key ? row[key] : null;
@@ -351,8 +331,7 @@
         function mapData(row, type) {
             let model = findKey(row, ['MODEL', 'PRODUCT', 'MODELNAME']);
             if (!model && type !== 'NON TIEUP') return null;
-            let rawCat = findKey(row, ['CATEGORY', 'CAT', 'ASSET', 'ASSETCATEGORY']);
-            let cat = standardizeCategoryName(rawCat);
+            let cat = String(findKey(row, ['CATEGORY', 'CAT']) || "").toUpperCase();
             return {
                 model: type === 'NON TIEUP' ? 'NON TIEUP' : String(model).trim().toUpperCase(),
                 category: cat,
@@ -362,8 +341,8 @@
                 roi: parseFloat(findKey(row, ['ROI', 'ROI%'])) || 0,
                 pf: parseInt(findKey(row, ['PF', 'PROCESSINGFEE'])) || 0,
                 fixedEmi: parseFloat(findKey(row, ['FIXEDEMI', 'FIXED'])) || 0,
-                minLoan: parseFloat(findKey(row, ['MINLOAN', 'MINL', 'MIN'])) || 0,
-                maxLoan: parseFloat(findKey(row, ['MAXLOAN', 'MAXL', 'MAX'])) || 9999999
+                minLoan: parseFloat(findKey(row, ['MINLOAN'])) || 0,
+                maxLoan: parseFloat(findKey(row, ['MAXLOAN'])) || 9999999
             };
         }
 
@@ -372,12 +351,10 @@
                 let res = await fetch(GITHUB_RAW_URL + '?t=' + new Date().getTime());
                 let dataBuffer = await res.arrayBuffer();
                 let wb = XLSX.read(new Uint8Array(dataBuffer), { type: 'array' });
-                
                 let sheet1Data = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: "" }).map(r => mapData(r, "REG"));
                 let sheet2Data = wb.SheetNames.length > 1 ? XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[1]], { defval: "" }).map(r => mapData(r, "NON TIEUP")) : [];
                 
                 db_records = [...sheet1Data, ...sheet2Data].filter(x => x && x.model !== "");
-                
                 document.getElementById('loadingStatus').style.display = 'none';
                 document.getElementById('searchInput').disabled = false;
             } catch(err) {
@@ -422,7 +399,7 @@
 
             // Auto set Invoice from MRP
             document.getElementById('custInvoice').value = mrp > 0 ? mrp : "";
-            onInvoiceChange(); // Update GTL and RFC instantly
+            onInvoiceChange(); 
 
             let pInputs = {
                 type: document.getElementById('custType').value || '',
@@ -480,7 +457,7 @@
 
         function switchActiveProduct(index) {
             if(activeProductIndex === index) {
-                activeProductIndex = -1; // Toggle off if clicked again
+                activeProductIndex = -1; 
             } else {
                 activeProductIndex = index;
                 syncUIWithActiveProduct();
@@ -627,7 +604,6 @@
                         currentTenure = Math.floor(loan / s.fixedEmi) || 1;
                     }
                     if (inp.inv > 0 && loan > inp.inv) loan = Math.floor(inp.inv / s.fixedEmi) * s.fixedEmi;
-                    
                     if (isOverridden) { loan = overrideVal; currentTenure = Math.floor(loan / s.fixedEmi) || 1; }
                     
                     inst = currentTenure - s.advEmi; if (inst < 1) inst = 1;
@@ -654,10 +630,9 @@
 
                 let ltv = currentTenure > 0 ? ((currentTenure - s.advEmi) / currentTenure) * 100 : 0;
                 let daily = emi / 30;
-                let boundCheck = true;
-                if (p.isNonTieup && loan > 0) { boundCheck = (loan >= s.minLoan && loan <= s.maxLoan); }
+                let boundCheck = p.isNonTieup ? (loan >= s.minLoan && loan <= s.maxLoan) : true;
 
-                if (isOverridden || (ltv <= inp.ltv && boundCheck)) {
+                if (isOverridden || (ltv <= inp.ltv && loan > 0 && boundCheck)) {
                     processedSchemes.push({ ...s, loan, dp, emi, inst, daily, currentTenure, ltv, sKey });
                 }
             });
@@ -679,7 +654,7 @@
                     <div class="product-header ${isActive ? 'active' : ''}" onclick="switchActiveProduct(${index})">
                         <div style="display:flex; align-items:center; gap:8px;">
                             <span>${isActive ? '▼' : '▶'}</span>
-                            <span>📱 ${p.name}${invText}</span>
+                            <span>📱 ${p.name.replace('NON TIEUP - ','')}${invText}</span>
                         </div>
                         <button class="remove-btn" onclick="removeProduct(${index}, event)">✖</button>
                     </div>
@@ -688,8 +663,8 @@
                             <thead>
                                 <tr>
                                     <th style="width:16%;">T/A</th>
-                                    <th style="width:28%;">LOAN (₹)</th>
-                                    <th style="width:22%;">DP</th>
+                                    <th style="width:30%;">LOAN (₹)</th>
+                                    <th style="width:20%;">DP</th>
                                     <th style="width:22%;">EMI</th>
                                     <th style="width:12%;">ACT</th>
                                 </tr>
@@ -720,7 +695,15 @@
             });
         }
 
-        function openNonTieupModal() { document.getElementById('nonTieupModal').style.display='flex'; }
+        function openNonTieupModal() {
+            let ntRecords = db_records.filter(r => r.model === 'NON TIEUP');
+            let categories = [...new Set(ntRecords.map(r => r.category))].filter(Boolean);
+            if (categories.length === 0) categories = ["PHONE(WEB-MOBILE)", "LED TV", "REFRIGERATOR", "WASHING MACHINE", "AC", "OTHER"];
+            
+            document.getElementById('ntCategory').innerHTML = categories.map(c => `<option value="${c}">${c}</option>`).join('');
+            document.getElementById('nonTieupModal').style.display='flex'; 
+        }
+        
         function openManualModal() { document.getElementById('manualModal').style.display='flex'; }
         
         function addNonTieupProduct() {
@@ -730,6 +713,7 @@
         }
 
         function addManualProduct() {
+            let prodName = document.getElementById('manProdName').value.trim().toUpperCase() || 'MANUAL SCHEME';
             let ten = parseInt(document.getElementById('manTen').value) || 0;
             let adv = parseInt(document.getElementById('manAdv').value) || 0;
             let dbd = parseFloat(document.getElementById('manDbd').value) || 0;
@@ -737,16 +721,17 @@
             let roi = parseFloat(document.getElementById('manRoi').value) || 0;
             let fix = parseInt(document.getElementById('manFix').value) || 0;
 
-            if(ten === 0) { alert("Please enter valid tenure"); return; }
+            if(ten === 0 && fix === 0) { alert("Please enter valid tenure or Fixed EMI"); return; }
             let manualSchemes = [{ tenure: ten, advEmi: adv, dbd: dbd, pf: pf, roi: roi, fixedEmi: fix, minLoan: 0, maxLoan: 9999999 }];
+            
             document.getElementById('manualModal').style.display='none';
-            ['manTen','manAdv','manDbd','manPf','manRoi','manFix'].forEach(id => document.getElementById(id).value = '');
-            selectModel('MANUAL SCHEME', false, 'OTHER', manualSchemes);
+            ['manProdName','manTen','manAdv','manDbd','manPf','manRoi','manFix'].forEach(id => document.getElementById(id).value = '');
+            selectModel(prodName, false, 'OTHER', manualSchemes);
         }
 
         function copyText(pIndex, sIndex, btnElement) {
             let p = current_products[pIndex]; let s = p.calculatedData[sIndex];
-            let text = `📱 *${p.name}*\n\n👤 *ELIGIBILITY:*\n*Type:* ${p.inputs.type} | *Limit:* ₹${p.inputs.limit.toLocaleString()}\n*LTV:* ${p.inputs.ltv}% ${p.inputs.cap > 0 ? '| *Cap:* ₹'+p.inputs.cap : ''}\n`;
+            let text = `📱 *${p.name.replace('NON TIEUP - ','')}*\n\n👤 *ELIGIBILITY:*\n*Type:* ${p.inputs.type} | *Limit:* ₹${p.inputs.limit.toLocaleString()}\n*LTV:* ${p.inputs.ltv}% ${p.inputs.cap > 0 ? '| *Cap:* ₹'+p.inputs.cap : ''}\n`;
             if(p.inputs.inv > 0) text += `*Invoice:* ₹${p.inputs.inv.toLocaleString()}\n`;
             text += `------------------------\n✅ *Scheme:* ${s.currentTenure}/${s.advEmi}\n💳 *Loan:* ₹${Math.floor(s.loan).toLocaleString()}\n💰 *DP:* ₹${Math.round(s.dp).toLocaleString()}\n🗓️ *EMI:* ₹${Math.round(s.emi).toLocaleString()} x ${s.inst} Months\n`;
             text += `⚙️ *Rules:* DBD: ${s.dbd}% (₹${Math.round(s.loan * (s.dbd * 1.18 / 100))}) | PF: ₹${s.pf} | ROI: ${s.roi}%\n✨ *Daily Save:* ₹${Math.round(s.daily).toLocaleString()}`;
@@ -778,7 +763,7 @@
                     <td style="padding: 15px; font-size: 24px; font-weight: 900; color: #27ae60; border-bottom: 1px solid #e2e8f0;">₹${Math.round(s.dp).toLocaleString()}</td>
                     <td style="padding: 15px; font-size: 24px; font-weight: 900; color: #0984e3; border-bottom: 1px solid #e2e8f0;">₹${Math.round(s.emi).toLocaleString()}</td>
                     <td style="padding: 15px; font-size: 24px; font-weight: 900; color: #333333; border-bottom: 1px solid #e2e8f0;">${s.inst}</td>
-                    <td style="padding: 15px; font-size: 24px; font-weight: 900; color: #27ae60; border-bottom: 1px solid #e2e8f0;">₹${Math.round(s.daily).toLocaleString()}</td>
+                    <td style="padding: 15px; font-size: 24px; font-weight: 900; color: #e67e22; border-bottom: 1px solid #e2e8f0;">₹${Math.round(s.daily).toLocaleString()}</td>
                 </tr>`;
             }).join('');
 
