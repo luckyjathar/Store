@@ -18,7 +18,7 @@
         .toggle-icon { font-size: 11px; color: #0984e3; font-weight: bold; }
         .acc-content { padding: 6px 8px; display: none; }
         
-        /* Compact Inputs */
+        /* Compact Inputs without Spinners */
         input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         input[type=number] { -moz-appearance: textfield; }
         input, select { padding: 2px 6px; font-size: 12px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; outline: none; width: 100%; height: 30px; font-weight: 700; color: #333; }
@@ -65,7 +65,7 @@
         /* Modals */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 2000; align-items: center; justify-content: center; }
         .modal-content { background: transparent; padding: 0; width: 90%; max-width: 400px; text-align: center; }
-        #previewImg { width: 100%; border-radius: 6px; border: 2px solid #fff; max-height: 80vh; object-fit: contain; }
+        #previewImg { width: 100%; border-radius: 6px; border: 2px solid #fff; max-height: 80vh; object-fit: contain; background: #fff; }
     </style>
 </head>
 <body>
@@ -109,11 +109,12 @@
                 <div id="searchResults"></div>
             </div>
             
+            <!-- Compact Invoice Section (Removed Global Loan) -->
             <div id="selectedProductArea" style="display: none; margin-top: 8px; border-top: 1px dashed #ccc; padding-top: 6px;">
-                <div style="text-align:center; font-weight:900; color:#034887; font-size:12px; margin-bottom:4px;" id="selectedProduct"></div>
-                <div class="grid-2">
-                    <div><label style="color:#27ae60;">Invoice (₹)</label><input type="number" id="custInvoice" oninput="onInvoiceChange()" style="border-color:#27ae60; background:#f0fdf4;"></div>
-                    <div><label>Global Loan (₹)</label><input type="number" id="custLoan" placeholder="Optional" oninput="handleInputUpdate()"></div>
+                <div style="text-align:center; font-weight:900; color:#034887; font-size:12px; margin-bottom:6px;" id="selectedProduct"></div>
+                <div>
+                    <label style="color:#27ae60;">Invoice Amount (₹) *</label>
+                    <input type="number" id="custInvoice" oninput="onInvoiceChange()" style="border-color:#27ae60; background:#f0fdf4; text-align: center; font-size: 14px;">
                 </div>
             </div>
 
@@ -134,15 +135,20 @@
             <div class="grid-3">
                 <div><label>Target DP</label><input type="number" id="advTarget" placeholder="0" oninput="handleInputUpdate()"></div>
                 <div>
-                    <label>GTL</label>
+                    <label>GTL (₹)</label>
                     <select id="advGtl" onchange="handleInputUpdate()">
                         <option value="0">0</option><option value="699">699</option><option value="1199">1199</option>
                         <option value="1499">1499</option><option value="1799">1799</option><option value="2398">2398</option>
                     </select>
                 </div>
-                <div><label>RFC</label><select id="advRfc" onchange="handleInputUpdate()"><option value="0">0</option></select></div>
-                <div><label>EXW</label><input type="number" id="advExw" placeholder="0" oninput="handleInputUpdate()"></div>
-                <div><label>Margin</label><input type="number" id="advMargin" placeholder="0" oninput="handleInputUpdate()"></div>
+                <div>
+                    <label>RFC (₹)</label>
+                    <select id="advRfc" onchange="handleInputUpdate()">
+                        <option value="0">0</option>
+                    </select>
+                </div>
+                <div><label>EXW (₹)</label><input type="number" id="advExw" placeholder="0" oninput="handleInputUpdate()"></div>
+                <div><label>Margin (₹)</label><input type="number" id="advMargin" placeholder="0" oninput="handleInputUpdate()"></div>
                 <div><label>Dealer</label><input type="number" id="advDealer" placeholder="0" oninput="handleInputUpdate()"></div>
             </div>
         </div>
@@ -204,7 +210,6 @@
         let activeCategory = "";
         const GITHUB_RAW_URL = "https://raw.githubusercontent.com/luckyjathar/testcalculator/main/master_data.xlsx";
 
-        // Accordion Toggle
         function toggleAcc(contentId, iconId, headerEl) {
             const sections = ['searchContent', 'eligibilityContent', 'advancedContent'];
             const icons = ['searchIcon', 'eligibilityIcon', 'advancedIcon'];
@@ -222,7 +227,6 @@
             }
         }
 
-        // Standard Rules
         function isMobileCat(cat) {
             let c = String(cat).toUpperCase().replace(/\s+/g, '');
             return c.includes('PHONE') || c.includes('TABLET') || c.includes('WATCH') || c.includes('MOBILE');
@@ -257,6 +261,31 @@
             if (c.includes('WASHING')) return "WASHING MACHINE";
             if (c.includes('REF') || c.includes('FRIDGE')) return "REFRIGERATOR";
             return String(cat).toUpperCase().trim();
+        }
+
+        function findKey(row, targets) {
+            let key = Object.keys(row).find(k => targets.includes(k.toUpperCase().replace(/\s/g, '')));
+            return key ? row[key] : null;
+        }
+
+        function mapData(row, type) {
+            let model = findKey(row, ['MODEL', 'PRODUCT', 'MODELNAME']);
+            if (!model && type !== 'NON TIEUP') return null;
+            let rawCat = findKey(row, ['CATEGORY', 'CAT', 'ASSET', 'ASSETCATEGORY']);
+            let cat = standardizeCategory(rawCat);
+            return {
+                model: type === 'NON TIEUP' ? 'NON TIEUP' : String(model).trim().toUpperCase(),
+                category: cat,
+                mrp: parseFloat(row[keys.find(k=>k.toUpperCase().includes('MRP'))]) || 0,
+                tenure: parseInt(row[keys.find(k=>k.toUpperCase().includes('TENURE')||k.toUpperCase()=='TA')]) || 0,
+                advEmi: parseInt(row[keys.find(k=>k.toUpperCase().includes('ADV'))]) || 0,
+                dbd: parseFloat(row[keys.find(k=>k.toUpperCase().includes('DBD'))]) || 0,
+                roi: parseFloat(row[keys.find(k=>k.toUpperCase().includes('ROI'))]) || 0,
+                pf: parseInt(row[keys.find(k=>k.toUpperCase().includes('PF')||k.toUpperCase().includes('PROCESSING'))]) || 0,
+                fixedEmi: parseFloat(row[keys.find(k=>k.toUpperCase().includes('FIXED'))]) || 0,
+                minLoan: parseFloat(row[keys.find(k=>k.toUpperCase().includes('MIN'))]) || 0,
+                maxLoan: parseFloat(row[keys.find(k=>k.toUpperCase().includes('MAX'))]) || 9999999
+            };
         }
 
         async function loadExcelData() {
@@ -324,15 +353,12 @@
             document.getElementById('selectedProductArea').style.display = 'block';
 
             document.getElementById('custInvoice').value = mrp > 0 ? mrp : "";
-            document.getElementById('custLoan').value = "";
             onInvoiceChange(); 
 
             let pInputs = {
                 type: document.getElementById('custType').value || '',
                 limit: parseFloat(document.getElementById('custLimit').value) || 0,
-                mrp: mrp || 0,
                 inv: parseFloat(document.getElementById('custInvoice').value) || 0,
-                loan: parseFloat(document.getElementById('custLoan').value) || 0,
                 ltv: parseFloat(document.getElementById('custLtv').value) || 100,
                 cap: parseFloat(document.getElementById('custCap').value) || 0,
                 target: parseFloat(document.getElementById('advTarget').value) || 0,
@@ -359,7 +385,7 @@
                 activeProductIndex = -1;
                 document.getElementById('finalCalcSection').style.display = 'none';
                 document.getElementById('selectedProductArea').style.display = 'none';
-                ['custInvoice','custLoan','advTarget','advExw','advMargin','advDealer'].forEach(id => document.getElementById(id).value = '');
+                ['custInvoice','advTarget','advExw','advMargin','advDealer'].forEach(id => document.getElementById(id).value = '');
                 document.getElementById('advGtl').value = '0';
                 document.getElementById('advRfc').innerHTML = '<option value="0">0</option>';
             } else {
@@ -378,32 +404,38 @@
         function syncUIWithActiveProduct() {
             if(activeProductIndex === -1) { document.getElementById('selectedProductArea').style.display = 'none'; return; }
             let p = current_products[activeProductIndex];
+            
             document.getElementById('selectedProductArea').style.display = 'block';
             document.getElementById('selectedProduct').innerText = "📱 " + p.name;
-            
-            let ids = ['custType','custLimit','custInvoice','custLoan','custLtv','custCap','advTarget','advGtl','advExw','advMargin','advDealer'];
-            let keys = ['type','limit','inv','loan','ltv','cap','target','gtl','exw','margin','dealer'];
+
+            let ids = ['custType','custLimit','custInvoice','custLtv','custCap','advTarget','advGtl','advExw','advMargin','advDealer'];
+            let keys = ['type','limit','inv','ltv','cap','target','gtl','exw','margin','dealer'];
             ids.forEach((id, i) => document.getElementById(id).value = p.inputs[keys[i]] || (id==='custLtv'?100:''));
             
             let inv = parseFloat(p.inputs.inv) || 0;
-            updateRfcDropdown(inv, p.category);
-            document.getElementById('advRfc').value = p.inputs.rfc || "0";
-        }
-
-        function updateRfcDropdown(inv, cat) {
             let rfcSel = document.getElementById('advRfc');
-            rfcSel.innerHTML = `<option value="0">0</option>`;
-            if (isMobileCat(cat)) {
+            if (isMobileCat(p.category)) {
                 let slab = getRfcSlab(inv);
-                if(slab > 0) rfcSel.innerHTML += `<option value="${slab}">${slab}</option>`;
-                document.getElementById('advExw').disabled = true;
+                rfcSel.innerHTML = `<option value="0">0</option>` + (slab > 0 ? `<option value="${slab}">${slab}</option>` : '');
+                rfcSel.value = p.inputs.rfc || "0";
                 rfcSel.disabled = false;
-                return slab;
+                document.getElementById('advExw').disabled = true;
             } else {
+                rfcSel.innerHTML = `<option value="0">0</option>`;
                 rfcSel.disabled = true;
                 document.getElementById('advExw').disabled = false;
-                return 0;
             }
+        }
+
+        function handleCardTypeChange() {
+            let type = document.getElementById('custType').value;
+            if (type === "") {
+                ['custLimit','custInvoice','custCap','advTarget','advExw','advMargin','advDealer'].forEach(id => document.getElementById(id).value = '');
+                document.getElementById('custLtv').value = '100';
+                document.getElementById('advGtl').value = '0';
+                document.getElementById('advRfc').innerHTML = '<option value="0">0</option>';
+            }
+            handleInputUpdate();
         }
 
         function onInvoiceChange() {
@@ -413,20 +445,19 @@
 
             if (activeProductIndex !== -1) {
                 let p = current_products[activeProductIndex];
-                let isMobile = isMobileCat(p.category);
-                if (isMobile) {
+                if (isMobileCat(p.category)) {
                     let rfc = getRfcSlab(inv);
+                    document.getElementById('advRfc').innerHTML = `<option value="0">0</option>` + (rfc > 0 ? `<option value="${rfc}">${rfc}</option>` : '');
                     document.getElementById('advRfc').value = rfc > 0 ? rfc : "0";
                     document.getElementById('advRfc').disabled = false;
                     document.getElementById('advExw').value = "";
                     document.getElementById('advExw').disabled = true;
                 } else { 
+                    document.getElementById('advRfc').innerHTML = `<option value="0">0</option>`;
                     document.getElementById('advRfc').value = "0"; 
                     document.getElementById('advRfc').disabled = true;
                     document.getElementById('advExw').disabled = false;
                 }
-            } else {
-                document.getElementById('advRfc').value = "0";
             }
             handleInputUpdate();
         }
@@ -434,8 +465,8 @@
         function handleInputUpdate() {
             if (activeProductIndex === -1) return;
             let p = current_products[activeProductIndex];
-            let keys = ['type','limit','inv','loan','ltv','cap','target','gtl','rfc','exw','margin','dealer'];
-            let ids = ['custType','custLimit','custInvoice','custLoan','custLtv','custCap','advTarget','advGtl','advRfc','advExw','advMargin','advDealer'];
+            let keys = ['type','limit','inv','ltv','cap','target','gtl','rfc','exw','margin','dealer'];
+            let ids = ['custType','custLimit','custInvoice','custLtv','custCap','advTarget','advGtl','advRfc','advExw','advMargin','advDealer'];
             keys.forEach((k, i) => { p.inputs[k] = (k==='type') ? document.getElementById(ids[i]).value : parseFloat(document.getElementById(ids[i]).value)||0; });
             if(!document.getElementById('custLtv').value) p.inputs.ltv = 100;
             recalculateProduct(activeProductIndex);
@@ -444,18 +475,15 @@
         function overrideSchemeLoan(pIndex, sKey, newLoanVal) {
             let val = parseFloat(newLoanVal) || 0;
             let p = current_products[pIndex];
+            let invoiceVal = parseFloat(p.inputs.inv) || 0;
+            let minAllowedLoanByInvoice = invoiceVal > 0 ? invoiceVal * 0.50 : 0;
             
-            let inputMrp = parseFloat(p.inputs.mrp) || 0; 
-            let inputInv = parseFloat(p.inputs.inv) || 0; 
-            let effectivePrice = inputInv > 0 ? inputInv : (inputMrp > 0 ? inputMrp : 0); 
-            let minAllowedLoanByInvoice = effectivePrice > 0 ? effectivePrice * 0.50 : 0;
-            
-            if (effectivePrice > 0 && val < minAllowedLoanByInvoice && val > 0) {
+            if (invoiceVal > 0 && val > 0 && val < minAllowedLoanByInvoice) {
                 val = minAllowedLoanByInvoice;
                 alert("⚠️ Loan Amount can't be less than 50% of Invoice value!");
             }
-            if (effectivePrice > 0 && val > effectivePrice) {
-                val = effectivePrice;
+            if (invoiceVal > 0 && val > invoiceVal) {
+                val = invoiceVal;
             }
 
             p.inputs.overrides[sKey] = val > 0 ? val : undefined;
@@ -470,140 +498,100 @@
             let fee = (inp.type === 'EMI CARD' || inp.type === 'INSTA EMI CARD') ? 270 : (inp.type === 'W/O CARD' ? 320 : (inp.type === 'NEW' ? 850 : 0));
             let totalFees = fee + (parseFloat(inp.margin)||0) + (parseFloat(inp.dealer)||0); 
             
-            let currentLimit = inp.limit > 0 ? inp.limit : 9999999; 
-            let inputMrp = parseFloat(inp.mrp) || 0; 
-            let inputInv = parseFloat(inp.inv) || 0; 
-            let effectivePrice = inputInv > 0 ? inputInv : (inputMrp > 0 ? inputMrp : 0); 
-            let loanCapPrice = (inputMrp > 0 && inputInv > 0) ? Math.min(inputMrp, inputInv) : effectivePrice;
-
-            let minAllowedLoanByInvoice = effectivePrice > 0 ? effectivePrice * 0.50 : 0;
+            let actualLimit = inp.limit > 0 ? inp.limit : 9999999; 
+            let invoiceVal = parseFloat(inp.inv) || 0;
+            let minAllowedLoanByInvoice = invoiceVal > 0 ? invoiceVal * 0.50 : 0;
             let insTotal = (parseFloat(inp.gtl)||0) + (parseFloat(inp.rfc)||0) + (parseFloat(inp.exw)||0);
 
             let processed = prod.rawSchemes.map((s, dIdx) => {
                 let sKey = `${s.tenure}_${s.advEmi}_${s.fixedEmi}`;
-                let isFixed = s.fixedEmi > 0; 
-                let loan = 0, nbfcMaxL = 0, dpExact = 0, dpRounded = 0, emi = 0, inst = 0, currentTenure = s.tenure; 
-                nbfcMaxL = (currentLimit * s.tenure) / (s.tenure - s.advEmi || 1); 
-                
+                let isOverridden = inp.overrides && inp.overrides[sKey] !== undefined;
+                let overrideVal = isOverridden ? inp.overrides[sKey] : 0;
+
+                let loan = 0, dp = 0, emi = 0, currentTenure = s.tenure; 
                 let dbdRate = (s.dbd * 1.18 / 100); 
                 let roiRate = s.roi / 1200; 
                 let roiRateDP = roiRate * s.advEmi; 
                 let dynamicPf = s.pf;
                 
                 if (prod.isNonTieup) { 
-                    let checkAmount = effectivePrice > 0 ? effectivePrice : (currentLimit < 9999999 ? currentLimit : 0); 
+                    let checkAmount = invoiceVal > 0 ? invoiceVal : (actualLimit < 9999999 ? actualLimit : 0); 
                     let slabPf = getNonTieupPfValue(prod.category, checkAmount); 
                     if (slabPf !== null) { dynamicPf = slabPf; } 
                 }
+
+                // Bajaj Default Logic: Gross Limit Formula
+                let nbfcMaxL = (actualLimit * s.tenure) / (s.tenure - s.advEmi || 1);
                 
-                if (isFixed) {
-                    let maxRemainingEmis = Math.floor(currentLimit / s.fixedEmi); 
-                    let maxTotalTenure = maxRemainingEmis + s.advEmi; 
-                    nbfcMaxL = maxTotalTenure * s.fixedEmi; 
+                if (s.fixedEmi > 0) {
+                    let maxInstalments = actualLimit < 9999999 ? Math.floor(actualLimit / s.fixedEmi) : 99; 
+                    currentTenure = invoiceVal > 0 ? Math.floor(invoiceVal / s.fixedEmi) : s.tenure; 
+                    if (currentTenure > maxInstalments + s.advEmi) currentTenure = maxInstalments + s.advEmi; 
+                    if (currentTenure < 1) currentTenure = 1; 
                     
-                    if (effectivePrice > 0) { 
-                        currentTenure = Math.floor(effectivePrice / s.fixedEmi); 
-                        if (currentTenure > maxTotalTenure) currentTenure = maxTotalTenure; 
-                        if (currentTenure < 1) currentTenure = 1; 
-                        loan = currentTenure * s.fixedEmi; 
-                        if (loan > loanCapPrice) loan = loanCapPrice;
-
-                        if (parseFloat(inp.target) > 0) { 
-                            let numerator = parseFloat(inp.target) - effectivePrice - (s.fixedEmi * s.advEmi) - dynamicPf - totalFees; 
-                            let denominator = dbdRate + roiRateDP - 1; 
-                            let solvedLoan = numerator / denominator; 
-                            let solvedTenure = Math.floor(solvedLoan / s.fixedEmi); 
-                            if (solvedTenure > maxTotalTenure) solvedTenure = maxTotalTenure; 
-                            loan = Math.max(0, solvedTenure * s.fixedEmi); 
-                            if (loan > loanCapPrice) loan = loanCapPrice; 
-                            currentTenure = Math.floor(loan / s.fixedEmi) || 1; 
-                        } 
-                    } else { 
-                        currentTenure = s.tenure || 1; 
-                        if (currentTenure > maxTotalTenure) currentTenure = maxTotalTenure; 
-                        loan = currentTenure * s.fixedEmi; 
+                    loan = currentTenure * s.fixedEmi; 
+                    if (invoiceVal > 0 && loan > invoiceVal) {
+                        currentTenure = Math.floor(invoiceVal / s.fixedEmi);
+                        loan = currentTenure * s.fixedEmi;
                     }
-                } else {
-                    let checkPrice = effectivePrice > 0 ? loanCapPrice : 50000; 
-                    let absoluteMax = Math.min(checkPrice, nbfcMaxL); 
-                    if (prod.isNonTieup) { 
-                        if (s.maxLoan < 9999999) absoluteMax = Math.min(absoluteMax, s.maxLoan); 
-                    } 
-                    loan = absoluteMax;
 
-                    if(parseFloat(inp.target) > 0 && effectivePrice > 0) { 
+                    if (parseFloat(inp.target) > 0) { 
+                        let numerator = parseFloat(inp.target) - invoiceVal - (s.fixedEmi * s.advEmi) - dynamicPf - totalFees; 
+                        let denominator = dbdRate + roiRateDP - 1; 
+                        let solvedLoan = numerator / denominator; 
+                        let solvedTenure = Math.floor(solvedLoan / s.fixedEmi); 
+                        if (solvedTenure > maxInstalments + s.advEmi) solvedTenure = maxInstalments + s.advEmi; 
+                        loan = Math.max(0, solvedTenure * s.fixedEmi); 
+                        if (invoiceVal > 0 && loan > invoiceVal) loan = Math.floor(invoiceVal / s.fixedEmi) * s.fixedEmi; 
+                        currentTenure = Math.floor(loan / s.fixedEmi) || 1; 
+                    } 
+                    if (isOverridden) { loan = overrideVal; currentTenure = Math.floor(loan / s.fixedEmi) || 1; }
+                    
+                    let inst = currentTenure - s.advEmi; if (inst < 1) inst = 1; 
+                    emi = s.fixedEmi + (insTotal / inst) + (loan * roiRate);
+                    dp = Math.ceil(((invoiceVal||loan) - loan + (s.fixedEmi * s.advEmi) + (loan * dbdRate) + dynamicPf + totalFees + (loan * roiRateDP)) / 10) * 10;
+                } else {
+                    loan = Math.min(nbfcMaxL, invoiceVal > 0 ? invoiceVal : 9999999);
+                    
+                    if (parseFloat(inp.target) > 0 && invoiceVal > 0) { 
                         let advRate = s.advEmi / s.tenure; 
-                        let numerator = parseFloat(inp.target) - effectivePrice - dynamicPf - totalFees; 
+                        let numerator = parseFloat(inp.target) - invoiceVal - dynamicPf - totalFees; 
                         let denominator = advRate + dbdRate + roiRateDP - 1; 
                         let solvedLoan = numerator / denominator; 
                         loan = Math.min(loan, Math.max(0, Math.floor(solvedLoan))); 
                     } 
-                }
+                    if (isOverridden) { loan = overrideVal; }
 
-                let isManuallyOverridden = (inp.overrides && inp.overrides[sKey] !== undefined);
-                if (isManuallyOverridden) {
-                    loan = inp.overrides[sKey];
-                    if (isFixed) currentTenure = Math.floor(loan / s.fixedEmi) || 1;
-                } else if (inp.loan > 0) {
-                    loan = inp.loan;
-                    if (isFixed) currentTenure = Math.floor(loan / s.fixedEmi) || 1;
-                }
-
-                if (!isFixed) {
-                    if (effectivePrice > 0 && loan > effectivePrice) {
-                        loan = effectivePrice;
-                    }
-                }
-
-                if (isFixed) {
-                    inst = currentTenure - s.advEmi; 
-                    if(inst < 1) inst = 1; 
-                    let roiInEmi = loan * roiRate; 
-                    emi = s.fixedEmi + (insTotal / inst) + roiInEmi;
-                    let roiInDp = loan * roiRateDP; 
-                    dpExact = effectivePrice - loan + (s.fixedEmi * s.advEmi) + (loan * dbdRate) + dynamicPf + totalFees + roiInDp;
-                } else {
-                    inst = s.tenure - s.advEmi; 
-                    if(inst < 1) inst = 1; 
-                    let baseEmi = loan / s.tenure;
-                    if (baseEmi > 0 && baseEmi < 900) baseEmi = 900; 
-
-                    let roiInEmi = loan * roiRate; 
-                    emi = baseEmi + (insTotal / inst) + roiInEmi;
+                    let inst = s.tenure - s.advEmi; if (inst < 1) inst = 1; 
+                    let baseEmi = Math.max(900, loan / s.tenure);
+                    emi = baseEmi + (insTotal / inst) + (loan * roiRate);
                     
-                    if(!isManuallyOverridden && !(inp.loan > 0) && emi > parseFloat(inp.cap) && parseFloat(inp.cap) > 0) { 
-                        loan = (parseFloat(inp.cap) - (insTotal/inst)) / ( (1/s.tenure) + roiRate ); 
-                        if (effectivePrice > 0 && loan > effectivePrice) loan = effectivePrice; 
-                        baseEmi = loan / s.tenure;
-                        if (baseEmi > 0 && baseEmi < 900) baseEmi = 900; 
-                        roiInEmi = loan * roiRate; 
-                        emi = baseEmi + (insTotal / inst) + roiInEmi; 
+                    if (inp.cap > 0 && emi > inp.cap && !isOverridden) { 
+                        loan = Math.max(0, (inp.cap - (insTotal / inst)) / ((1 / s.tenure) + roiRate)); 
+                        if (invoiceVal > 0 && loan > invoiceVal) loan = invoiceVal; 
+                        baseEmi = Math.max(900, loan / s.tenure);
+                        emi = baseEmi + (insTotal / inst) + (loan * roiRate); 
                     } 
-                    let roiInDp = loan * roiRateDP; 
-                    dpExact = effectivePrice - loan + (baseEmi * s.advEmi) + (loan * dbdRate) + dynamicPf + totalFees + roiInDp;
+                    dp = Math.ceil(((invoiceVal||loan) - loan + (baseEmi * s.advEmi) + (loan * dbdRate) + dynamicPf + totalFees + (loan * roiRateDP)) / 10) * 10;
                 }
 
-                if(dpExact > 0) dpRounded = Math.ceil(dpExact / 10) * 10; 
-                else dpRounded = dpExact; 
-                
                 let curLTV = currentTenure > 0 ? ((currentTenure - s.advEmi) / currentTenure) * 100 : 0; 
-                let isInv50Breach = effectivePrice > 0 && (loan < minAllowedLoanByInvoice);
+                let daily = emi / 30; 
+                let boundCheck = prod.isNonTieup ? (loan >= s.minLoan && loan <= s.maxLoan) : true;
+                let isInv50Breach = invoiceVal > 0 && loan < minAllowedLoanByInvoice;
 
-                return { ...s, pf: dynamicPf, currentTenure, nbfcMaxL, loan, dp: dpRounded, emi, inst: (currentTenure - s.advEmi || 1), daily: emi/30, isFixed, curLTV, isInv50Breach, sKey };
+                return { ...s, pf: dynamicPf, currentTenure, loan, dp, emi, inst: (currentTenure - s.advEmi || 1), daily, curLTV, sKey, boundCheck, isInv50Breach };
             });
 
             let userLtv = inp.ltv > 0 ? inp.ltv : 100;
             let validSchemes = processed.filter(d => {
-                let isLtvB = (d.curLTV > userLtv);
-                let isBoundB = false;
-                if (prod.isNonTieup && effectivePrice > 0) {
-                    if (d.loan < d.minLoan || d.loan > d.maxLoan) isBoundB = true;
-                }
-                let isOverridden = (inp.overrides && inp.overrides[d.sKey] !== undefined) || inp.loan > 0;
-                return (isOverridden || (!isLtvB && !isBoundB && !d.isInv50Breach && d.loan > 0));
+                let isOverridden = inp.overrides && inp.overrides[d.sKey] !== undefined;
+                if (isOverridden) return true; // manual override skips restrictions
+                let isLtvB = d.curLTV > userLtv; // Strict LTV Hide
+                return (!isLtvB && !d.isInv50Breach && d.boundCheck && d.loan > 0);
             });
 
-            prod.calculatedData = validSchemes.sort((a, b) => b.ltv - a.ltv);
+            prod.calculatedData = validSchemes.sort((a, b) => b.curLTV - a.curLTV);
             renderFinalCalculation();
         }
 
@@ -631,7 +619,7 @@
                 </div>`;
 
                 html += `<table class="scheme-table">
-                            <thead><tr><th style="width:14%;">T/A</th><th style="width:26%;">LOAN</th><th style="width:22%;">DP</th><th style="width:25%;">EMI</th><th style="width:13%;">ACT</th></tr></thead>
+                            <thead><tr><th style="width:14%;">T/A</th><th style="width:26%;">LOAN (₹)</th><th style="width:22%;">DP</th><th style="width:25%;">EMI</th><th style="width:13%;">ACT</th></tr></thead>
                             <tbody>`;
                 
                 if (p.calculatedData.length > 0) {
@@ -691,7 +679,6 @@
             }
         }
 
-        // Clean Copy Image with Preview
         function copyImage() {
             if(activeProductIndex === -1) return;
             let p = current_products[activeProductIndex]; if(!p.calculatedData.length) return;
@@ -701,37 +688,38 @@
             div.style.cssText = "width:700px; position:absolute; left:-9999px; background:#fff; font-family:sans-serif; padding:20px;";
             
             let missingElig = (!p.inputs.type || p.inputs.type === "");
-            let alertHtml = missingElig ? `<div style="background:#ffebee; color:#c62828; text-align:center; padding:8px; font-size:14px; font-weight:bold; margin-bottom:10px; border-radius:6px; border:2px solid #ef9a9a;">⚠️ Eligibility Details Missing! Base calculation applied.</div>` : '';
+            let alertHtml = missingElig ? `<div style="background:#ffebee; color:#c62828; text-align:center; padding:12px; font-size:16px; font-weight:bold; margin-bottom:15px; border-radius:6px; border:2px solid #ef9a9a;">⚠️ Eligibility Details Missing! Base calculation applied.</div>` : '';
 
+            // Render Rows WITHOUT Loan Column
             let trs = p.calculatedData.map((s,i) => `
                 <tr style="background:${i%2===0?'#fff':'#f8fafc'};">
-                    <td style="padding:15px; font-size:24px; font-weight:900; color:#1e293b; border-bottom:1px solid #e2e8f0;">${s.currentTenure}/${s.advEmi}</td>
-                    <td style="padding:15px; font-size:24px; font-weight:900; color:#27ae60; border-bottom:1px solid #e2e8f0;">₹${Math.round(s.dp).toLocaleString()}</td>
-                    <td style="padding:15px; font-size:24px; font-weight:900; color:#0984e3; border-bottom:1px solid #e2e8f0;">₹${Math.round(s.emi).toLocaleString()}</td>
-                    <td style="padding:15px; font-size:24px; font-weight:900; color:#333; border-bottom:1px solid #e2e8f0;">${s.inst}</td>
-                    <td style="padding:15px; font-size:24px; font-weight:900; color:#27ae60; border-bottom:1px solid #e2e8f0;">₹${Math.round(s.daily).toLocaleString()}</td>
+                    <td style="padding:15px 10px; font-size:24px; font-weight:900; color:#1e293b; border-bottom:1px solid #e2e8f0;">${s.currentTenure}/${s.advEmi}</td>
+                    <td style="padding:15px 10px; font-size:24px; font-weight:900; color:#27ae60; border-bottom:1px solid #e2e8f0;">₹${Math.round(s.dp).toLocaleString()}</td>
+                    <td style="padding:15px 10px; font-size:24px; font-weight:900; color:#0984e3; border-bottom:1px solid #e2e8f0;">₹${Math.round(s.emi).toLocaleString()}</td>
+                    <td style="padding:15px 10px; font-size:24px; font-weight:900; color:#333; border-bottom:1px solid #e2e8f0;">${s.inst}</td>
+                    <td style="padding:15px 10px; font-size:24px; font-weight:900; color:#27ae60; border-bottom:1px solid #e2e8f0;">₹${Math.round(s.daily).toLocaleString()}</td>
                 </tr>`).join('');
 
             div.innerHTML = `
                 ${alertHtml}
                 <div style="border:3px solid #034887; border-radius:12px; overflow:hidden;">
-                    <div style="background:#034887; color:#fff; padding:25px; text-align:center;">
-                        <div style="font-size:32px; font-weight:900; margin-bottom:10px;">📱 ${p.name.replace('NON TIEUP - ','').toUpperCase()}</div>
+                    <div style="background:#034887; color:#fff; padding:25px 15px; text-align:center;">
+                        <div style="font-size:28px; font-weight:900; margin-bottom:15px; line-height:1.3; word-wrap:break-word;">📱 ${p.name.replace('NON TIEUP - ','').toUpperCase()}</div>
                         <div style="display:flex; justify-content:space-evenly; font-size:18px; font-weight:bold; color:#e0f2fe;">
                             <span>TYPE: <span style="color:#f1c40f;">${p.inputs.type||'N/A'}</span></span>
                             <span>LIMIT: <span style="color:#2ecc71;">₹${p.inputs.limit.toLocaleString()}</span></span>
                             <span>LTV: <span style="color:#fff;">${p.inputs.ltv}%</span></span>
                         </div>
-                        ${p.inputs.inv>0 ? `<div style="margin-top:12px; font-size:20px; font-weight:900;">INVOICE: ₹${p.inputs.inv.toLocaleString()}</div>`:''}
+                        ${p.inputs.inv>0 ? `<div style="margin-top:15px; font-size:20px; font-weight:900;">INVOICE: ₹${p.inputs.inv.toLocaleString()}</div>`:''}
                     </div>
                     <table style="width:100%; border-collapse:collapse; text-align:center;">
                         <thead style="background:#f1f5f9; color:#334155;">
                             <tr>
-                                <th style="padding:18px; font-size:18px; font-weight:900; border-bottom:2px solid #cbd5e1;">SCHEME<br><span style="font-size:14px; font-weight:normal;">(T / A)</span></th>
-                                <th style="padding:18px; font-size:18px; font-weight:900; border-bottom:2px solid #cbd5e1;">NET&nbsp;DP</th>
-                                <th style="padding:18px; font-size:18px; font-weight:900; border-bottom:2px solid #cbd5e1;">EMI</th>
-                                <th style="padding:18px; font-size:18px; font-weight:900; border-bottom:2px solid #cbd5e1;">MONTHS</th>
-                                <th style="padding:18px; font-size:18px; font-weight:900; border-bottom:2px solid #cbd5e1;">DAILY SAVE</th>
+                                <th style="padding:18px 10px; font-size:18px; font-weight:900; border-bottom:2px solid #cbd5e1; width:20%;">SCHEME<br><span style="font-size:14px; font-weight:normal;">(T / A)</span></th>
+                                <th style="padding:18px 10px; font-size:18px; font-weight:900; border-bottom:2px solid #cbd5e1; width:22%;">NET&nbsp;DP</th>
+                                <th style="padding:18px 10px; font-size:18px; font-weight:900; border-bottom:2px solid #cbd5e1; width:24%;">EMI</th>
+                                <th style="padding:18px 10px; font-size:18px; font-weight:900; border-bottom:2px solid #cbd5e1; width:16%;">MONTHS</th>
+                                <th style="padding:18px 10px; font-size:18px; font-weight:900; border-bottom:2px solid #cbd5e1; width:18%;">DAILY SAVE</th>
                             </tr>
                         </thead>
                         <tbody>${trs}</tbody>
@@ -746,7 +734,6 @@
                             btn.innerHTML = "✅ COPIED"; 
                             setTimeout(() => { btn.innerHTML = oldBtn; }, 2000); 
                             document.body.removeChild(div);
-                            // Show Preview Modal
                             document.getElementById('previewImg').src = URL.createObjectURL(blob);
                             document.getElementById('previewModal').style.display = 'flex';
                         }).catch(e => { btn.innerHTML = "⚠️ ERROR"; document.body.removeChild(div); });
