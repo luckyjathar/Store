@@ -46,10 +46,6 @@
         .input-group { display: flex; flex-direction: column; gap: 2px; }
         .input-group label { font-size: 10px; font-weight: bold; color: #666; text-transform: uppercase; }
 
-        /* Rule Info Box */
-        .rule-box { background: #fff8e1; border-left: 3px solid #f39c12; padding: 8px; border-radius: 4px; font-size: 10px; color: #555; margin-bottom: 12px; line-height: 1.5; }
-        .rule-box strong { color: #d35400; }
-
         /* Search Results */
         #searchResults { 
             position: absolute; top: 100%; left: 0; right: 0; background: white; max-height: 200px; overflow-y: auto; 
@@ -91,7 +87,7 @@
         .row-sub td { padding: 4px 6px 8px 6px; font-size: 9px; color: #666; text-align: left; border-bottom: 2px solid #ddd; background: #f8fafc; }
 
         .loan-input {
-            width: 100%; height: 26px; padding: 2px; font-size: 11px; text-align: center; 
+            width: 95%; height: 26px; padding: 2px; font-size: 11px; text-align: center; 
             font-weight: bold; border: 1px solid #0984e3; color: #d35400; border-radius: 3px; background: #fff3e0;
         }
         .loan-input:focus { background: #fff; }
@@ -152,7 +148,7 @@
                 <div class="input-group">
                     <label>Card Type *</label>
                     <select id="custType" onchange="handleCardTypeChange()">
-                        <option value="" selected disabled>-- Select Card --</option>
+                        <option value="" selected>-- Select Card --</option>
                         <option value="NEW">NEW</option>
                         <option value="EMI CARD">EMI CARD</option>
                         <option value="INSTA EMI CARD">INSTA EMI CARD</option>
@@ -177,20 +173,33 @@
         <div id="advancedContent" class="card-content">
             <div class="form-grid">
                 <div class="input-group"><label>Target DP (₹)</label><input type="number" id="advTarget" placeholder="0" oninput="handleInputUpdate()"></div>
+                
                 <div class="input-group">
                     <label>GTL (₹)</label>
                     <select id="advGtl" onchange="handleInputUpdate()">
-                        <option value="0">0</option><option value="699">699</option><option value="1199">1199</option>
-                        <option value="1499">1499</option><option value="1799">1799</option><option value="2398">2398</option>
+                        <option value="0">0</option>
+                        <option value="699">699</option>
+                        <option value="1199">1199</option>
+                        <option value="1499">1499</option>
+                        <option value="1799">1799</option>
+                        <option value="2398">2398</option>
                     </select>
                 </div>
                 <div class="input-group">
                     <label>RFC (₹)</label>
                     <select id="advRfc" onchange="handleInputUpdate()">
-                        <option value="0">0</option><option value="1109">1109</option><option value="1631">1631</option>
-                        <option value="2147">2147</option><option value="2695">2695</option><option value="3215">3215</option>
-                        <option value="3648">3648</option><option value="4219">4219</option><option value="5720">5720</option>
-                        <option value="8686">8686</option><option value="11438">11438</option><option value="16677">16677</option>
+                        <option value="0">0</option>
+                        <option value="1109">1109</option>
+                        <option value="1631">1631</option>
+                        <option value="2147">2147</option>
+                        <option value="2695">2695</option>
+                        <option value="3215">3215</option>
+                        <option value="3648">3648</option>
+                        <option value="4219">4219</option>
+                        <option value="5720">5720</option>
+                        <option value="8686">8686</option>
+                        <option value="11438">11438</option>
+                        <option value="16677">16677</option>
                     </select>
                 </div>
                 <div class="input-group"><label>EXW (₹)</label><input type="number" id="advExw" placeholder="0" oninput="handleInputUpdate()"></div>
@@ -200,7 +209,7 @@
         </div>
     </div>
 
-    <!-- 📊 Final Calculation (With Compact Summary) -->
+    <!-- 📊 Final Calculation -->
     <div class="card" id="finalCalcSection" style="display: none;">
         <!-- Header -->
         <div style="padding: 12px; background: #e3f2fd; border-radius: 8px 8px 0 0; border-bottom: 2px solid #0984e3;">
@@ -211,15 +220,15 @@
         <div id="compactSummary" style="padding: 10px 12px; background: #fff; font-size: 11px; border-bottom: 1px solid #ddd;">
             <div style="color: #034887; font-weight: 900; font-size: 13px; text-align: center; margin-bottom: 8px;" id="csProduct">📱 -</div>
             <div style="display: flex; gap: 10px;">
-                <div style="flex: 1; background: #f8fafc; padding: 6px; border-radius: 4px; border: 1px solid #eee;">
-                    <div style="color: #555; font-weight: bold; font-size: 9px; margin-bottom: 4px;">👤 ELIGIBILITY</div>
+                <div style="flex: 1; background: #f0fdf4; padding: 6px; border-radius: 4px; border: 1px solid #c6f6d5;">
+                    <div style="color: #27ae60; font-weight: bold; font-size: 10px; margin-bottom: 4px; border-bottom: 1px solid #c6f6d5; padding-bottom: 2px;">👤 ELIGIBILITY</div>
                     <div style="display:flex; justify-content:space-between; margin-bottom:2px;"><span>Type:</span> <b id="csType" style="color:#d35400;">-</b></div>
                     <div style="display:flex; justify-content:space-between; margin-bottom:2px;"><span>Limit:</span> <b style="color:#27ae60;">₹<span id="csLimit">0</span></b></div>
                     <div style="display:flex; justify-content:space-between;"><span>LTV:</span> <b style="color:#0984e3;"><span id="csLtv">100</span>%</b></div>
                 </div>
-                <div style="flex: 1; background: #f8fafc; padding: 6px; border-radius: 4px; border: 1px solid #eee;">
-                    <div style="color: #555; font-weight: bold; font-size: 9px; margin-bottom: 4px;">⚙️ CHARGES</div>
-                    <div style="display:flex; justify-content:space-between; margin-bottom:2px;"><span>Inv:</span> <b style="color:#0984e3;">₹<span id="csInv">0</span></b></div>
+                <div style="flex: 1; background: #fff5f5; padding: 6px; border-radius: 4px; border: 1px solid #fed7d7;">
+                    <div style="color: #e53e3e; font-weight: bold; font-size: 10px; margin-bottom: 4px; border-bottom: 1px solid #fed7d7; padding-bottom: 2px;">⚙️ CHARGES</div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:2px;"><span>Inv:</span> <b style="color:#e53e3e;">₹<span id="csInv">0</span></b></div>
                     <div style="display:flex; justify-content:space-between; margin-bottom:2px;"><span>Fee:</span> <b style="color:#e67e22;">₹<span id="csFee">0</span></b></div>
                     <div style="display:flex; justify-content:space-between;"><span>Target DP:</span> <b style="color:#0984e3;">₹<span id="csTarget">0</span></b></div>
                 </div>
@@ -456,7 +465,6 @@
                 document.getElementById('finalCalcSection').style.display = 'none';
                 document.getElementById('selectedProductArea').style.display = 'none';
                 
-                // Clear fields
                 ['custInvoice','custLoan','advTarget','advExw','advMargin','advDealer'].forEach(id => document.getElementById(id).value = '');
                 document.getElementById('advGtl').value = '0';
                 document.getElementById('advRfc').value = '0';
@@ -470,7 +478,7 @@
 
         function switchActiveProduct(index) {
             if(activeProductIndex === index) {
-                activeProductIndex = -1; // Toggle off
+                activeProductIndex = -1; 
             } else {
                 activeProductIndex = index;
                 syncUIWithActiveProduct();
@@ -589,7 +597,6 @@
         function recalculateProduct(index) {
             let p = current_products[index];
             let inp = p.inputs;
-            if (!inp.type) { p.calculatedData = []; return; }
 
             let fee = 0;
             if (inp.type === 'EMI CARD' || inp.type === 'INSTA EMI CARD') fee = 270;
@@ -625,12 +632,16 @@
                         currentTenure = Math.floor(loan / s.fixedEmi) || 1;
                     }
                     if (inp.loan > 0 && !isOverridden) { loan = inp.loan; currentTenure = Math.floor(loan / s.fixedEmi) || 1; }
-                    if (inp.inv > 0 && loan > inp.inv) loan = Math.floor(inp.inv / s.fixedEmi) * s.fixedEmi;
+                    
+                    if (inp.limit > 0 && loan > inp.limit && !isOverridden) return; 
+                    if (inp.inv > 0 && loan > inp.inv && !isOverridden) loan = Math.floor(inp.inv / s.fixedEmi) * s.fixedEmi;
+                    
                     if (isOverridden) { loan = overrideVal; currentTenure = Math.floor(loan / s.fixedEmi) || 1; }
                     
                     inst = currentTenure - s.advEmi; if (inst < 1) inst = 1;
                     emi = s.fixedEmi + (insTotal / inst) + (loan * roiRate);
-                    dp = Math.ceil((inp.inv - loan + (s.fixedEmi * s.advEmi) + (loan * dbdRate) + totalFees + (loan * roiRateDP)) / 10) * 10;
+                    let baseInv = inp.inv > 0 ? inp.inv : loan;
+                    dp = Math.ceil((baseInv - loan + (s.fixedEmi * s.advEmi) + (loan * dbdRate) + totalFees + (loan * roiRateDP)) / 10) * 10;
                 } else {
                     loan = Math.min(nbfcMaxL, inp.inv > 0 ? inp.inv : 999999);
                     if (inp.target > 0 && inp.inv > 0) {
@@ -648,7 +659,8 @@
                         if (inp.inv > 0 && loan > inp.inv) loan = inp.inv;
                         emi = Math.max(900, loan / s.tenure) + (insTotal / inst) + (loan * roiRate);
                     }
-                    dp = Math.ceil((inp.inv - loan + (Math.max(900, loan/s.tenure) * s.advEmi) + (loan * dbdRate) + totalFees + (loan * roiRateDP)) / 10) * 10;
+                    let baseInv = inp.inv > 0 ? inp.inv : loan;
+                    dp = Math.ceil((baseInv - loan + (Math.max(900, loan/s.tenure) * s.advEmi) + (loan * dbdRate) + totalFees + (loan * roiRateDP)) / 10) * 10;
                 }
 
                 let ltv = currentTenure > 0 ? ((currentTenure - s.advEmi) / currentTenure) * 100 : 0;
@@ -686,9 +698,9 @@
                             <thead>
                                 <tr>
                                     <th style="width:16%;">T/A</th>
-                                    <th style="width:28%;">LOAN (₹)</th>
+                                    <th style="width:26%;">LOAN (₹)</th>
                                     <th style="width:22%;">DP</th>
-                                    <th style="width:22%;">EMI</th>
+                                    <th style="width:24%;">EMI</th>
                                     <th style="width:12%;">ACT</th>
                                 </tr>
                             </thead>
@@ -706,7 +718,7 @@
                                 </tr>
                                 <tr class="row-sub">
                                     <td colspan="5">
-                                        <b>DBD:</b> ${s.dbd.toFixed(2)}% (₹${Math.round(s.loan * (s.dbd * 1.18 / 100))}) | <b>PF:</b> ₹${s.pf} | <b>ROI:</b> ${s.roi.toFixed(2)}% | <b>FIXED:</b> ${s.fixedEmi>0 ? '₹'+s.fixedEmi : 'No'} | <b>DAILY SAVE:</b> <span style="color:#27ae60;">₹${Math.round(s.daily)}</span>
+                                        <b>DBD:</b> ${parseFloat(s.dbd.toFixed(2))}% (₹${Math.round(s.loan * (s.dbd * 1.18 / 100))}) | <b>PF:</b> ₹${s.pf} | <b>ROI:</b> ${parseFloat(s.roi.toFixed(2))}% | <b>FIXED:</b> ${s.fixedEmi>0 ? '₹'+s.fixedEmi : 'No'} | <b>DAILY SAVE:</b> <span style="color:#27ae60;">₹${Math.round(s.daily)}</span>
                                     </td>
                                 </tr>
                                 `).join('') : '<tr><td colspan="5" style="color:red; padding:15px;">No eligible schemes found.</td></tr>'}
@@ -754,7 +766,7 @@
 
         function copyText(pIndex, sIndex, btnElement) {
             let p = current_products[pIndex]; let s = p.calculatedData[sIndex];
-            let text = `📱 *${p.name.replace('NON TIEUP - ','')}*\n\n👤 *ELIGIBILITY:*\n*Type:* ${p.inputs.type} | *Limit:* ₹${p.inputs.limit.toLocaleString()}\n*LTV:* ${p.inputs.ltv}% ${p.inputs.cap > 0 ? '| *Cap:* ₹'+p.inputs.cap : ''}\n`;
+            let text = `📱 *${p.name.replace('NON TIEUP - ','')}*\n\n👤 *ELIGIBILITY:*\n*Type:* ${p.inputs.type || 'N/A'} | *Limit:* ₹${p.inputs.limit.toLocaleString()}\n*LTV:* ${p.inputs.ltv}% ${p.inputs.cap > 0 ? '| *Cap:* ₹'+p.inputs.cap : ''}\n`;
             if(p.inputs.inv > 0) text += `*Invoice:* ₹${p.inputs.inv.toLocaleString()}\n`;
             text += `------------------------\n✅ *Scheme:* ${s.currentTenure}/${s.advEmi}\n💰 *DP:* ₹${Math.round(s.dp).toLocaleString()}\n🗓️ *EMI:* ₹${Math.round(s.emi).toLocaleString()} x ${s.inst} Months\n`;
             text += `✨ *Daily Save:* ₹${Math.round(s.daily).toLocaleString()}`;
@@ -776,7 +788,7 @@
             let origText = btn.innerHTML; btn.innerHTML = "⏳ COPYING...";
 
             let printDiv = document.createElement('div');
-            printDiv.style.width = "750px"; printDiv.style.position = "absolute"; printDiv.style.left = "-9999px"; printDiv.style.backgroundColor = "#ffffff"; printDiv.style.fontFamily = "Arial, sans-serif";
+            printDiv.style.width = "700px"; printDiv.style.position = "absolute"; printDiv.style.left = "-9999px"; printDiv.style.backgroundColor = "#ffffff"; printDiv.style.fontFamily = "Arial, sans-serif";
 
             let trs = p.calculatedData.map((s, i) => {
                 let bgCol = i % 2 === 0 ? '#ffffff' : '#f8fafc';
