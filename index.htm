@@ -344,6 +344,7 @@
         async function loadExcelData() {
             try {
                 let res = await fetch(GITHUB_RAW_URL + '?t=' + new Date().getTime());
+                if (!res.ok) throw new Error("GitHub File Not Found (404 Error)");
                 let dataBuffer = await res.arrayBuffer();
                 let wb = XLSX.read(new Uint8Array(dataBuffer), { type: 'array' });
                 
@@ -353,8 +354,10 @@
                 db_records = [...s1.map(r=>mapR(r,"REG")), ...s2.map(r=>mapR(r,"NON TIEUP"))].filter(x=>x && x.model !== "");
                 document.getElementById('loadingStatus').style.display = 'none';
                 document.getElementById('searchInput').disabled = false;
-            } catch(e) { document.getElementById('loadingStatus').innerText = "⚠️ Error loading data."; }
-        }
+            } catch(e) { 
+    console.error(e);
+    document.getElementById('loadingStatus').innerHTML = "<span style='color:red;'>⚠️ Error: " + e.message + "<br>Check if GitHub file exists and Repo is Public.</span>"; 
+}
 
         function searchModel() {
             let q = document.getElementById('searchInput').value.toUpperCase().trim();
