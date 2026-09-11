@@ -77,13 +77,15 @@
 </head>
 <body>
 
-    <div id="loadingStatus" style="text-align: center; font-size: 12px; color: #e67e22; font-weight: bold; margin-bottom: 6px;">⏳ Loading Master Data...</div>
+    <div id="loadingStatus" style="text-align: center; font-size: 13px; color: #e67e22; font-weight: bold; margin-bottom: 8px; background: #fff3cd; padding: 10px; border-radius: 6px; border: 1px solid #ffeeba;">
+        ⏳ Loading Master Data... Please wait.
+    </div>
 
     <!-- 0. App Header -->
     <div class="app-header">
         <h2>🚀 PRO RCD CALCULATOR</h2>
         <div class="header-btns">
-            <button class="action-icon-btn" onclick="openLoadLinkModal()" title="Paste Link">🔗</button>
+            <button class="action-icon-btn" onclick="openLoadLinkModal()" title="Paste Link">🔗 Link</button>
             <button class="action-icon-btn" onclick="alert('History feature coming soon!')" title="View History">🕒</button>
         </div>
     </div>
@@ -201,7 +203,7 @@
         <div class="modal-content">
             <h3 style="margin-top:0; color:#034887;">🔗 Load Calculation Link</h3>
             <p style="font-size:12px; color:#555;">Paste the link shared with you below to load the exact calculation.</p>
-            <input type="text" id="pasteLinkInput" placeholder="Paste link here..." style="margin-bottom: 15px; text-align: left;">
+            <input type="text" id="pasteLinkInput" placeholder="Paste link here..." style="margin-bottom: 15px; text-align: left; width: 100%; box-sizing: border-box;">
             <div style="display:flex; gap:10px;">
                 <button class="btn-secondary" style="background:#0984e3; color:white;" onclick="processPastedLink()">LOAD DATA</button>
                 <button class="btn-secondary" onclick="document.getElementById('loadLinkModal').style.display='none'">Cancel</button>
@@ -240,11 +242,14 @@
     </div>
 
     <script>
+        // Use JsDelivr CDN proxy to bypass Indian ISP blocks on raw.githubusercontent.com
+        const GITHUB_RAW_URL = "https://cdn.jsdelivr.net/gh/luckyjathar/testcalculator@main/master_data.xlsx";
+        const BACKUP_URL = "https://raw.githubusercontent.com/luckyjathar/testcalculator/main/master_data.xlsx";
+
         let db_records = [];
         let current_products = [];
         let activeProductIndex = -1;
         let activeCategory = "";
-        const GITHUB_RAW_URL = "https://raw.githubusercontent.com/luckyjathar/testcalculator/main/master_data.xlsx";
 
         // URL DATA LOADING (On Start)
         window.onload = async function() {
@@ -252,7 +257,7 @@
             let sharedData = params.get('s') || params.get('data');
             
             if(sharedData) {
-                document.getElementById('loadingStatus').innerText = "⏳ Loading Shared Calculation...";
+                document.getElementById('loadingStatus').innerHTML = "⏳ Loading Shared Calculation...<br><small>Please wait</small>";
             }
             
             await loadExcelData();
@@ -316,48 +321,74 @@
             return String(cat).toUpperCase().trim();
         }
 
-        function findKey(row, targets) {
-            let key = Object.keys(row).find(k => targets.includes(k.toUpperCase().replace(/\s/g, '')));
-            return key ? row[key] : null;
-        }
-
-        function mapData(row, type) {
-            let model = findKey(row, ['MODEL', 'PRODUCT', 'MODELNAME']);
-            if (!model && type !== 'NON TIEUP') return null;
-            let rawCat = findKey(row, ['CATEGORY', 'CAT', 'ASSET', 'ASSETCATEGORY']);
-            let cat = standardizeCategory(rawCat);
-            return {
-                model: type === 'NON TIEUP' ? 'NON TIEUP' : String(model).trim().toUpperCase(),
-                category: cat,
-                mrp: parseFloat(row[keys.find(k=>k.toUpperCase().includes('MRP'))]) || 0,
-                tenure: parseInt(row[keys.find(k=>k.toUpperCase().includes('TENURE')||k.toUpperCase()=='TA')]) || 0,
-                advEmi: parseInt(row[keys.find(k=>k.toUpperCase().includes('ADV'))]) || 0,
-                dbd: parseFloat(row[keys.find(k=>k.toUpperCase().includes('DBD'))]) || 0,
-                roi: parseFloat(row[keys.find(k=>k.toUpperCase().includes('ROI'))]) || 0,
-                pf: parseInt(row[keys.find(k=>k.toUpperCase().includes('PF')||k.toUpperCase().includes('PROCESSING'))]) || 0,
-                fixedEmi: parseFloat(row[keys.find(k=>k.toUpperCase().includes('FIXED'))]) || 0,
-                minLoan: parseFloat(row[keys.find(k=>k.toUpperCase().includes('MIN'))]) || 0,
-                maxLoan: parseFloat(row[keys.find(k=>k.toUpperCase().includes('MAX'))]) || 9999999
-            };
+        async function fetchWithTimeout(resource, options = {}) {
+            const { timeout = 8000 } = options;
+            const controller = new AbortController();
+            const id = setTimeout(() => controller.abort(), timeout);
+            const response = await fetch(resource, { ...options, signal: controller.signal });
+            clearTimeout(id);
+            return response;
         }
 
         async function loadExcelData() {
             try {
-                let res = await fetch(GITHUB_RAW_URL + '?t=' + new Date().getTime());
-                if (!res.ok) throw new Error("GitHub File Not Found (404 Error)");
+                let res;
+                try {
+                    res = await fetchWithTimeout(GITHUB_RAW_URL + '?t=' + new Date().getTime());
+                    if(!res.ok) throw new Error("CDN Failed");
+                } catch(e) {
+                    console.log("Using Backup URL");
+                    res = await fetchWithTimeout(BACKUP_URL + '?t=' + new Date().getTime());
+                }
+                
+                if(!res.ok) throw new Error("File not found on server.");
+
                 let dataBuffer = await res.arrayBuffer();
                 let wb = XLSX.read(new Uint8Array(dataBuffer), { type: 'array' });
                 
                 let s1 = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {defval:""});
                 let s2 = wb.SheetNames.length > 1 ? XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[1]], {defval:""}) : [];
                 
+                function mapR(row, type) {
+                    let keys = Object.keys(row);
+                    let mKey = keys.find(k => ['MODEL','PRODUCT','MODELNAME'].includes(String(k).toUpperCase().replace(/\s/g,'')));
+                    let cKey = keys.find(k => ['CATEGORY','CAT','ASSET'].includes(String(k).toUpperCase().replace(/\s/g,'')));
+                    let model = mKey ? row[mKey] : null;
+                    if (!model && type !== 'NON TIEUP') return null;
+                    
+                    let mrpKey = keys.find(k=>String(k).toUpperCase().includes('MRP'));
+                    let tenKey = keys.find(k=>String(k).toUpperCase().includes('TENURE')||String(k).toUpperCase()=='TA');
+                    let advKey = keys.find(k=>String(k).toUpperCase().includes('ADV'));
+                    let dbdKey = keys.find(k=>String(k).toUpperCase().includes('DBD'));
+                    let roiKey = keys.find(k=>String(k).toUpperCase().includes('ROI'));
+                    let pfKey = keys.find(k=>String(k).toUpperCase().includes('PF')||String(k).toUpperCase().includes('PROCESSING'));
+                    let fixKey = keys.find(k=>String(k).toUpperCase().includes('FIXED'));
+                    let minKey = keys.find(k=>String(k).toUpperCase().includes('MIN'));
+                    let maxKey = keys.find(k=>String(k).toUpperCase().includes('MAX'));
+
+                    return {
+                        model: type === 'NON TIEUP' ? 'NON TIEUP' : String(model).trim().toUpperCase(),
+                        category: standardizeCategory(cKey ? row[cKey] : ""),
+                        mrp: parseFloat(mrpKey ? row[mrpKey] : 0) || 0,
+                        tenure: parseInt(tenKey ? row[tenKey] : 0) || 0,
+                        advEmi: parseInt(advKey ? row[advKey] : 0) || 0,
+                        dbd: parseFloat(dbdKey ? row[dbdKey] : 0) || 0,
+                        roi: parseFloat(roiKey ? row[roiKey] : 0) || 0,
+                        pf: parseInt(pfKey ? row[pfKey] : 0) || 0,
+                        fixedEmi: parseFloat(fixKey ? row[fixKey] : 0) || 0,
+                        minLoan: parseFloat(minKey ? row[minKey] : 0) || 0,
+                        maxLoan: parseFloat(maxKey ? row[maxKey] : 0) || 9999999
+                    };
+                }
+                
                 db_records = [...s1.map(r=>mapR(r,"REG")), ...s2.map(r=>mapR(r,"NON TIEUP"))].filter(x=>x && x.model !== "");
                 document.getElementById('loadingStatus').style.display = 'none';
                 document.getElementById('searchInput').disabled = false;
             } catch(e) { 
-    console.error(e);
-    document.getElementById('loadingStatus').innerHTML = "<span style='color:red;'>⚠️ Error: " + e.message + "<br>Check if GitHub file exists and Repo is Public.</span>"; 
-}
+                console.error(e);
+                document.getElementById('loadingStatus').innerHTML = `<span style="color:#d35400;">⚠️ Error Loading Data:<br>${e.message}<br>Check Internet Connection.</span>`; 
+            }
+        }
 
         function searchModel() {
             let q = document.getElementById('searchInput').value.toUpperCase().trim();
@@ -381,7 +412,7 @@
                 if(rec) { cat = rec.category; mrp = rec.mrp; }
                 rawSchemes = db_records.filter(r => r.model === modelName);
             } else {
-                cat = document.getElementById('ntCategory').value || activeCategory;
+                cat = document.getElementById('ntCategory').value || (manualState ? manualState.category : activeCategory);
                 rawSchemes = db_records.filter(r => r.model === "NON TIEUP" && r.category === cat);
             }
             activeCategory = cat;
@@ -424,6 +455,9 @@
                 document.getElementById('finalCalcSection').style.display = 'block';
                 toggleAcc('none', 'none', document.createElement('div')); 
                 recalculateProduct(activeProductIndex);
+                
+                // Scroll to final calculation automatically
+                setTimeout(() => { document.getElementById('finalCalcSection').scrollIntoView({ behavior: 'smooth' }); }, 300);
 
             } else {
                 document.getElementById('custInvoice').value = mrp > 0 ? mrp : "";
@@ -596,6 +630,7 @@
                     if (slabPf !== null) { dynamicPf = slabPf; } 
                 }
 
+                // Proper Bajaj Gross Loan Calculation
                 let nbfcMaxL = (actualLimit * s.tenure) / (s.tenure - s.advEmi || 1);
                 
                 if (s.fixedEmi > 0) {
@@ -718,12 +753,15 @@
         function getShareLinkUrl(pIndex) {
             let p = current_products[pIndex];
             let i = p.inputs;
+            
+            // Format: name|isNT|limit|inv|ltv|cap|target|gtl|rfc|exw|margin|dealer|category|type
             let arr = [
                 p.name, p.isNonTieup ? 1 : 0, i.limit || 0, i.inv || 0, 
                 i.ltv || 100, i.cap || 0, i.target || 0, 
                 i.gtl || 0, i.rfc || 0, i.exw || 0, 
                 i.margin || 0, i.dealer || 0, p.category || "OTHER", i.type || ""
             ];
+            
             let str = arr.join('|');
             let encoded = btoa(encodeURIComponent(str)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
             return window.location.href.split('?')[0] + "?s=" + encoded;
@@ -750,7 +788,7 @@
                     margin: parseFloat(arr[10]) || 0,
                     dealer: parseFloat(arr[11]) || 0,
                     type: arr[13] || "",
-                    mrp: parseFloat(arr[3]) || 0,
+                    mrp: parseFloat(arr[3]) || 0, // Fallback MRP
                     overrides: {}
                 };
                 let cat = arr[12] || "OTHER";
@@ -808,7 +846,7 @@
         function openManualModal() { document.getElementById('manualModal').style.display='flex'; }
         
         function addNonTieupProduct() {
-            selectModel('NON TIEUP', true, document.getElementById('ntCategory').value);
+            selectModel('NON TIEUP', true, null, { category: document.getElementById('ntCategory').value });
             document.getElementById('nonTieupModal').style.display='none';
         }
         function addManualProduct() {
@@ -818,7 +856,7 @@
             let man = [{ tenure: ten, advEmi: adv, dbd: parseFloat(document.getElementById('manDbd').value)||0, pf: parseInt(document.getElementById('manPf').value)||0, roi: parseFloat(document.getElementById('manRoi').value)||0, fixedEmi: fix }];
             document.getElementById('manualModal').style.display='none';
             ['manProdName','manTen','manAdv','manDbd','manPf','manRoi','manFix'].forEach(id=>document.getElementById(id).value='');
-            selectModel(name, false, 'OTHER', man);
+            selectModel(name, false, man);
         }
 
         function copyText(pIndex, sIndex, btn) {
@@ -842,21 +880,25 @@
             let div = document.createElement('div');
             div.style.cssText = "width:750px; position:absolute; left:-9999px; background:#fff; font-family:sans-serif; padding:15px;";
             
+            let missingElig = (!p.inputs.type || p.inputs.type === "");
+            let alertHtml = missingElig ? `<div style="background:#ffebee; color:#c62828; text-align:center; padding:10px; font-size:16px; font-weight:bold; margin-bottom:12px; border-radius:6px; border:2px solid #ef9a9a;">⚠️ Eligibility Details Missing! Base calculation applied.</div>` : '';
+
             let trs = p.calculatedData.map((s,i) => `
-                <tr style="background:${i%2===0?'#ffffff':'#f8f9fa'};">
-                    <td style="padding:20px 10px; font-size:24px; font-weight:900; color:#1e293b; border-bottom:1px solid #e2e8f0;">${s.currentTenure} / ${s.advEmi}</td>
-                    <td style="padding:20px 10px; font-size:24px; font-weight:900; color:#27ae60; border-bottom:1px solid #e2e8f0;">₹${Math.round(s.dp).toLocaleString()}</td>
-                    <td style="padding:20px 10px; font-size:24px; font-weight:900; color:#0984e3; border-bottom:1px solid #e2e8f0;">₹${Math.round(s.emi).toLocaleString()}</td>
-                    <td style="padding:20px 10px; font-size:24px; font-weight:900; color:#333; border-bottom:1px solid #e2e8f0;">${s.inst}</td>
-                    <td style="padding:20px 10px; font-size:24px; font-weight:900; color:#d35400; border-bottom:1px solid #e2e8f0;">₹${Math.round(s.daily).toLocaleString()}</td>
+                <tr style="background:${i%2===0?'#ffffff':'#f8f9fa'}; border-bottom:1px solid #e2e8f0;">
+                    <td style="padding:22px 10px; font-size:24px; font-weight:900; color:#1e293b;">${s.currentTenure} / ${s.advEmi}</td>
+                    <td style="padding:22px 10px; font-size:24px; font-weight:900; color:#27ae60;">₹${Math.round(s.dp).toLocaleString()}</td>
+                    <td style="padding:22px 10px; font-size:24px; font-weight:900; color:#0984e3;">₹${Math.round(s.emi).toLocaleString()}</td>
+                    <td style="padding:22px 10px; font-size:24px; font-weight:900; color:#333;">${s.inst}</td>
+                    <td style="padding:22px 10px; font-size:24px; font-weight:900; color:#d35400;">₹${Math.round(s.daily).toLocaleString()}</td>
                 </tr>`).join('');
 
             div.innerHTML = `
+                ${alertHtml}
                 <div style="border:2px solid #063970; border-radius:8px; overflow:hidden; background:#fff;">
-                    <div style="background:#063970; color:#fff; padding:25px; text-align:center;">
-                        <div style="font-size:32px; font-weight:900; line-height:1.4; margin-bottom:15px; text-transform:uppercase;">📱 ${p.name.replace('NON TIEUP - ','')}</div>
+                    <div style="background:#063970; color:#fff; padding:30px 20px; text-align:center;">
+                        <div style="font-size:34px; font-weight:900; line-height:1.4; margin-bottom:18px; text-transform:uppercase; word-wrap:break-word;">📱 ${p.name.replace('NON TIEUP - ','')}</div>
                         
-                        <div style="display:flex; justify-content:space-around; border-top:1px dashed rgba(255,255,255,0.3); padding-top:15px; font-size:18px; font-weight:bold; color:#e0f2fe;">
+                        <div style="display:flex; justify-content:space-around; border-top:1px dashed rgba(255,255,255,0.3); padding-top:18px; font-size:18px; font-weight:bold; color:#e0f2fe;">
                             <span>TYPE: <span style="color:#f1c40f;">${p.inputs.type||'NEW'}</span></span>
                             <span>LIMIT: <span style="color:#2ecc71;">₹${p.inputs.limit.toLocaleString()}</span></span>
                             <span>LTV: <span style="color:#fff;">${p.inputs.ltv}%</span></span>
@@ -868,11 +910,11 @@
                     <table style="width:100%; border-collapse:collapse; text-align:center;">
                         <thead style="background:#063970; color:#ffffff;">
                             <tr>
-                                <th style="padding:15px 10px; font-size:16px; font-weight:900; width:20%;">SCHEME<br><span style="font-size:12px; font-weight:normal;">(T / A)</span></th>
-                                <th style="padding:15px 10px; font-size:16px; font-weight:900; width:22%;">NET&nbsp;DP</th>
-                                <th style="padding:15px 10px; font-size:16px; font-weight:900; width:22%;">EMI</th>
-                                <th style="padding:15px 10px; font-size:16px; font-weight:900; width:16%;">MONTHS</th>
-                                <th style="padding:15px 10px; font-size:16px; font-weight:900; width:20%;">DAILY</th>
+                                <th style="padding:18px 10px; font-size:16px; font-weight:900; width:20%;">SCHEME<br><span style="font-size:12px; font-weight:normal;">(T / A)</span></th>
+                                <th style="padding:18px 10px; font-size:16px; font-weight:900; width:22%;">NET&nbsp;DP</th>
+                                <th style="padding:18px 10px; font-size:16px; font-weight:900; width:24%;">EMI</th>
+                                <th style="padding:18px 10px; font-size:16px; font-weight:900; width:14%;">MONTHS</th>
+                                <th style="padding:18px 10px; font-size:16px; font-weight:900; width:20%;">DAILY</th>
                             </tr>
                         </thead>
                         <tbody>${trs}</tbody>
@@ -900,8 +942,6 @@
                 });
             }, 300);
         }
-
-        window.onload = loadExcelData;
     </script>
 </body>
 </html>
