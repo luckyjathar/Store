@@ -6,7 +6,9 @@
     <title>PRO RCD CALCULATOR</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://accounts.google.com/gsi/client" async defer></script>    
+    <!-- Google Login Script -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    
     <style>
         /* Ultra Compact Mobile View */
         body { font-family: 'Segoe UI', Tahoma, sans-serif; padding: 6px; background-color: #e2e8f0; margin: 0 auto; max-width: 480px; }
@@ -14,7 +16,7 @@
         /* App Header */
         .app-header { background: #034887; color: white; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
         .app-header h2 { margin: 0; font-size: 15px; font-weight: 900; letter-spacing: 0.5px; }
-        .header-btns { display: flex; gap: 8px; }
+        .header-btns { display: flex; gap: 8px; align-items: center; }
         .action-icon-btn { background: rgba(255,255,255,0.2); border: none; color: white; font-size: 14px; padding: 6px 10px; border-radius: 6px; cursor: pointer; transition: 0.2s; font-weight: bold; }
         .action-icon-btn:hover { background: rgba(255,255,255,0.4); }
 
@@ -81,21 +83,15 @@
         ⏳ Loading Master Data... Please wait.
     </div>
 
-    <!-- 0. App Header -->
+    <!-- 0. App Header with Google Login Integration -->
     <div class="app-header">
-        <h2>🚀 PRO RCD CALCULATOR</h2>
-        <!-- Cloud Sync Status & Login -->
-    <div style="display:flex; align-items:center; gap:5px; margin-left:auto; margin-right:10px;">
-        <div id="syncStatus" style="font-size:10px; color:#fff; background:rgba(0,0,0,0.3); padding:4px 8px; border-radius:4px; display:none;">🔴 Offline</div>
-        <div id="g_id_onload" data-client_id="777001839486-tqii6kb1hjig7qnreme74vjbm9utavvd.apps.googleusercontent.com" data-callback="handleGoogleLogin" data-auto_select="false" data-auto_prompt="false"></div>
-        <div class="g_id_signin" data-type="icon" data-shape="circle" data-theme="outline" data-size="small"></div>
-    </div>
-
-    <div class="header-btns">
-        <button class="action-icon-btn" onclick="openLoadLinkModal()" title="Paste Link">🔗 Link</button>
-        <button class="action-icon-btn" onclick="alert('History feature coming soon!')" title="View History">🕒</button>
-    </div>
+        <h2>🚀 PRO RCD</h2>
         <div class="header-btns">
+            <!-- Cloud Sync Status & Login -->
+            <div id="syncStatus" style="font-size:10px; color:#fff; background:rgba(0,0,0,0.3); padding:4px 8px; border-radius:4px; display:none;">🔴 Offline</div>
+            <div id="g_id_onload" data-client_id="777001839486-tqii6kb1hjig7qnreme74vjbm9utavvd.apps.googleusercontent.com" data-callback="handleGoogleLogin" data-auto_select="false" data-auto_prompt="false"></div>
+            <div class="g_id_signin" data-type="icon" data-shape="circle" data-theme="outline" data-size="small"></div>
+
             <button class="action-icon-btn" onclick="openLoadLinkModal()" title="Paste Link">🔗 Link</button>
             <button class="action-icon-btn" onclick="alert('History feature coming soon!')" title="View History">🕒</button>
         </div>
@@ -253,88 +249,88 @@
     </div>
 
     <script>
-        /* === GOOGLE SHEETS CLOUD SYNC & AUTH === */
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwWt4xbbEYWpSwtOSY1jqGJauljwPWojqfpxL4Bk2aRE8gJMpAzanAmNQ1OGNzKYHZfGg/exec";
-let loggedInUserEmail = localStorage.getItem('persistent_user_email') || "";
-
-async function handleGoogleLogin(response) {
-    try {
-        const base64Url = response.credential.split('.')[1];
-        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) { return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2); }).join(''));
-        const userData = JSON.parse(jsonPayload);
-        loggedInUserEmail = userData.email; 
-        localStorage.setItem('persistent_user_email', loggedInUserEmail);
-        localStorage.setItem('persistent_user_name', userData.name);
-        updateLoginUI(userData.name);
-    } catch(e) { console.error("Google Login Error:", e); }
-}
-
-function updateLoginUI(userName) {
-    let status = document.getElementById('syncStatus');
-    if(status) {
-        status.style.display = 'block';
-        status.innerHTML = '🟢 ' + userName.split(' ')[0]; // Show first name
-    }
-    let signinBtn = document.querySelector('.g_id_signin');
-    if(signinBtn) signinBtn.style.display = 'none';
-}
-
-// जुन्या window.onload मध्ये हा कोड ॲड करा
-window.addEventListener('load', () => {
-    if(loggedInUserEmail) {
-        let savedName = localStorage.getItem('persistent_user_name') || "User";
-        updateLoginUI(savedName);
-    }
-});
-
-// Silent Sync Function
-async function triggerSilentCloudSync() {
-    if(!loggedInUserEmail || current_products.length === 0) return;
-    
-    // Create a dummy customer object since this new UI doesn't have a queue
-    let limitVal = document.getElementById('custLimit').value || 0;
-    let typeVal = document.getElementById('custType').value || 'NEW';
-    let ltvVal = document.getElementById('custLtv').value || 100;
-    
-    let compactProducts = current_products.map(p => { 
-        let { calculatedData, rawSchemes, ...keepProduct } = p; 
-        return keepProduct; 
-    });
-
-    let custData = {
-        name: "Anonymous User", // या नवीन UI मध्ये नाव नाहीये 
-        mobile: "",
-        limit: limitVal,
-        ltv: ltvVal,
-        type: typeVal,
-        timestamp: new Date().toLocaleString(),
-        products: compactProducts
-    };
-
-    try {
-        await fetch(APPS_SCRIPT_URL, { 
-            method: 'POST', 
-            mode: 'no-cors', 
-            headers: { 'Content-Type': 'text/plain' }, 
-            body: JSON.stringify({ email: loggedInUserEmail, queue: [custData] }) 
-        });
-        console.log("Synced to cloud silently.");
-    } catch(err) { 
-        console.log("Cloud Sync Failed:", err); 
-    }
-}
         // Use JsDelivr CDN proxy to bypass Indian ISP blocks on raw.githubusercontent.com
         const GITHUB_RAW_URL = "https://cdn.jsdelivr.net/gh/luckyjathar/testcalculator@main/master_data.xlsx";
         const BACKUP_URL = "https://raw.githubusercontent.com/luckyjathar/testcalculator/main/master_data.xlsx";
+
+        /* === GOOGLE SHEETS CLOUD SYNC & AUTH === */
+        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwWt4xbbEYWpSwtOSY1jqGJauljwPWojqfpxL4Bk2aRE8gJMpAzanAmNQ1OGNzKYHZfGg/exec";
+        let loggedInUserEmail = localStorage.getItem('persistent_user_email') || "";
 
         let db_records = [];
         let current_products = [];
         let activeProductIndex = -1;
         let activeCategory = "";
 
+        // Google Login Functions
+        async function handleGoogleLogin(response) {
+            try {
+                const base64Url = response.credential.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) { return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2); }).join(''));
+                const userData = JSON.parse(jsonPayload);
+                loggedInUserEmail = userData.email; 
+                localStorage.setItem('persistent_user_email', loggedInUserEmail);
+                localStorage.setItem('persistent_user_name', userData.name);
+                updateLoginUI(userData.name);
+            } catch(e) { console.error("Google Login Error:", e); }
+        }
+
+        function updateLoginUI(userName) {
+            let status = document.getElementById('syncStatus');
+            if(status) {
+                status.style.display = 'block';
+                status.innerHTML = '🟢 ' + userName.split(' ')[0]; // Show first name
+            }
+            let signinBtn = document.querySelector('.g_id_signin');
+            if(signinBtn) signinBtn.style.display = 'none';
+        }
+
+        // Silent Sync Function
+        async function triggerSilentCloudSync() {
+            if(!loggedInUserEmail || current_products.length === 0) return;
+            
+            let limitVal = document.getElementById('custLimit').value || 0;
+            let typeVal = document.getElementById('custType').value || 'NEW';
+            let ltvVal = document.getElementById('custLtv').value || 100;
+            let capVal = document.getElementById('custCap').value || 0;
+            
+            let compactProducts = current_products.map(p => { 
+                let { calculatedData, rawSchemes, ...keepProduct } = p; 
+                return keepProduct; 
+            });
+
+            let custData = {
+                name: "Zatpat User", // Anonymous/Fast Calc User
+                mobile: "",
+                limit: limitVal,
+                ltv: ltvVal,
+                type: typeVal,
+                cap: capVal,
+                timestamp: new Date().toLocaleString(),
+                products: compactProducts
+            };
+
+            try {
+                await fetch(APPS_SCRIPT_URL, { 
+                    method: 'POST', 
+                    mode: 'no-cors', 
+                    headers: { 'Content-Type': 'text/plain' }, 
+                    body: JSON.stringify({ email: loggedInUserEmail, queue: [custData] }) 
+                });
+                console.log("Synced to cloud silently.");
+            } catch(err) { 
+                console.log("Cloud Sync Failed:", err); 
+            }
+        }
+
         // URL DATA LOADING (On Start)
         window.onload = async function() {
+            if(loggedInUserEmail) {
+                let savedName = localStorage.getItem('persistent_user_name') || "User";
+                updateLoginUI(savedName);
+            }
+
             let params = new URLSearchParams(window.location.search);
             let sharedData = params.get('s') || params.get('data');
             
@@ -956,13 +952,10 @@ async function triggerSilentCloudSync() {
         // Exact Clean WhatsApp Image Generation + Link Display
         function copyImage() {
             if(activeProductIndex === -1) return;
-    
-    // नवीन लाईन: इथून गुपचूप डेटा Google Sheet वर जाईल
-    triggerSilentCloudSync();
-    
-    let p = current_products[activeProductIndex];
-    // ... (बाकीचा जुना कोड तसाच राहील)
-            if(activeProductIndex === -1) return;
+            
+            // Cloud Sync Trigger
+            triggerSilentCloudSync();
+
             let p = current_products[activeProductIndex]; if(!p.calculatedData.length) return;
             let btn = document.querySelector('.btn-copy-img'); let oldBtn = btn.innerHTML; btn.innerHTML = "⏳ COPYING...";
 
