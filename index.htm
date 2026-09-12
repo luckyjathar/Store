@@ -85,8 +85,9 @@
 
     <!-- 0. App Header with Google Login Integration -->
     <div class="app-header">
-        <h2>🚀 PRO RCD</h2>
-        <div class="header-btns">
+        <h2>🚀 PRO RCD CALCULATOR</h2>
+        
+        <div style="display:flex; align-items:center; gap:8px;">
             <!-- Cloud Sync Status & Login -->
             <div id="syncStatus" style="font-size:10px; color:#fff; background:rgba(0,0,0,0.3); padding:4px 8px; border-radius:4px; display:none;">🔴 Offline</div>
             <div id="g_id_onload" data-client_id="777001839486-tqii6kb1hjig7qnreme74vjbm9utavvd.apps.googleusercontent.com" data-callback="handleGoogleLogin" data-auto_select="false" data-auto_prompt="false"></div>
@@ -253,6 +254,48 @@
         const GITHUB_RAW_URL = "https://cdn.jsdelivr.net/gh/luckyjathar/testcalculator@main/master_data.xlsx";
         const BACKUP_URL = "https://raw.githubusercontent.com/luckyjathar/testcalculator/main/master_data.xlsx";
 
+        /* === CACHING SYSTEM (INDEXED DB) === */
+        const DB_NAME = "RCD_Calc_DB"; 
+        const DB_VERSION = 1; 
+        const STORE_NAME = "cacheStore"; 
+        const CACHE_DURATION_MS = 12 * 60 * 60 * 1000; // 12 Hours
+        let dbInstance;
+
+        function initDB() { 
+            return new Promise((resolve, reject) => { 
+                let request = indexedDB.open(DB_NAME, DB_VERSION); 
+                request.onupgradeneeded = function(e) { 
+                    let db = e.target.result; 
+                    if (!db.objectStoreNames.contains(STORE_NAME)) { db.createObjectStore(STORE_NAME); } 
+                }; 
+                request.onsuccess = function(e) { dbInstance = e.target.result; resolve(dbInstance); }; 
+                request.onerror = function(e) { reject(e); }; 
+            }); 
+        }
+        function saveToDB(key, data) { 
+            return new Promise((resolve) => { 
+                if (!dbInstance) return resolve(); 
+                try {
+                    let tx = dbInstance.transaction(STORE_NAME, 'readwrite'); 
+                    tx.objectStore(STORE_NAME).put(JSON.stringify(data), key).onsuccess = () => resolve(); 
+                } catch(e) { resolve(); }
+            }); 
+        }
+        function getFromDB(key) { 
+            return new Promise((resolve) => { 
+                if (!dbInstance) return resolve(null); 
+                try {
+                    let tx = dbInstance.transaction(STORE_NAME, 'readonly'); 
+                    let req = tx.objectStore(STORE_NAME).get(key); 
+                    req.onsuccess = (e) => { 
+                        let res = e.target.result; 
+                        resolve(res ? JSON.parse(res) : null); 
+                    }; 
+                    req.onerror = () => resolve(null);
+                } catch(e) { resolve(null); }
+            }); 
+        }
+
         /* === GOOGLE SHEETS CLOUD SYNC & AUTH === */
         const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwWt4xbbEYWpSwtOSY1jqGJauljwPWojqfpxL4Bk2aRE8gJMpAzanAmNQ1OGNzKYHZfGg/exec";
         let loggedInUserEmail = localStorage.getItem('persistent_user_email') || "";
@@ -324,7 +367,7 @@
             }
         }
 
-        // URL DATA LOADING (On Start)
+        // URL DATA LOADING & DB INIT (On Start)
         window.onload = async function() {
             if(loggedInUserEmail) {
                 let savedName = localStorage.getItem('persistent_user_name') || "User";
@@ -338,6 +381,7 @@
                 document.getElementById('loadingStatus').innerHTML = "⏳ Loading Shared Calculation...<br><small>Please wait</small>";
             }
             
+            await initDB(); // Initialize Cache DB
             await loadExcelData();
             
             if(sharedData) {
@@ -410,13 +454,28 @@
 
         async function loadExcelData() {
             try {
+                let now = new Date().getTime();
+                let cachedTime = await getFromDB('master_data_time');
+                let cachedRecords = await getFromDB('cached_db_records');
+                
+                // If cache is valid (less than 12 hours old) and records exist
+                if (cachedTime && cachedRecords && (now - cachedTime < CACHE_DURATION_MS)) {
+                    db_records = cachedRecords;
+                    document.getElementById('loadingStatus').style.display = 'none';
+                    document.getElementById('searchInput').disabled = false;
+                    console.log("Loaded data from Cache");
+                    return; 
+                }
+
+                // If cache is invalid or missing, fetch from GitHub
+                console.log("Fetching live data from internet...");
                 let res;
                 try {
-                    res = await fetchWithTimeout(GITHUB_RAW_URL + '?t=' + new Date().getTime());
+                    res = await fetchWithTimeout(GITHUB_RAW_URL + '?t=' + now);
                     if(!res.ok) throw new Error("CDN Failed");
                 } catch(e) {
                     console.log("Using Backup URL");
-                    res = await fetchWithTimeout(BACKUP_URL + '?t=' + new Date().getTime());
+                    res = await fetchWithTimeout(BACKUP_URL + '?t=' + now);
                 }
                 
                 if(!res.ok) throw new Error("File not found on server.");
@@ -460,6 +519,11 @@
                 }
                 
                 db_records = [...s1.map(r=>mapR(r,"REG")), ...s2.map(r=>mapR(r,"NON TIEUP"))].filter(x=>x && x.model !== "");
+                
+                // Save to Cache Database
+                await saveToDB('cached_db_records', db_records);
+                await saveToDB('master_data_time', now);
+
                 document.getElementById('loadingStatus').style.display = 'none';
                 document.getElementById('searchInput').disabled = false;
             } catch(e) { 
