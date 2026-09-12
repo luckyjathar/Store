@@ -422,24 +422,32 @@
             let hist = JSON.parse(localStorage.getItem('rcd_history') || '[]');
             let h = hist[index];
             if(!h) return;
+            
+            let success = false;
             try {
                 let urlObj = new URL(h.link);
                 let s = urlObj.searchParams.get('s') || urlObj.searchParams.get('data');
                 if(s) {
-                    loadFromSharedData(s);
+                    success = loadFromSharedData(s);
                 } else {
                     throw new Error("Missing param");
                 }
             } catch(e) {
-                // Fallback parsing for non-standard paths
-                let parts = h.link.split('?s=');
+                // Fallback for non-standard paths
+                let parts = h.link.split('s=');
                 if(parts.length > 1) {
-                    loadFromSharedData(parts[1]);
-                } else {
-                    alert("Could not extract data from this history link.");
+                    success = loadFromSharedData(parts[1]);
                 }
             }
-            document.getElementById('historyModal').style.display='none';
+            
+            if (!success) {
+                hist.splice(index, 1);
+                localStorage.setItem('rcd_history', JSON.stringify(hist));
+                alert("This history item was corrupted and has been removed.");
+                openHistoryModal();
+            } else {
+                document.getElementById('historyModal').style.display='none';
+            }
         }
 
         function openHistoryModal() {
@@ -503,7 +511,7 @@
         function selectCategory(catName) {
             document.getElementById('catSelectionModal').style.display = 'none';
             let enteredInv = parseFloat(document.getElementById('ntInvoiceInput').value) || 0;
-            selectModel('NON TIEUP', true, null, catName, enteredInv, 0);
+            selectModel('NON TIEUP', { isNonTieup: true, categoryOverride: catName, initialInv: enteredInv });
         }
 
         function generateStackCards() {
@@ -560,7 +568,7 @@
             
             if(validSchemes.length > 0) { 
                 document.getElementById('multiStackModal').style.display='none';
-                selectModel(modelName, false, validSchemes, null, enteredInv, enteredMrp);
+                selectModel(modelName, { isNonTieup: false, manualSchemes: validSchemes, initialInv: enteredInv, initialMrp: enteredMrp });
                 
                 document.getElementById('multiStackModelName').value = 'MANUAL MODEL';
                 document.getElementById('multiStackInvoice').value = '';
@@ -598,7 +606,7 @@
                 recalculateProduct(parseInt(pIdx));
             } else {
                 let name = document.getElementById('manProdName').value.trim().toUpperCase() || 'MANUAL SCHEME';
-                selectModel(name, false, [scheme]);
+                selectModel(name, { isNonTieup: false, manualSchemes: [scheme] });
             }
         }
 
@@ -744,7 +752,7 @@
             
             let existingModels = current_products.map(p => p.name);
             let matches = [...new Set(db_records.filter(r => r.model !== 'NON TIEUP' && r.model.includes(q) && !existingModels.includes(r.model)).map(r => r.model))].slice(0, 15);
-            resDiv.innerHTML = matches.length ? matches.map(m => `<div class="result-item" onclick="selectModel('${m.replace(/'/g, "\\'")}', false)">📱 ${m}</div>`).join('') : '<div style="padding:10px; color:red; font-size:12px; text-align:center;">No match found.</div>';
+            resDiv.innerHTML = matches.length ? matches.map(m => `<div class="result-item" onclick="selectModel('${m.replace(/'/g, "\\'")}')">📱 ${m}</div>`).join('') : '<div style="padding:10px; color:red; font-size:12px; text-align:center;">No match found.</div>';
             resDiv.style.display = 'block';
         }
 
@@ -766,7 +774,14 @@
             };
         }
 
-        function selectModel(modelName, isNonTieup = false, manualSchemes = null, categoryOverride = null, initialInv = 0, initialMrp = 0) {
+        function selectModel(modelName, options = {}) {
+            let isNonTieup = options.isNonTieup || false;
+            let manualSchemes = options.manualSchemes || null;
+            let categoryOverride = options.categoryOverride || null;
+            let initialInv = options.initialInv || 0;
+            let initialMrp = options.initialMrp || 0;
+            let historyInputs = options.historyInputs || null;
+
             document.getElementById('searchInput').value = '';
             document.getElementById('searchResults').style.display = 'none';
 
@@ -790,12 +805,51 @@
             let finalInv = initialInv > 0 ? initialInv : (mrp > 0 ? mrp : (parseFloat(document.getElementById('custInvoice').value) || 0));
             document.getElementById('custInvoice').value = finalInv > 0 ? finalInv : "";
             
-            let pInputs = getGlobalInputs(finalInv, mrp);
+            let pInputs;
+            if (historyInputs) {
+                pInputs = historyInputs;
+                
+                document.getElementById('custType').value = pInputs.type || 'NEW';
+                document.getElementById('custLimit').value = pInputs.limit || '';
+                document.getElementById('custLtv').value = pInputs.ltv || 100;
+                document.getElementById('custCap').value = pInputs.cap || '';
+                document.getElementById('advTarget').value = pInputs.target || '';
+                document.getElementById('advGtl').value = pInputs.gtl || '0';
+                document.getElementById('advExw').value = pInputs.exw || '';
+                document.getElementById('advMargin').value = pInputs.margin || '';
+                document.getElementById('advDealer').value = pInputs.dealer || '';
+                
+                let rfcSel = document.getElementById('advRfc');
+                if (isMobileCat(cat)) {
+                    let slab = getRfcSlab(pInputs.inv);
+                    rfcSel.innerHTML = `<option value="0">0</option>` + (slab > 0 ? `<option value="${slab}">${slab}</option>` : '');
+                    rfcSel.value = pInputs.rfc || "0";
+                    rfcSel.disabled = false;
+                    document.getElementById('advExw').disabled = true;
+                } else {
+                    rfcSel.innerHTML = `<option value="0">0</option>`;
+                    rfcSel.disabled = true;
+                    document.getElementById('advExw').disabled = false;
+                }
+            } else {
+                pInputs = getGlobalInputs(finalInv, mrp);
+            }
 
-            current_products.push({ name: isNonTieup ? `NON TIEUP - ${cat}` : modelName, category: cat, isNonTieup, inputs: pInputs, rawSchemes, calculatedData: [] });
+            current_products.push({ 
+                name: isNonTieup ? `NON TIEUP - ${cat}` : modelName, 
+                category: cat, 
+                isNonTieup: isNonTieup, 
+                inputs: pInputs, 
+                rawSchemes: rawSchemes, 
+                calculatedData: [] 
+            });
             activeProductIndex = current_products.length - 1;
 
-            onInvoiceChange(); 
+            if (!historyInputs) {
+                onInvoiceChange(); 
+            } else {
+                recalculateProduct(activeProductIndex);
+            }
             
             document.getElementById('finalCalcSection').style.display = 'block';
             toggleAcc('none', 'none', document.createElement('div')); 
@@ -1151,9 +1205,12 @@
                 };
                 let cat = arr[12] || "OTHER";
                 
-                selectModel(name, isNT, null, { inputs: inputs, category: cat }, inputs.inv);
+                selectModel(name, { isNonTieup: isNT, historyInputs: inputs, categoryOverride: cat, initialInv: inputs.inv });
+                return true;
             } catch(e) {
+                console.error("Link parsing error:", e);
                 alert("Invalid or broken link!");
+                return false;
             }
         }
 
@@ -1233,19 +1290,21 @@
                     <td style="padding:22px 10px; font-size:24px; font-weight:900; color:#d35400;">₹${Math.round(s.daily).toLocaleString()}</td>
                 </tr>`).join('');
 
+            let fee = (p.inputs.type === 'EMI CARD' || p.inputs.type === 'INSTA EMI CARD') ? 270 : (p.inputs.type === 'W/O CARD' ? 320 : (p.inputs.type === 'NEW' ? 850 : 0));
+
             div.innerHTML = `
                 ${alertHtml}
                 <div style="border:2px solid #063970; border-radius:8px; overflow:hidden; background:#fff;">
                     <div style="background:#063970; color:#fff; padding:30px 20px; text-align:center;">
-                        <div style="font-size:28px; font-weight:900; line-height:1.3; margin-bottom:18px; text-transform:uppercase; word-break: break-word; white-space: normal;">📱 ${p.name.replace('NON TIEUP - ','')}</div>
+                        <div style="font-size:36px; font-weight:900; line-height:1.4; margin-bottom:18px; text-transform:uppercase; word-break: break-word; white-space: normal; letter-spacing:1px;">📱 ${p.name.replace('NON TIEUP - ','')}</div>
                         
-                        <div style="display:flex; justify-content:space-around; border-top:1px dashed rgba(255,255,255,0.3); padding-top:18px; font-size:18px; font-weight:bold; color:#e0f2fe;">
-                            <span>TYPE: <span style="color:#f1c40f;">${p.inputs.type||'NEW'}</span></span>
+                        <div style="display:flex; justify-content:space-around; border-top:1px dashed rgba(255,255,255,0.3); padding-top:18px; font-size:20px; font-weight:bold; color:#e0f2fe;">
+                            <span>TYPE: <span style="color:#f1c40f;">${p.inputs.type||'NEW'} (₹${fee})</span></span>
                             <span>LIMIT: <span style="color:#2ecc71;">₹${p.inputs.limit.toLocaleString()}</span></span>
                             <span>LTV: <span style="color:#fff;">${p.inputs.ltv}%</span></span>
                         </div>
                         
-                        ${p.inputs.inv>0 ? `<div style="margin-top:15px; font-size:22px; font-weight:900; letter-spacing:1px;">INVOICE: ₹${p.inputs.inv.toLocaleString()}</div>`:''}
+                        ${p.inputs.inv>0 ? `<div style="margin-top:15px; font-size:24px; font-weight:900; letter-spacing:1px; color:#f0fdf4;">INVOICE: ₹${p.inputs.inv.toLocaleString()}</div>`:''}
                     </div>
 
                     <table style="width:100%; border-collapse:collapse; text-align:center;">
