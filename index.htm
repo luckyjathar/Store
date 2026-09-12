@@ -253,6 +253,77 @@
     </div>
 
     <script>
+        /* === GOOGLE SHEETS CLOUD SYNC & AUTH === */
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwWt4xbbEYWpSwtOSY1jqGJauljwPWojqfpxL4Bk2aRE8gJMpAzanAmNQ1OGNzKYHZfGg/exec";
+let loggedInUserEmail = localStorage.getItem('persistent_user_email') || "";
+
+async function handleGoogleLogin(response) {
+    try {
+        const base64Url = response.credential.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) { return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2); }).join(''));
+        const userData = JSON.parse(jsonPayload);
+        loggedInUserEmail = userData.email; 
+        localStorage.setItem('persistent_user_email', loggedInUserEmail);
+        localStorage.setItem('persistent_user_name', userData.name);
+        updateLoginUI(userData.name);
+    } catch(e) { console.error("Google Login Error:", e); }
+}
+
+function updateLoginUI(userName) {
+    let status = document.getElementById('syncStatus');
+    if(status) {
+        status.style.display = 'block';
+        status.innerHTML = '🟢 ' + userName.split(' ')[0]; // Show first name
+    }
+    let signinBtn = document.querySelector('.g_id_signin');
+    if(signinBtn) signinBtn.style.display = 'none';
+}
+
+// जुन्या window.onload मध्ये हा कोड ॲड करा
+window.addEventListener('load', () => {
+    if(loggedInUserEmail) {
+        let savedName = localStorage.getItem('persistent_user_name') || "User";
+        updateLoginUI(savedName);
+    }
+});
+
+// Silent Sync Function
+async function triggerSilentCloudSync() {
+    if(!loggedInUserEmail || current_products.length === 0) return;
+    
+    // Create a dummy customer object since this new UI doesn't have a queue
+    let limitVal = document.getElementById('custLimit').value || 0;
+    let typeVal = document.getElementById('custType').value || 'NEW';
+    let ltvVal = document.getElementById('custLtv').value || 100;
+    
+    let compactProducts = current_products.map(p => { 
+        let { calculatedData, rawSchemes, ...keepProduct } = p; 
+        return keepProduct; 
+    });
+
+    let custData = {
+        name: "Anonymous User", // या नवीन UI मध्ये नाव नाहीये 
+        mobile: "",
+        limit: limitVal,
+        ltv: ltvVal,
+        type: typeVal,
+        timestamp: new Date().toLocaleString(),
+        products: compactProducts
+    };
+
+    try {
+        await fetch(APPS_SCRIPT_URL, { 
+            method: 'POST', 
+            mode: 'no-cors', 
+            headers: { 'Content-Type': 'text/plain' }, 
+            body: JSON.stringify({ email: loggedInUserEmail, queue: [custData] }) 
+        });
+        console.log("Synced to cloud silently.");
+    } catch(err) { 
+        console.log("Cloud Sync Failed:", err); 
+    }
+}
         // Use JsDelivr CDN proxy to bypass Indian ISP blocks on raw.githubusercontent.com
         const GITHUB_RAW_URL = "https://cdn.jsdelivr.net/gh/luckyjathar/testcalculator@main/master_data.xlsx";
         const BACKUP_URL = "https://raw.githubusercontent.com/luckyjathar/testcalculator/main/master_data.xlsx";
@@ -884,6 +955,13 @@
 
         // Exact Clean WhatsApp Image Generation + Link Display
         function copyImage() {
+            if(activeProductIndex === -1) return;
+    
+    // नवीन लाईन: इथून गुपचूप डेटा Google Sheet वर जाईल
+    triggerSilentCloudSync();
+    
+    let p = current_products[activeProductIndex];
+    // ... (बाकीचा जुना कोड तसाच राहील)
             if(activeProductIndex === -1) return;
             let p = current_products[activeProductIndex]; if(!p.calculatedData.length) return;
             let btn = document.querySelector('.btn-copy-img'); let oldBtn = btn.innerHTML; btn.innerHTML = "⏳ COPYING...";
