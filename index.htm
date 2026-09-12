@@ -6,7 +6,7 @@
     <title>PRO RCD CALCULATOR</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    
+    <script src="https://accounts.google.com/gsi/client" async defer></script>    
     <style>
         /* Ultra Compact Mobile View */
         body { font-family: 'Segoe UI', Tahoma, sans-serif; padding: 6px; background-color: #e2e8f0; margin: 0 auto; max-width: 480px; }
@@ -84,6 +84,17 @@
     <!-- 0. App Header -->
     <div class="app-header">
         <h2>🚀 PRO RCD CALCULATOR</h2>
+        <!-- Cloud Sync Status & Login -->
+    <div style="display:flex; align-items:center; gap:5px; margin-left:auto; margin-right:10px;">
+        <div id="syncStatus" style="font-size:10px; color:#fff; background:rgba(0,0,0,0.3); padding:4px 8px; border-radius:4px; display:none;">🔴 Offline</div>
+        <div id="g_id_onload" data-client_id="777001839486-tqii6kb1hjig7qnreme74vjbm9utavvd.apps.googleusercontent.com" data-callback="handleGoogleLogin" data-auto_select="false" data-auto_prompt="false"></div>
+        <div class="g_id_signin" data-type="icon" data-shape="circle" data-theme="outline" data-size="small"></div>
+    </div>
+
+    <div class="header-btns">
+        <button class="action-icon-btn" onclick="openLoadLinkModal()" title="Paste Link">🔗 Link</button>
+        <button class="action-icon-btn" onclick="alert('History feature coming soon!')" title="View History">🕒</button>
+    </div>
         <div class="header-btns">
             <button class="action-icon-btn" onclick="openLoadLinkModal()" title="Paste Link">🔗 Link</button>
             <button class="action-icon-btn" onclick="alert('History feature coming soon!')" title="View History">🕒</button>
