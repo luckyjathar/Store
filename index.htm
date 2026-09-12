@@ -6,14 +6,11 @@
     <title>PRO RCD CALCULATOR</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <!-- Google Login Script -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     
     <style>
-        /* Ultra Compact Mobile View */
         body { font-family: 'Segoe UI', Tahoma, sans-serif; padding: 6px; background-color: #e2e8f0; margin: 0 auto; max-width: 480px; }
         
-        /* App Header */
         .app-header { background: #034887; color: white; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
         .app-header h2 { margin: 0; font-size: 15px; font-weight: 900; letter-spacing: 0.5px; }
         .header-btns { display: flex; gap: 8px; align-items: center; }
@@ -27,7 +24,6 @@
         .toggle-icon { font-size: 12px; color: #0984e3; font-weight: bold; }
         .acc-content { padding: 8px; display: none; }
         
-        /* Compact Inputs */
         input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         input[type=number], input[type=text] { -moz-appearance: textfield; }
         input, select { padding: 4px 8px; font-size: 13px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; outline: none; width: 100%; height: 34px; font-weight: 700; color: #333; }
@@ -39,24 +35,21 @@
         .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-top: 6px; }
         .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
 
-        /* Search Results & Buttons */
         #searchResults { position: absolute; top: 100%; left: 0; right: 0; background: white; max-height: 200px; overflow-y: auto; border: 1px solid #ccc; box-shadow: 0 4px 8px rgba(0,0,0,0.1); display: none; z-index: 1000; }
         .result-item { padding: 10px; border-bottom: 1px solid #eee; font-size: 13px; font-weight: bold; color: #333; cursor: pointer; }
         .result-item:hover { background: #e3f2fd; color: #0984e3; }
         .btn-secondary { flex: 1; padding: 10px; background: #e2e8f0; color: #334155; border: none; border-radius: 4px; font-size: 11px; font-weight: 900; cursor: pointer; margin-top: 6px; }
         .btn-action { padding: 5px 8px; font-size: 10px; font-weight: bold; color: white; background: #0984e3; border: none; border-radius: 3px; cursor: pointer; }
 
-        /* Final Calculation Styles */
         .product-header { background: #034887; color: white; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: bold; cursor: pointer; border-radius: 6px; margin-bottom: 6px; }
         .product-header.active { border-radius: 6px 6px 0 0; margin-bottom: 0; background: #0984e3; }
-        .product-body { padding: 6px; background: #fff; border: 1px solid #0984e3; border-top: none; border-radius: 0 0 6px 6px; margin-bottom: 10px; }
+        .product-body { background: #fff; border: 1px solid #0984e3; border-top: none; border-radius: 0 0 6px 6px; margin-bottom: 10px; }
         .remove-btn { color: #ffcccc; background: none; border: none; font-size: 14px; font-weight: bold; padding: 0 5px; cursor: pointer; }
 
         .info-bar { background: #f8fafc; padding: 8px; border-bottom: 1px solid #e2e8f0; font-size: 11px; display: flex; flex-wrap: wrap; gap: 6px 14px; color: #555; }
         .info-bar b { color: #034887; font-weight: 900; }
         .alert-banner { background: #ffebee; color: #c62828; font-size: 11px; font-weight: 900; padding: 6px; text-align: center; border-bottom: 1px solid #ffcdd2; }
 
-        /* Clean Table */
         .scheme-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
         .scheme-table th, .scheme-table td { padding: 6px 2px; font-size: 12px; font-weight: bold; text-align: center; }
         .scheme-table th { background: #f1f5f9; color: #334155; font-size: 10px; text-transform: uppercase; border-bottom: 2px solid #cbd5e1; }
@@ -66,9 +59,8 @@
         .loan-input { width: 100%; height: 22px; padding: 0; font-size: 12px; text-align: center; border: none; border-bottom: 1px dashed #d35400; background: transparent; color: #d35400; font-weight: 900; }
         .loan-input:focus { outline: none; background: #fff3e0; }
 
-        .btn-copy-img { width: 100%; padding: 10px; font-size: 13px; font-weight: 900; color: white; background: #27ae60; border: none; border-radius: 4px; margin-bottom: 8px; cursor: pointer; }
+        .btn-copy-img { width: calc(100% - 12px); padding: 10px; font-size: 13px; font-weight: 900; color: white; background: #27ae60; border: none; border-radius: 4px; margin: 6px; cursor: pointer; }
 
-        /* Modals */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; align-items: center; justify-content: center; padding: 10px; box-sizing: border-box; }
         .modal-content { background: white; padding: 15px; border-radius: 8px; width: 100%; max-width: 400px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
         #previewImg { width: 100%; border-radius: 8px; border: 2px solid #ddd; max-height: 50vh; object-fit: contain; background: #fff; margin-bottom: 10px; }
@@ -83,18 +75,16 @@
         ⏳ Loading Master Data... Please wait.
     </div>
 
-    <!-- 0. App Header with Google Login Integration -->
+    <!-- 0. App Header -->
     <div class="app-header">
         <h2>🚀 PRO RCD CALCULATOR</h2>
-        
-        <div style="display:flex; align-items:center; gap:8px;">
-            <!-- Cloud Sync Status & Login -->
+        <div class="header-btns">
             <div id="syncStatus" style="font-size:10px; color:#fff; background:rgba(0,0,0,0.3); padding:4px 8px; border-radius:4px; display:none;">🔴 Offline</div>
             <div id="g_id_onload" data-client_id="777001839486-tqii6kb1hjig7qnreme74vjbm9utavvd.apps.googleusercontent.com" data-callback="handleGoogleLogin" data-auto_select="false" data-auto_prompt="false"></div>
             <div class="g_id_signin" data-type="icon" data-shape="circle" data-theme="outline" data-size="small"></div>
 
             <button class="action-icon-btn" onclick="openLoadLinkModal()" title="Paste Link">🔗 Link</button>
-            <button class="action-icon-btn" onclick="alert('History feature coming soon!')" title="View History">🕒</button>
+            <button class="action-icon-btn" onclick="openHistoryModal()" title="View History">🕒 History</button>
         </div>
     </div>
 
@@ -108,17 +98,16 @@
             <div class="grid-4">
                 <div>
                     <label>Type</label>
-                    <select id="custType" onchange="handleInputUpdate()">
-                        <option value="" selected>None</option>
-                        <option value="NEW">NEW</option>
+                    <select id="custType" onchange="handleInputUpdate()" tabindex="1">
+                        <option value="NEW" selected>NEW</option>
                         <option value="EMI CARD">EMI</option>
                         <option value="INSTA EMI CARD">INSTA</option>
                         <option value="W/O CARD">W/O</option>
                     </select>
                 </div>
-                <div><label>Limit</label><input type="number" id="custLimit" placeholder="0" oninput="handleInputUpdate()"></div>
-                <div><label>LTV %</label><input type="number" id="custLtv" value="100" oninput="handleInputUpdate()"></div>
-                <div><label>Cap</label><input type="number" id="custCap" placeholder="0" oninput="handleInputUpdate()"></div>
+                <div><label>Limit</label><input type="number" id="custLimit" placeholder="0" oninput="handleInputUpdate()" tabindex="2"></div>
+                <div><label>LTV %</label><input type="number" id="custLtv" value="100" oninput="handleInputUpdate()" tabindex="3"></div>
+                <div><label>Cap</label><input type="number" id="custCap" placeholder="0" oninput="handleInputUpdate()" tabindex="4"></div>
             </div>
         </div>
     </div>
@@ -131,21 +120,23 @@
         </div>
         <div id="searchContent" class="acc-content">
             <div style="position: relative;">
-                <input type="text" id="searchInput" onkeyup="searchModel()" placeholder="Type model name..." disabled>
+                <input type="text" id="searchInput" onkeyup="searchModel()" placeholder="Type model name..." disabled tabindex="5">
                 <div id="searchResults"></div>
             </div>
             
             <div id="selectedProductArea" style="display: none; margin-top: 10px; border-top: 1px dashed #ccc; padding-top: 8px;">
-                <div style="text-align:center; font-weight:900; color:#034887; font-size:14px; margin-bottom:8px;" id="selectedProduct"></div>
-                <div>
-                    <label style="color:#27ae60; font-size: 11px;">Invoice Amount (₹) *</label>
-                    <input type="number" id="custInvoice" oninput="onInvoiceChange()" style="border-color:#27ae60; background:#f0fdf4; font-size: 15px; text-align: center;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div style="font-weight:900; color:#034887; font-size:14px; text-transform:uppercase;" id="selectedProduct"></div>
+                    <div style="text-align:right;">
+                        <label style="color:#27ae60; font-size: 11px;">Invoice (₹) *</label>
+                        <input type="number" id="custInvoice" oninput="onInvoiceChange()" style="border-color:#27ae60; background:#f0fdf4; font-size: 15px; text-align: center; width: 110px;" tabindex="6">
+                    </div>
                 </div>
             </div>
 
             <div style="display:flex; gap:8px;">
-                <button class="btn-secondary" onclick="quickNonTieup()" style="background:#e3f2fd; color:#0984e3;">⚡ NON TIE-UP</button>
-                <button class="btn-secondary" onclick="openMultiStackModal()" style="background:#f1f5f9; color:#334155;">+ MANUAL (10 SCHEMES)</button>
+                <button class="btn-secondary" onclick="quickNonTieup()" style="background:#e3f2fd; color:#0984e3;" tabindex="7">⚡ NON TIE-UP</button>
+                <button class="btn-secondary" onclick="openMultiStackModal()" style="background:#f1f5f9; color:#334155;" tabindex="8">+ MANUAL (10 SCHEMES)</button>
             </div>
         </div>
     </div>
@@ -158,23 +149,23 @@
         </div>
         <div id="advancedContent" class="acc-content">
             <div class="grid-3">
-                <div><label>Target DP</label><input type="number" id="advTarget" placeholder="0" oninput="handleInputUpdate()"></div>
+                <div><label>Custom DP</label><input type="number" id="advTarget" placeholder="0" oninput="handleInputUpdate()" tabindex="9"></div>
                 <div>
                     <label>GTL (₹)</label>
-                    <select id="advGtl" onchange="handleInputUpdate()">
+                    <select id="advGtl" onchange="handleInputUpdate()" tabindex="10">
                         <option value="0">0</option><option value="699">699</option><option value="1199">1199</option>
                         <option value="1499">1499</option><option value="1799">1799</option><option value="2398">2398</option>
                     </select>
                 </div>
                 <div>
                     <label>RFC (₹)</label>
-                    <select id="advRfc" onchange="handleInputUpdate()">
-                        <option value="0">0</option>
+                    <select id="advRfc" onchange="handleInputUpdate()" tabindex="11">
+                        <option value="0" selected>0</option>
                     </select>
                 </div>
-                <div><label>EXW (₹)</label><input type="number" id="advExw" placeholder="0" oninput="handleInputUpdate()"></div>
-                <div><label>Margin (₹)</label><input type="number" id="advMargin" placeholder="0" oninput="handleInputUpdate()"></div>
-                <div><label>Dealer</label><input type="number" id="advDealer" placeholder="0" oninput="handleInputUpdate()"></div>
+                <div><label>EXW (₹)</label><input type="number" id="advExw" placeholder="0" oninput="handleInputUpdate()" tabindex="12"></div>
+                <div><label>Margin (₹)</label><input type="number" id="advMargin" placeholder="0" oninput="handleInputUpdate()" tabindex="13"></div>
+                <div><label>Dealer</label><input type="number" id="advDealer" placeholder="0" oninput="handleInputUpdate()" tabindex="14"></div>
             </div>
         </div>
     </div>
@@ -184,9 +175,20 @@
         <div style="text-align:center; background:#0984e3; padding:10px; border-radius:6px 6px 0 0;">
             <h3 style="margin:0; color:#fff; font-size:15px; font-weight:900;">📊 FINAL CALCULATION</h3>
         </div>
-        <div style="background:#fff; border:1px solid #0984e3; border-top:none; border-radius:0 0 6px 6px; padding:8px;">
+        <div style="background:#fff; border:1px solid #0984e3; border-top:none; border-radius:0 0 6px 6px;">
             <button class="btn-copy-img" onclick="copyImage()">🖼️ COPY IMAGE</button>
             <div id="productsContainer"></div>
+        </div>
+    </div>
+
+    <!-- History Modal -->
+    <div id="historyModal" class="modal">
+        <div class="modal-content" style="max-height: 80vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #ddd; padding-bottom: 6px; margin-bottom: 8px;">
+                <h3 style="margin:0; color:#034887;">🕒 History</h3>
+                <button onclick="document.getElementById('historyModal').style.display='none'" style="background:none; border:none; color:red; font-weight:bold; cursor:pointer; font-size:16px;">✖</button>
+            </div>
+            <div id="historyList" style="display:flex; flex-direction:column; gap:6px; text-align:left;"></div>
         </div>
     </div>
 
@@ -195,13 +197,11 @@
         <div class="modal-content">
             <h3 style="margin-top:0; color:#034887;">✅ Image Generated</h3>
             <img id="previewImg" />
-            
             <p style="font-size: 11px; color:#555; text-align: left; margin:5px 0;">Share this link to load this calculation instantly:</p>
             <div class="link-box">
                 <input type="text" id="shareLinkInput" class="link-input" readonly>
                 <button class="btn-secondary" style="background:#27ae60; color:white; margin:0;" onclick="copyShareLink()">COPY LINK</button>
             </div>
-            
             <button class="btn-secondary" style="width:100%; background:#e2e8f0; color:#333; margin-top:5px; height:38px; font-size: 14px;" onclick="document.getElementById('previewModal').style.display='none'">Close</button>
         </div>
     </div>
@@ -219,34 +219,38 @@
         </div>
     </div>
 
-    <!-- Category Modal for Non-Tieup (With Invoice Input) -->
+    <!-- Category Modal for Non-Tieup -->
     <div id="catSelectionModal" class="modal">
         <div class="modal-content" style="max-height: 80vh; overflow-y: auto;">
             <h3 style="margin-top:0; color:#034887;">⚡ SELECT CATEGORY</h3>
-            
             <div style="margin-bottom: 12px; text-align: left; background:#f0fdf4; padding:8px; border-radius:6px; border:1px solid #27ae60;">
                 <label style="color:#27ae60; font-size:11px; font-weight:900;">INVOICE AMOUNT (₹)</label>
                 <input type="number" id="ntInvoiceInput" placeholder="Enter Amount" style="border-color:#27ae60; background:#fff; font-size:15px; text-align:center; font-weight:bold;">
             </div>
-
             <div id="categoryGrid" style="display:grid; grid-template-columns:1fr 1fr; gap:8px;"></div>
             <button class="btn-secondary" onclick="document.getElementById('catSelectionModal').style.display='none'" style="width:100%; margin-top:12px; background:#e2e8f0; color:#333;">Cancel</button>
         </div>
     </div>
 
-    <!-- Modal for Manual 10 Schemes (With Invoice Input) -->
+    <!-- Modal for Manual 10 Schemes -->
     <div id="multiStackModal" class="modal">
         <div class="modal-content" style="max-height: 85vh; overflow-y: auto; background: #e2e8f0;">
             <h3 style="margin-top:0; color:#034887;">Add Custom Product</h3>
             
-            <div style="margin-bottom: 10px; text-align: left; display:grid; grid-template-columns:1fr 1fr; gap:8px; background:#fff; padding:8px; border-radius:6px; border:1px solid #ccc;">
+            <div style="margin-bottom: 10px; text-align: left; display:grid; grid-template-columns:1fr; gap:8px; background:#fff; padding:8px; border-radius:6px; border:1px solid #ccc;">
                 <div>
                     <label style="color:#034887;">Product Name</label>
-                    <input type="text" id="multiStackModelName" placeholder="E.g. VIVO V27" value="MANUAL MODEL">
+                    <input type="text" id="multiStackModelName" placeholder="E.g. VIVO V27" value="MANUAL MODEL" tabindex="50">
                 </div>
-                <div>
-                    <label style="color:#27ae60;">Invoice Amount (₹)</label>
-                    <input type="number" id="multiStackInvoice" placeholder="E.g. 25000">
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                    <div>
+                        <label style="color:#27ae60;">Invoice Amount (₹)</label>
+                        <input type="number" id="multiStackInvoice" placeholder="E.g. 25000" tabindex="51">
+                    </div>
+                    <div>
+                        <label style="color:#034887;">System Price (MRP) ₹</label>
+                        <input type="number" id="multiStackMrp" placeholder="E.g. 26000" tabindex="52">
+                    </div>
                 </div>
             </div>
 
@@ -259,15 +263,38 @@
         </div>
     </div>
 
+    <!-- Manual / Add Scheme Modal -->
+    <div id="manualModal" class="modal">
+        <div class="modal-content">
+            <h3 style="color:#034887; margin-top:0;">Add Custom Scheme</h3>
+            <input type="hidden" id="manTargetPIdx" value="">
+            <div id="manProdNameArea" style="margin-bottom:8px;">
+                <label>Product Name</label>
+                <input type="text" id="manProdName" placeholder="E.g. VIVO V27">
+            </div>
+            <div class="grid-2">
+                <div><label>Tenure</label><input type="number" id="manTen" placeholder="12"></div>
+                <div><label>Advance</label><input type="number" id="manAdv" placeholder="4"></div>
+                <div><label>DBD %</label><input type="number" id="manDbd" placeholder="0"></div>
+                <div><label>PF (₹)</label><input type="number" id="manPf" placeholder="0"></div>
+                <div><label>ROI %</label><input type="number" id="manRoi" placeholder="0"></div>
+                <div><label>Fixed EMI</label><input type="number" id="manFix" placeholder="0"></div>
+            </div>
+            <div style="display:flex; gap:10px; margin-top:10px;">
+                <button class="btn-secondary" style="background:#0984e3; color:white;" onclick="addManualProduct()">Add Scheme</button>
+                <button class="btn-secondary" onclick="document.getElementById('manualModal').style.display='none'">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const GITHUB_RAW_URL = "https://cdn.jsdelivr.net/gh/luckyjathar/testcalculator@main/master_data.xlsx";
         const BACKUP_URL = "https://raw.githubusercontent.com/luckyjathar/testcalculator/main/master_data.xlsx";
 
-        /* === CACHING SYSTEM (INDEXED DB) === */
         const DB_NAME = "RCD_Calc_DB"; 
         const DB_VERSION = 1; 
         const STORE_NAME = "cacheStore"; 
-        const CACHE_DURATION_MS = 12 * 60 * 60 * 1000; // 12 Hours
+        const CACHE_DURATION_MS = 12 * 60 * 60 * 1000;
         let dbInstance;
 
         function initDB() { 
@@ -305,7 +332,6 @@
             }); 
         }
 
-        /* === GOOGLE SHEETS CLOUD SYNC & AUTH === */
         const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwWt4xbbEYWpSwtOSY1jqGJauljwPWojqfpxL4Bk2aRE8gJMpAzanAmNQ1OGNzKYHZfGg/exec";
         let loggedInUserEmail = localStorage.getItem('persistent_user_email') || "";
 
@@ -314,7 +340,6 @@
         let activeProductIndex = -1;
         let activeCategory = "";
 
-        // Google Login Functions
         async function handleGoogleLogin(response) {
             try {
                 const base64Url = response.credential.split('.')[1];
@@ -369,10 +394,44 @@
                     headers: { 'Content-Type': 'text/plain' }, 
                     body: JSON.stringify({ email: loggedInUserEmail, queue: [custData] }) 
                 });
-                console.log("Synced to cloud silently.");
-            } catch(err) { 
-                console.log("Cloud Sync Failed:", err); 
+            } catch(err) { console.log(err); }
+        }
+
+        function saveToHistory() {
+            if(current_products.length === 0 || activeProductIndex === -1) return;
+            let hist = JSON.parse(localStorage.getItem('rcd_history') || '[]');
+            let p = current_products[activeProductIndex];
+            if(!p) return;
+            let shareLink = getShareLinkUrl(activeProductIndex);
+            
+            if(hist.length === 0 || hist[0].link !== shareLink) {
+                hist.unshift({
+                    time: new Date().toLocaleString('en-GB', {day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit'}),
+                    name: p.name,
+                    inv: p.inputs.inv,
+                    limit: p.inputs.limit,
+                    link: shareLink
+                });
+                if(hist.length > 30) hist.pop();
+                localStorage.setItem('rcd_history', JSON.stringify(hist));
             }
+        }
+
+        function openHistoryModal() {
+            let hist = JSON.parse(localStorage.getItem('rcd_history') || '[]');
+            let list = document.getElementById('historyList');
+            if(hist.length === 0) {
+                list.innerHTML = `<div style="text-align:center; padding:20px; color:#888;">No history found.</div>`;
+            } else {
+                list.innerHTML = hist.map(h => `
+                    <div style="background:#f8f9fa; border:1px solid #ccc; padding:8px; border-radius:6px; cursor:pointer;" onclick="loadFromSharedData('${h.link.split('s=')[1]}'); document.getElementById('historyModal').style.display='none';">
+                        <div style="font-size:12px; color:#034887; font-weight:900;">📱 ${h.name.replace('NON TIEUP - ','')}</div>
+                        <div style="font-size:10px; color:#555;">Limit: ₹${h.limit} | Inv: ₹${h.inv}</div>
+                        <div style="font-size:9px; color:#888; margin-top:4px;">${h.time}</div>
+                    </div>
+                `).join('');
+            }
+            document.getElementById('historyModal').style.display = 'flex';
         }
 
         window.onload = async function() {
@@ -399,7 +458,6 @@
             }
         };
 
-        // === NON-TIEUP & MANUAL LOGIC ===
         function quickNonTieup() {
             let currentInv = document.getElementById('custInvoice').value || '';
             document.getElementById('ntInvoiceInput').value = currentInv;
@@ -420,24 +478,25 @@
         function selectCategory(catName) {
             document.getElementById('catSelectionModal').style.display = 'none';
             let enteredInv = parseFloat(document.getElementById('ntInvoiceInput').value) || 0;
-            selectModel('NON TIEUP', true, null, { category: catName }, enteredInv);
+            selectModel('NON TIEUP', true, null, catName, enteredInv, 0);
         }
 
         function generateStackCards() {
             let container = document.getElementById('stackInputsContainer'); 
             if(!container) return; 
             container.innerHTML = ""; 
+            let tabStart = 53;
             for(let i=1; i<=10; i++) { 
                 container.innerHTML += `
                 <div style="background:#fff; border: 1px solid #ccc; padding: 10px; border-radius: 6px; margin-bottom: 8px; text-align: left; box-shadow:0 1px 3px rgba(0,0,0,0.1);">
                     <div style="font-weight:900; color:#034887; margin-bottom:6px; border-bottom:1px solid #eee; padding-bottom:4px;">SCHEME #${i}</div> 
                     <div class="grid-2"> 
-                        <div><label>Tenure (Max)</label><input type="number" id="msTen_${i}" placeholder="0"></div> 
-                        <div><label>Advance</label><input type="number" id="msAdv_${i}" placeholder="0"></div> 
-                        <div><label>DBD %</label><input type="number" id="msDbd_${i}" placeholder="0" step="0.01"></div> 
-                        <div><label>PF (₹)</label><input type="number" id="msPf_${i}" placeholder="0"></div> 
-                        <div><label>ROI %</label><input type="number" id="msRoi_${i}" placeholder="0" step="0.01"></div> 
-                        <div><label>Fixed EMI</label><input type="number" id="msFix_${i}" placeholder="0"></div> 
+                        <div><label>Tenure</label><input type="number" id="msTen_${i}" placeholder="0" tabindex="${tabStart++}"></div> 
+                        <div><label>Advance</label><input type="number" id="msAdv_${i}" placeholder="0" tabindex="${tabStart++}"></div> 
+                        <div><label>DBD %</label><input type="number" id="msDbd_${i}" placeholder="0" step="0.01" tabindex="${tabStart++}"></div> 
+                        <div><label>PF (₹)</label><input type="number" id="msPf_${i}" placeholder="0" tabindex="${tabStart++}"></div> 
+                        <div><label>ROI %</label><input type="number" id="msRoi_${i}" placeholder="0" step="0.01" tabindex="${tabStart++}"></div> 
+                        <div><label>Fixed EMI</label><input type="number" id="msFix_${i}" placeholder="0" tabindex="${tabStart++}"></div> 
                     </div> 
                 </div>`; 
             } 
@@ -452,6 +511,8 @@
         function processMultiStack() {
             let modelName = document.getElementById('multiStackModelName').value.trim().toUpperCase(); 
             let enteredInv = parseFloat(document.getElementById('multiStackInvoice').value) || 0;
+            let enteredMrp = parseFloat(document.getElementById('multiStackMrp').value) || 0;
+            
             if (!modelName) { alert("⚠️ Please enter Product Model Name!"); return; } 
             
             let validSchemes = [];
@@ -474,16 +535,45 @@
             
             if(validSchemes.length > 0) { 
                 document.getElementById('multiStackModal').style.display='none';
-                selectModel(modelName, false, validSchemes, null, enteredInv);
+                selectModel(modelName, false, validSchemes, null, enteredInv, enteredMrp);
                 
-                // Reset form
                 document.getElementById('multiStackModelName').value = 'MANUAL MODEL';
                 document.getElementById('multiStackInvoice').value = '';
+                document.getElementById('multiStackMrp').value = '';
                 for(let i=1; i<=10; i++) { 
                     ['msTen_','msAdv_','msDbd_','msPf_','msRoi_','msFix_'].forEach(pref => document.getElementById(pref+i).value = ''); 
                 }
             } else { 
                 alert("⚠️ Enter at least one valid scheme details!"); 
+            }
+        }
+
+        function openManualModal(pIdx = -1) { 
+            document.getElementById('manTargetPIdx').value = pIdx;
+            if (pIdx !== -1) {
+                document.getElementById('manProdNameArea').style.display = 'none';
+            } else {
+                document.getElementById('manProdNameArea').style.display = 'block';
+            }
+            document.getElementById('manualModal').style.display='flex'; 
+        }
+
+        function addManualProduct() {
+            let pIdx = document.getElementById('manTargetPIdx').value;
+            let ten = parseInt(document.getElementById('manTen').value)||0, adv = parseInt(document.getElementById('manAdv').value)||0, fix = parseInt(document.getElementById('manFix').value)||0;
+            if(ten === 0 && fix === 0) { alert("Enter valid Tenure or Fixed EMI"); return; }
+            let scheme = { tenure: ten, advEmi: adv, dbd: parseFloat(document.getElementById('manDbd').value)||0, pf: parseInt(document.getElementById('manPf').value)||0, roi: parseFloat(document.getElementById('manRoi').value)||0, fixedEmi: fix, minLoan: 0, maxLoan: 9999999 };
+            
+            document.getElementById('manualModal').style.display='none';
+            ['manProdName','manTen','manAdv','manDbd','manPf','manRoi','manFix'].forEach(id=>document.getElementById(id).value='');
+
+            if (pIdx !== "") {
+                let p = current_products[parseInt(pIdx)];
+                p.rawSchemes.push(scheme);
+                recalculateProduct(parseInt(pIdx));
+            } else {
+                let name = document.getElementById('manProdName').value.trim().toUpperCase() || 'MANUAL SCHEME';
+                selectModel(name, false, [scheme]);
             }
         }
 
@@ -618,7 +708,6 @@
                 document.getElementById('loadingStatus').style.display = 'none';
                 document.getElementById('searchInput').disabled = false;
             } catch(e) { 
-                console.error(e);
                 document.getElementById('loadingStatus').innerHTML = `<span style="color:#d35400;">⚠️ Error Loading Data:<br>${e.message}<br>Check Internet Connection.</span>`; 
             }
         }
@@ -628,16 +717,37 @@
             let resDiv = document.getElementById('searchResults');
             if (!q) { resDiv.style.display = 'none'; return; }
             
-            let matches = [...new Set(db_records.filter(r => r.model !== 'NON TIEUP' && r.model.includes(q)).map(r => r.model))].slice(0, 15);
+            let existingModels = current_products.map(p => p.name);
+            let matches = [...new Set(db_records.filter(r => r.model !== 'NON TIEUP' && r.model.includes(q) && !existingModels.includes(r.model)).map(r => r.model))].slice(0, 15);
             resDiv.innerHTML = matches.length ? matches.map(m => `<div class="result-item" onclick="selectModel('${m.replace(/'/g, "\\'")}', false)">📱 ${m}</div>`).join('') : '<div style="padding:10px; color:red; font-size:12px; text-align:center;">No match found.</div>';
             resDiv.style.display = 'block';
         }
 
-        function selectModel(modelName, isNonTieup = false, manualSchemes = null, manualState = null, initialInv = 0) {
+        // Helper to grab global inputs dynamically
+        function getGlobalInputs(invAmt, mrpAmt) {
+            return {
+                type: document.getElementById('custType').value || 'NEW',
+                limit: parseFloat(document.getElementById('custLimit').value) || 0,
+                mrp: mrpAmt || 0,
+                inv: invAmt || 0,
+                ltv: parseFloat(document.getElementById('custLtv').value) || 100,
+                cap: parseFloat(document.getElementById('custCap').value) || 0,
+                target: parseFloat(document.getElementById('advTarget').value) || 0,
+                gtl: parseFloat(document.getElementById('advGtl').value) || 0,
+                rfc: parseFloat(document.getElementById('advRfc').value) || 0,
+                exw: parseFloat(document.getElementById('advExw').value) || 0,
+                margin: parseFloat(document.getElementById('advMargin').value) || 0,
+                dealer: parseFloat(document.getElementById('advDealer').value) || 0,
+                overrides: {}
+            };
+        }
+
+        function selectModel(modelName, isNonTieup = false, manualSchemes = null, categoryOverride = null, initialInv = 0, initialMrp = 0) {
             document.getElementById('searchInput').value = '';
             document.getElementById('searchResults').style.display = 'none';
 
-            let rawSchemes = [], mrp = 0, cat = "OTHER";
+            let rawSchemes = [], mrp = initialMrp, cat = categoryOverride || "OTHER";
+            
             if (manualSchemes) { 
                 rawSchemes = manualSchemes; 
             } else if (!isNonTieup) {
@@ -645,75 +755,32 @@
                 if(rec) { cat = rec.category; mrp = rec.mrp; }
                 rawSchemes = db_records.filter(r => r.model === modelName);
             } else {
-                cat = (manualState ? manualState.category : activeCategory);
                 rawSchemes = db_records.filter(r => r.model === "NON TIEUP" && r.category === cat);
             }
+            
             activeCategory = cat;
 
             document.getElementById('selectedProduct').innerText = "📱 " + modelName;
-            document.getElementById('selectedProductArea').style.display = 'block';
+            document.getElementById('selectedProductArea').style.display = 'flex'; // Changed to flex
 
-            let pInputs = {};
+            let finalInv = initialInv > 0 ? initialInv : (mrp > 0 ? mrp : (parseFloat(document.getElementById('custInvoice').value) || 0));
+            document.getElementById('custInvoice').value = finalInv > 0 ? finalInv : "";
+            
+            let pInputs = getGlobalInputs(finalInv, mrp);
 
-            if(manualState) {
-                pInputs = manualState.inputs;
-                
-                document.getElementById('custType').value = pInputs.type || '';
-                document.getElementById('custLimit').value = pInputs.limit || '';
-                document.getElementById('custInvoice').value = pInputs.inv || '';
-                document.getElementById('custLtv').value = pInputs.ltv || 100;
-                document.getElementById('custCap').value = pInputs.cap || '';
-                document.getElementById('advTarget').value = pInputs.target || '';
-                document.getElementById('advGtl').value = pInputs.gtl || '0';
-                document.getElementById('advExw').value = pInputs.exw || '';
-                document.getElementById('advMargin').value = pInputs.margin || '';
-                document.getElementById('advDealer').value = pInputs.dealer || '';
-                
-                let rfcSel = document.getElementById('advRfc');
-                if (isMobileCat(cat)) {
-                    let slab = getRfcSlab(pInputs.inv);
-                    rfcSel.innerHTML = `<option value="0">0</option>` + (slab > 0 ? `<option value="${slab}">${slab}</option>` : '');
-                    rfcSel.value = pInputs.rfc || "0";
-                    rfcSel.disabled = false;
-                    document.getElementById('advExw').disabled = true;
-                } else {
-                    rfcSel.innerHTML = `<option value="0">0</option>`;
-                    rfcSel.disabled = true;
-                    document.getElementById('advExw').disabled = false;
-                }
-                
-                current_products.push({ name: isNonTieup ? `NON TIEUP - ${cat}` : modelName, category: cat, isNonTieup, inputs: pInputs, rawSchemes, calculatedData: [] });
-                activeProductIndex = current_products.length - 1;
-                
-                document.getElementById('finalCalcSection').style.display = 'block';
-                toggleAcc('none', 'none', document.createElement('div')); 
-                recalculateProduct(activeProductIndex);
-                
-                setTimeout(() => { document.getElementById('finalCalcSection').scrollIntoView({ behavior: 'smooth' }); }, 300);
+            current_products.push({ name: isNonTieup ? `NON TIEUP - ${cat}` : modelName, category: cat, isNonTieup, inputs: pInputs, rawSchemes, calculatedData: [] });
+            activeProductIndex = current_products.length - 1;
 
-            } else {
-                let finalInv = initialInv > 0 ? initialInv : (mrp > 0 ? mrp : (parseFloat(document.getElementById('custInvoice').value) || 0));
-                document.getElementById('custInvoice').value = finalInv > 0 ? finalInv : "";
-                
-                pInputs = {
-                    type: document.getElementById('custType').value || '',
-                    limit: parseFloat(document.getElementById('custLimit').value) || 0,
-                    mrp: mrp || 0,
-                    inv: finalInv,
-                    ltv: parseFloat(document.getElementById('custLtv').value) || 100,
-                    cap: parseFloat(document.getElementById('custCap').value) || 0,
-                    target: parseFloat(document.getElementById('advTarget').value) || 0,
-                    gtl: 0, rfc: 0, exw: 0, margin: 0, dealer: 0, overrides: {}
-                };
-
-                current_products.push({ name: isNonTieup ? `NON TIEUP - ${cat}` : modelName, category: cat, isNonTieup, inputs: pInputs, rawSchemes, calculatedData: [] });
-                activeProductIndex = current_products.length - 1;
-
-                onInvoiceChange(); 
-                
-                document.getElementById('finalCalcSection').style.display = 'block';
-                toggleAcc('none', 'none', document.createElement('div')); 
-            }
+            onInvoiceChange(); 
+            
+            document.getElementById('finalCalcSection').style.display = 'block';
+            toggleAcc('none', 'none', document.createElement('div')); 
+            
+            // Auto focus Invoice Box
+            setTimeout(() => { 
+                document.getElementById('custInvoice').focus(); 
+                document.getElementById('finalCalcSection').scrollIntoView({ behavior: 'smooth' }); 
+            }, 300);
         }
 
         function removeProduct(index, event) {
@@ -743,7 +810,7 @@
             if(activeProductIndex === -1) { document.getElementById('selectedProductArea').style.display = 'none'; return; }
             let p = current_products[activeProductIndex];
             
-            document.getElementById('selectedProductArea').style.display = 'block';
+            document.getElementById('selectedProductArea').style.display = 'flex';
             document.getElementById('selectedProduct').innerText = "📱 " + p.name;
 
             let ids = ['custType','custLimit','custInvoice','custLtv','custCap','advTarget','advGtl','advExw','advMargin','advDealer'];
@@ -789,11 +856,11 @@
                 if (isMobileCat(p.category)) {
                     let rfc = getRfcSlab(inv);
                     document.getElementById('advRfc').innerHTML = `<option value="0">0</option>` + (rfc > 0 ? `<option value="${rfc}">${rfc}</option>` : '');
-                    document.getElementById('advRfc').value = rfc > 0 ? rfc : "0";
+                    document.getElementById('advRfc').value = "0"; // Default RFC is 0
                     document.getElementById('advRfc').disabled = false;
                     document.getElementById('advExw').value = "";
                     document.getElementById('advExw').disabled = true;
-                    p.inputs.rfc = rfc;
+                    p.inputs.rfc = 0;
                     p.inputs.exw = 0;
                 } else { 
                     document.getElementById('advRfc').innerHTML = `<option value="0">0</option>`;
@@ -806,7 +873,6 @@
             handleInputUpdate();
         }
 
-        // थेट फायनल टेबलमधून Invoice Amount बदलण्यासाठी हे फंक्शन
         function updateProductInvoice(index, val) {
             let inv = parseFloat(val) || 0;
             let p = current_products[index];
@@ -814,7 +880,8 @@
             let gtl = inv > 100000 ? 2398 : (inv > 50000 ? 1799 : (inv > 30000 ? 1499 : (inv > 10000 ? 1199 : (inv > 0 ? 699 : 0))));
             p.inputs.gtl = gtl;
             if (isMobileCat(p.category)) {
-                p.inputs.rfc = getRfcSlab(inv);
+                // Keep rfc 0 but slab ready
+                p.inputs.rfc = 0;
                 p.inputs.exw = 0;
             }
             if (index === activeProductIndex) {
@@ -822,9 +889,9 @@
                 document.getElementById('advGtl').value = gtl > 0 ? gtl : "0";
                 let rfcSel = document.getElementById('advRfc');
                 if (isMobileCat(p.category)) {
-                    let slab = p.inputs.rfc;
+                    let slab = getRfcSlab(inv);
                     rfcSel.innerHTML = `<option value="0">0</option>` + (slab > 0 ? `<option value="${slab}">${slab}</option>` : '');
-                    rfcSel.value = slab > 0 ? slab : "0";
+                    rfcSel.value = "0";
                 }
             }
             recalculateProduct(index);
@@ -836,6 +903,7 @@
             let keys = ['type','limit','inv','ltv','cap','target','gtl','rfc','exw','margin','dealer'];
             let ids = ['custType','custLimit','custInvoice','custLtv','custCap','advTarget','advGtl','advRfc','advExw','advMargin','advDealer'];
             keys.forEach((k, i) => { p.inputs[k] = (k==='type') ? document.getElementById(ids[i]).value : parseFloat(document.getElementById(ids[i]).value)||0; });
+            if(!p.inputs.type) p.inputs.type = "NEW";
             if(!document.getElementById('custLtv').value) p.inputs.ltv = 100;
             recalculateProduct(activeProductIndex);
         }
@@ -861,7 +929,7 @@
         function recalculateProduct(index) {
             let prod = current_products[index]; 
             let inp = prod.inputs;
-            if (!inp.type) { prod.calculatedData = []; return; }
+            if (!inp.type) inp.type = "NEW"; 
 
             let fee = (inp.type === 'EMI CARD' || inp.type === 'INSTA EMI CARD') ? 270 : (inp.type === 'W/O CARD' ? 320 : (inp.type === 'NEW' ? 850 : 0));
             let totalFees = fee + (parseFloat(inp.margin)||0) + (parseFloat(inp.dealer)||0); 
@@ -973,9 +1041,6 @@
                     </div>
                     <div class="product-body" style="display: ${isActive ? 'block' : 'none'};">`;
 
-                if (missingElig) html += `<div class="alert-banner">⚠️ Eligibility Details Missing! Base calculation applied.</div>`;
-
-                // Editable Invoice Box right on the product card!
                 html += `
                 <div style="display:flex; align-items:center; justify-content:space-between; background:#f0fdf4; border:1.5px solid #27ae60; padding:6px 10px; border-radius:4px; margin-bottom:8px;">
                     <span style="color:#27ae60; font-weight:900; font-size:11px;">INVOICE AMOUNT (₹):</span>
@@ -985,9 +1050,13 @@
                     </div>
                 </div>`;
 
+                let gtlStr = p.inputs.gtl > 0 ? ` | <span>GTL: <b>₹${p.inputs.gtl}</b></span>` : '';
+                let rfcStr = p.inputs.rfc > 0 ? ` | <span>RFC: <b>₹${p.inputs.rfc}</b></span>` : '';
+                let exwStr = p.inputs.exw > 0 ? ` | <span>EXW: <b>₹${p.inputs.exw}</b></span>` : '';
+                
                 html += `<div class="info-bar">
-                    <span>Type: <b>${p.inputs.type || '-'}</b></span> | <span>Limit: <b style="color:#27ae60;">₹${p.inputs.limit.toLocaleString()}</b></span> | <span>LTV: <b>${p.inputs.ltv}%</b></span><br>
-                    <span>Target: <b>₹${p.inputs.target.toLocaleString()}</b></span> | <span>Fee: <b>₹${fee}</b></span>
+                    <span>Type: <b>${p.inputs.type || 'NEW'} (₹${fee})</b></span> | <span>Limit: <b style="color:#27ae60;">₹${p.inputs.limit.toLocaleString()}</b></span> | <span>LTV: <b>${p.inputs.ltv}%</b></span><br>
+                    <span>Custom DP: <b>₹${p.inputs.target.toLocaleString()}</b></span>${gtlStr}${rfcStr}${exwStr}
                 </div>`;
 
                 html += `<table class="scheme-table">
@@ -1005,13 +1074,17 @@
                         </tr>
                         <tr class="row-sub">
                             <td colspan="5">
-                                <b>DBD:</b> ${parseFloat(s.dbd.toFixed(2))}% (₹${Math.round(s.loan * (s.dbd * 1.18 / 100))}) | <b>PF:</b> ₹${s.pf} | <b>ROI:</b> ${parseFloat(s.roi.toFixed(2))}% | <b>FIX:</b> ${s.fixedEmi>0?'₹'+s.fixedEmi:'No'}
+                                <b>DBD:</b> ${parseFloat(s.dbd.toFixed(2))}% (₹${Math.round(s.loan * (s.dbd * 1.18 / 100))}) | <b>PF:</b> ₹${s.pf} | <b>ROI:</b> ${parseFloat(s.roi.toFixed(2))}% | <b>FIX:</b> ${s.fixedEmi>0?'₹'+s.fixedEmi:'No'} | <b>DAILY SAVE:</b> ₹${Math.round(s.daily).toLocaleString()}
                             </td>
                         </tr>`).join('');
                 } else {
                     html += `<tr><td colspan="5" style="color:#d35400; font-weight:bold; padding:15px;">⚠️ कृपया वर Invoice Amount टाका (किंवा Limit / LTV तपासा).</td></tr>`;
                 }
-                html += `</tbody></table></div></div>`;
+                html += `</tbody></table>
+                <div style="padding: 8px; text-align: center; background: #f8fafc; border-top: 1px solid #e2e8f0;">
+                    <button class="btn-secondary" style="background:#034887; color:white; width:auto; padding:6px 15px;" onclick="openManualModal(${index})">➕ ADD CUSTOM SCHEME</button>
+                </div>
+                </div></div>`;
                 container.innerHTML += html;
             });
         }
@@ -1050,7 +1123,7 @@
                     exw: parseFloat(arr[9]) || 0,
                     margin: parseFloat(arr[10]) || 0,
                     dealer: parseFloat(arr[11]) || 0,
-                    type: arr[13] || "",
+                    type: arr[13] || "NEW",
                     mrp: parseFloat(arr[3]) || 0,
                     overrides: {}
                 };
@@ -1101,8 +1174,11 @@
 
         function copyText(pIndex, sIndex, btn) {
             let p = current_products[pIndex]; let s = p.calculatedData[sIndex];
-            let txt = `📱 *${p.name.replace('NON TIEUP - ','')}*\n\n👤 *ELIGIBILITY:*\n*Type:* ${p.inputs.type||'N/A'} | *Limit:* ₹${p.inputs.limit.toLocaleString()} | *LTV:* ${p.inputs.ltv}%\n${p.inputs.inv>0?`*Invoice:* ₹${p.inputs.inv.toLocaleString()}\n`:''}`;
+            let txt = `📱 *${p.name.replace('NON TIEUP - ','')}*\n\n👤 *ELIGIBILITY:*\n*Type:* ${p.inputs.type||'NEW'} | *Limit:* ₹${p.inputs.limit.toLocaleString()} | *LTV:* ${p.inputs.ltv}%\n${p.inputs.inv>0?`*Invoice:* ₹${p.inputs.inv.toLocaleString()}\n`:''}`;
             txt += `------------------------\n✅ *Scheme:* ${s.currentTenure}/${s.advEmi}\n💰 *DP:* ₹${Math.round(s.dp).toLocaleString()}\n🗓️ *EMI:* ₹${Math.round(s.emi).toLocaleString()} x ${s.inst} Months\n✨ *Daily Save:* ₹${Math.round(s.daily).toLocaleString()}`;
+            
+            saveToHistory();
+
             if(navigator.clipboard) {
                 navigator.clipboard.writeText(txt).then(()=>{
                     let old = btn.innerText; btn.innerText="COPIED"; btn.style.background="#27ae60";
@@ -1115,6 +1191,7 @@
             if(activeProductIndex === -1) return;
             
             triggerSilentCloudSync();
+            saveToHistory();
 
             let p = current_products[activeProductIndex]; if(!p.calculatedData.length) return;
             let btn = document.querySelector('.btn-copy-img'); let oldBtn = btn.innerHTML; btn.innerHTML = "⏳ COPYING...";
@@ -1138,7 +1215,7 @@
                 ${alertHtml}
                 <div style="border:2px solid #063970; border-radius:8px; overflow:hidden; background:#fff;">
                     <div style="background:#063970; color:#fff; padding:30px 20px; text-align:center;">
-                        <div style="font-size:34px; font-weight:900; line-height:1.4; margin-bottom:18px; text-transform:uppercase; word-wrap:break-word;">📱 ${p.name.replace('NON TIEUP - ','')}</div>
+                        <div style="font-size:28px; font-weight:900; line-height:1.3; margin-bottom:18px; text-transform:uppercase; word-break: break-word; white-space: normal;">📱 ${p.name.replace('NON TIEUP - ','')}</div>
                         
                         <div style="display:flex; justify-content:space-around; border-top:1px dashed rgba(255,255,255,0.3); padding-top:18px; font-size:18px; font-weight:bold; color:#e0f2fe;">
                             <span>TYPE: <span style="color:#f1c40f;">${p.inputs.type||'NEW'}</span></span>
