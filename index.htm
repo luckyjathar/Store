@@ -417,7 +417,6 @@
             }
         }
 
-        // Safe History Loader (Fix for Invalid/Broken link issue)
         function loadHistoryItem(index) {
             let hist = JSON.parse(localStorage.getItem('rcd_history') || '[]');
             let h = hist[index];
@@ -433,14 +432,13 @@
                     throw new Error("Missing param");
                 }
             } catch(e) {
-                // Fallback for non-standard paths
                 let parts = h.link.split('s=');
                 if(parts.length > 1) {
                     success = loadFromSharedData(parts[1]);
                 }
             }
             
-            if (!success) {
+            if (success === false) {
                 hist.splice(index, 1);
                 localStorage.setItem('rcd_history', JSON.stringify(hist));
                 alert("This history item was corrupted and has been removed.");
@@ -1209,7 +1207,6 @@
                 return true;
             } catch(e) {
                 console.error("Link parsing error:", e);
-                alert("Invalid or broken link!");
                 return false;
             }
         }
@@ -1225,14 +1222,14 @@
                 let url = new URL(val);
                 let dataParam = url.searchParams.get("s") || url.searchParams.get("data");
                 if (dataParam) {
-                    loadFromSharedData(dataParam);
+                    if(!loadFromSharedData(dataParam)) alert("Invalid Link Structure.");
                     document.getElementById('loadLinkModal').style.display = 'none';
                 } else {
                     alert("Invalid Link Structure. No parameter found.");
                 }
             } catch(e) {
                 if(val.length > 10 && !val.includes("http")) {
-                    loadFromSharedData(val);
+                    if(!loadFromSharedData(val)) alert("Invalid Data.");
                     document.getElementById('loadLinkModal').style.display = 'none';
                 } else {
                     alert("Please paste a valid URL");
