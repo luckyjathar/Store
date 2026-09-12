@@ -417,14 +417,39 @@
             }
         }
 
+        // Safe History Loader (Fix for Invalid/Broken link issue)
+        function loadHistoryItem(index) {
+            let hist = JSON.parse(localStorage.getItem('rcd_history') || '[]');
+            let h = hist[index];
+            if(!h) return;
+            try {
+                let urlObj = new URL(h.link);
+                let s = urlObj.searchParams.get('s') || urlObj.searchParams.get('data');
+                if(s) {
+                    loadFromSharedData(s);
+                } else {
+                    throw new Error("Missing param");
+                }
+            } catch(e) {
+                // Fallback parsing for non-standard paths
+                let parts = h.link.split('?s=');
+                if(parts.length > 1) {
+                    loadFromSharedData(parts[1]);
+                } else {
+                    alert("Could not extract data from this history link.");
+                }
+            }
+            document.getElementById('historyModal').style.display='none';
+        }
+
         function openHistoryModal() {
             let hist = JSON.parse(localStorage.getItem('rcd_history') || '[]');
             let list = document.getElementById('historyList');
             if(hist.length === 0) {
                 list.innerHTML = `<div style="text-align:center; padding:20px; color:#888;">No history found.</div>`;
             } else {
-                list.innerHTML = hist.map(h => `
-                    <div style="background:#f8f9fa; border:1px solid #ccc; padding:8px; border-radius:6px; cursor:pointer;" onclick="loadFromSharedData('${h.link.split('s=')[1]}'); document.getElementById('historyModal').style.display='none';">
+                list.innerHTML = hist.map((h, i) => `
+                    <div style="background:#f8f9fa; border:1px solid #ccc; padding:8px; border-radius:6px; cursor:pointer;" onclick="loadHistoryItem(${i})">
                         <div style="font-size:12px; color:#034887; font-weight:900;">📱 ${h.name.replace('NON TIEUP - ','')}</div>
                         <div style="font-size:10px; color:#555;">Limit: ₹${h.limit} | Inv: ₹${h.inv}</div>
                         <div style="font-size:9px; color:#888; margin-top:4px;">${h.time}</div>
@@ -723,7 +748,6 @@
             resDiv.style.display = 'block';
         }
 
-        // Helper to grab global inputs dynamically
         function getGlobalInputs(invAmt, mrpAmt) {
             return {
                 type: document.getElementById('custType').value || 'NEW',
@@ -761,7 +785,7 @@
             activeCategory = cat;
 
             document.getElementById('selectedProduct').innerText = "📱 " + modelName;
-            document.getElementById('selectedProductArea').style.display = 'flex'; // Changed to flex
+            document.getElementById('selectedProductArea').style.display = 'flex'; 
 
             let finalInv = initialInv > 0 ? initialInv : (mrp > 0 ? mrp : (parseFloat(document.getElementById('custInvoice').value) || 0));
             document.getElementById('custInvoice').value = finalInv > 0 ? finalInv : "";
@@ -776,7 +800,6 @@
             document.getElementById('finalCalcSection').style.display = 'block';
             toggleAcc('none', 'none', document.createElement('div')); 
             
-            // Auto focus Invoice Box
             setTimeout(() => { 
                 document.getElementById('custInvoice').focus(); 
                 document.getElementById('finalCalcSection').scrollIntoView({ behavior: 'smooth' }); 
@@ -856,7 +879,7 @@
                 if (isMobileCat(p.category)) {
                     let rfc = getRfcSlab(inv);
                     document.getElementById('advRfc').innerHTML = `<option value="0">0</option>` + (rfc > 0 ? `<option value="${rfc}">${rfc}</option>` : '');
-                    document.getElementById('advRfc').value = "0"; // Default RFC is 0
+                    document.getElementById('advRfc').value = "0"; 
                     document.getElementById('advRfc').disabled = false;
                     document.getElementById('advExw').value = "";
                     document.getElementById('advExw').disabled = true;
@@ -880,7 +903,6 @@
             let gtl = inv > 100000 ? 2398 : (inv > 50000 ? 1799 : (inv > 30000 ? 1499 : (inv > 10000 ? 1199 : (inv > 0 ? 699 : 0))));
             p.inputs.gtl = gtl;
             if (isMobileCat(p.category)) {
-                // Keep rfc 0 but slab ready
                 p.inputs.rfc = 0;
                 p.inputs.exw = 0;
             }
