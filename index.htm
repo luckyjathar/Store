@@ -457,7 +457,6 @@
                 <span id="dataStatusBadge" class="status-badge" onclick="forceRefreshMasterData()">CHECKING...</span>
             </div>
             <table class="scenario-table">
-                <!-- १. CUSTOMER TYPE (सगळ्यात वरती) -->
                 <tr>
                     <td class="label-col">CUSTOMER TYPE</td>
                     <td class="input-col">
@@ -469,21 +468,18 @@
                         </select>
                     </td>
                 </tr>
-                <!-- २. APPROVED LIMIT -->
                 <tr>
                     <td class="label-col">APPROVED</td>
                     <td class="input-col">
                         <input type="number" class="form-input" id="approvedVal" placeholder="-" autocomplete="off" oninput="recalcAllProducts()">
                     </td>
                 </tr>
-                <!-- ३. MAX LTV (कमाल १०० मर्यादा) -->
                 <tr>
                     <td class="label-col">MAX LTV (%)</td>
                     <td class="input-col">
                         <input type="number" min="0" max="100" class="form-input" id="maxLtvVal" placeholder="100" autocomplete="off" oninput="validateMaxLtvInput(this); recalcAllProducts()">
                     </td>
                 </tr>
-                <!-- ४. EMI CAPPING -->
                 <tr>
                     <td class="label-col">CAPPING</td>
                     <td class="input-col">
@@ -499,10 +495,10 @@
             <input type="text" id="modelSearchInput" class="search-input" placeholder="Type Model Name to Add..." oninput="handleModelSearch(this.value)" autocomplete="off" disabled>
             <div id="modelDropdown" class="dropdown-list"></div>
 
-            <!-- ⚡ शब्द लक्षात न राहिल्यास २ थेट क्विक बटणे -->
+            <!-- ⚡ थेट एका क्लिकवर लोड होणारी बटणे -->
             <div class="quick-action-row">
-                <button type="button" class="quick-btn btn-sheet2" onclick="loadSheet2OpenSchemes()">
-                    📂 OPEN / SHEET 2 SCHEMES
+                <button type="button" class="quick-btn btn-sheet2" onclick="openCategorySelectionForSheet2()">
+                    📂 OPEN SCHEMES (BY CATEGORY)
                 </button>
                 <button type="button" class="quick-btn btn-manual-prod" onclick="addNewManualProductPrompt()">
                     ➕ MANUAL PRODUCT
@@ -513,6 +509,23 @@
         <!-- ३. सिलेक्ट केलेले प्रॉडक्ट्स कंटेनर -->
         <div id="selectedProductsContainer"></div>
 
+    </div>
+
+    <!-- 📂 SHEET 2 कॅटेगरी निवडण्याचा पॉपअप -->
+    <div id="categoryModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 400px;">
+            <div style="font-size:16px; font-weight:900; color:#38bdf8; margin-bottom:12px; text-align:center;">
+                📂 कॅटेगरी निवडा (Sheet 2)
+            </div>
+            <div style="margin-bottom:14px;">
+                <label style="font-size:11px; color:#94a3b8; font-weight:bold; display:block; margin-bottom:5px;">उपलब्ध कॅटेगरीज:</label>
+                <select id="sheet2CategorySelect" style="width:100%; background:#0b1736; border:1px solid #243b6b; color:#fff; padding:10px; border-radius:6px; font-weight:bold; font-size:14px; outline:none;"></select>
+            </div>
+            <div style="display:flex; gap:8px;">
+                <button onclick="confirmSheet2CategorySelection()" style="flex:1; background:#0284c7; color:white; padding:9px; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">स्कीम्स लोड करा ✅</button>
+                <button onclick="document.getElementById('categoryModal').style.display='none'" style="flex:1; background:#dc2626; color:white; border:none; padding:9px; border-radius:4px; font-weight:bold; cursor:pointer;">रद्द करा</button>
+            </div>
+        </div>
     </div>
 
     <!-- ➕ फील्ड ऑफिसर मॅन्युअल स्कीम ॲड पॉपअप -->
@@ -563,16 +576,13 @@
     <!-- 🌐 FOOTER BAR -->
     <div class="app-footer">
         <button class="footer-btn active" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
-            <span>⚡</span>
-            <span>CALCULATOR</span>
+            <span>⚡</span><span>CALCULATOR</span>
         </button>
         <button class="footer-btn" onclick="forceRefreshMasterData()">
-            <span>🔄</span>
-            <span>SYNC DATA</span>
+            <span>🔄</span><span>SYNC DATA</span>
         </button>
         <button class="footer-btn" onclick="resetAllInputsToBlank()">
-            <span>🗑</span>
-            <span>CLEAR ALL</span>
+            <span>🗑</span><span>CLEAR ALL</span>
         </button>
     </div>
 
@@ -588,8 +598,9 @@
         const CACHE_DURATION_MS = 12 * 60 * 60 * 1000;
 
         let dbInstance = null;
-        let masterDbRecords = [];      // Sheet 1 (Models)
-        let sheet2GenericRecords = [];  // Sheet 2 (Open Schemes)
+        let masterDbRecords = [];         // Sheet 1 (Specific Models)
+        let sheet2AllCategoryRecords = []; // Sheet 2 (Category Wise Schemes)
+        let sheet2CategoriesList = [];    // Sheet 2 Unique Categories
         let selectedProductList = [];
 
         function initDB() {
@@ -597,17 +608,10 @@
                 let request = indexedDB.open(DB_NAME, DB_VERSION);
                 request.onupgradeneeded = function(e) {
                     let db = e.target.result;
-                    if (!db.objectStoreNames.contains(STORE_NAME)) {
-                        db.createObjectStore(STORE_NAME);
-                    }
+                    if (!db.objectStoreNames.contains(STORE_NAME)) db.createObjectStore(STORE_NAME);
                 };
-                request.onsuccess = function(e) {
-                    dbInstance = e.target.result;
-                    resolve(dbInstance);
-                };
-                request.onerror = function(e) {
-                    reject(e);
-                };
+                request.onsuccess = function(e) { dbInstance = e.target.result; resolve(dbInstance); };
+                request.onerror = function(e) { reject(e); };
             });
         }
 
@@ -620,9 +624,7 @@
                     let req = store.put(JSON.stringify(data), key);
                     req.onsuccess = () => resolve();
                     req.onerror = (e) => reject(e.target.error);
-                } catch(e) {
-                    reject(e);
-                }
+                } catch(e) { reject(e); }
             });
         }
 
@@ -638,9 +640,7 @@
                         resolve(res ? JSON.parse(res) : null);
                     };
                     req.onerror = (e) => reject(e.target.error);
-                } catch(e) {
-                    reject(e);
-                }
+                } catch(e) { reject(e); }
             });
         }
 
@@ -719,7 +719,7 @@
             } catch(e) {}
         }
 
-        /* एक्सेल मधील Sheet 1 आणि Sheet 2 दोन्ही वाचणे */
+        /* एक्सेल Sheet 1 आणि Sheet 2 वाचणे व Sheet 2 मधील कॅटेगरीज काढणे */
         async function fetchFromMasterStream(forceSync = false) {
             const badge = document.getElementById('dataStatusBadge');
             const searchInput = document.getElementById('modelSearchInput');
@@ -733,7 +733,8 @@
 
                     if (cachedTime && cachedDbRecords && cachedDbRecords.length > 0 && (now - cachedTime < CACHE_DURATION_MS)) {
                         masterDbRecords = cachedDbRecords;
-                        sheet2GenericRecords = cachedSheet2 || [];
+                        sheet2AllCategoryRecords = cachedSheet2 || [];
+                        extractSheet2Categories();
                         badge.innerText = `⚡ CACHED`;
                         badge.style.background = "#10b981";
                         badge.style.color = "#fff";
@@ -757,10 +758,7 @@
                 for (let url of urlsToTry) {
                     try {
                         let res = await fetch(url);
-                        if (res.ok) {
-                            dataBuffer = await res.arrayBuffer();
-                            break;
-                        }
+                        if (res.ok) { dataBuffer = await res.arrayBuffer(); break; }
                     } catch(e) {}
                 }
 
@@ -771,7 +769,7 @@
                 // SHEET 1: Models
                 let sheet1 = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { raw: false, defval: "" });
                 
-                // SHEET 2: Generic / Non-Tieup Schemes
+                // SHEET 2: Category Wise Open Schemes
                 let sheet2 = wb.SheetNames.length > 1 ? XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[1]], { raw: false, defval: "" }) : [];
 
                 masterDbRecords = sheet1.map(row => {
@@ -788,9 +786,11 @@
                     };
                 }).filter(r => r.model !== "" && r.model !== "NON TIEUP");
 
-                sheet2GenericRecords = sheet2.map(row => {
+                // ✅ Sheet 2 मधील कॅटेगरीनुसार अचूक स्कीम्स साठवणे
+                sheet2AllCategoryRecords = sheet2.map(row => {
+                    let catName = String(findVal(row, ['CATEGORY', 'CAT', 'PRODUCTCATEGORY', 'PRODUCT']) || "GENERAL").toUpperCase().trim();
                     return {
-                        model: "OPEN SCHEME",
+                        category: catName,
                         tenure: parseInt(findVal(row, ['TOTALTENURE', 'TENURE', 'TA'])) || 0,
                         advEmi: parseInt(findVal(row, ['ADVANCEEMI', 'ADV'])) || 0,
                         dbd: parseFloat(findVal(row, ['DBD', 'DBD%'])) || 0,
@@ -799,8 +799,10 @@
                     };
                 }).filter(r => r.tenure > 0);
 
+                extractSheet2Categories();
+
                 await saveToDB('cached_db_records', masterDbRecords);
-                await saveToDB('cached_sheet2_records', sheet2GenericRecords);
+                await saveToDB('cached_sheet2_records', sheet2AllCategoryRecords);
                 await saveToDB('master_data_time', now);
 
                 badge.innerText = `READY`;
@@ -815,7 +817,8 @@
                 let fallbackSheet2 = await getFromDB('cached_sheet2_records');
                 if (fallbackDb && fallbackDb.length > 0) {
                     masterDbRecords = fallbackDb;
-                    sheet2GenericRecords = fallbackSheet2 || [];
+                    sheet2AllCategoryRecords = fallbackSheet2 || [];
+                    extractSheet2Categories();
                     badge.innerText = `OFFLINE`;
                     badge.style.background = "#10b981";
                     badge.style.color = "#fff";
@@ -829,9 +832,19 @@
             }
         }
 
-        async function forceRefreshMasterData() {
-            await fetchFromMasterStream(true);
+        /* Sheet 2 मधील युनिक कॅटेगरीज वेगळ्या काढणे */
+        function extractSheet2Categories() {
+            let catSet = new Set();
+            sheet2AllCategoryRecords.forEach(r => {
+                if (r.category && r.category !== "") catSet.add(r.category);
+            });
+            sheet2CategoriesList = Array.from(catSet);
+            if (sheet2CategoriesList.length === 0) {
+                sheet2CategoriesList = ["SMARTPHONE / MOBILE", "LED / TV", "REFRIGERATOR", "WASHING MACHINE", "AC", "LAPTOP", "GENERAL"];
+            }
         }
+
+        async function forceRefreshMasterData() { await fetchFromMasterStream(true); }
 
         function findVal(row, keys) {
             let foundKey = Object.keys(row).find(k => keys.includes(k.toUpperCase().replace(/\s/g, '')));
@@ -841,26 +854,19 @@
         function handleModelSearch(query) {
             const dropdown = document.getElementById('modelDropdown');
             const q = query.trim().toUpperCase();
-
-            if (!q) {
-                dropdown.style.display = 'none';
-                return;
-            }
+            if (!q) { dropdown.style.display = 'none'; return; }
 
             let uniqueModels = [];
             let seen = new Set();
-
             masterDbRecords.forEach(r => {
                 if ((r.model.includes(q) || r.brand.includes(q)) && !seen.has(r.model)) {
-                    seen.add(r.model);
-                    uniqueModels.push(r);
+                    seen.add(r.model); uniqueModels.push(r);
                 }
             });
 
             if (uniqueModels.length === 0) {
                 dropdown.innerHTML = `<div style="padding:10px; color:#888; text-align:center;">कोणतेही मॉडेल सापडले नाही.</div>`;
-                dropdown.style.display = 'block';
-                return;
+                dropdown.style.display = 'block'; return;
             }
 
             dropdown.innerHTML = uniqueModels.slice(0, 30).map(m => `
@@ -868,16 +874,13 @@
                     <span>📱 ${m.brand ? `[${m.brand}] ` : ''}${m.model}</span>
                 </div>
             `).join('');
-
             dropdown.style.display = 'block';
         }
 
         function addNewProductToBasket(modelName) {
             const dropdown = document.getElementById('modelDropdown');
             const searchInput = document.getElementById('modelSearchInput');
-
-            searchInput.value = '';
-            dropdown.style.display = 'none';
+            searchInput.value = ''; dropdown.style.display = 'none';
 
             let modelSchemes = masterDbRecords.filter(r => r.model === modelName);
             let defaultMrp = modelSchemes[0] && modelSchemes[0].mrp > 0 ? modelSchemes[0].mrp : "";
@@ -888,6 +891,7 @@
             let newProduct = {
                 id: 'prod_' + Date.now() + '_' + Math.floor(Math.random()*1000),
                 name: modelName,
+                category: modelSchemes[0]?.category || "MODEL",
                 invoice: defaultMrp,
                 gtl: autoGtl,
                 rfc: 0,
@@ -895,6 +899,7 @@
                 margin: 0,
                 dealerContri: 0,
                 isCollapsed: false,
+                isSheet2: false,
                 schemes: modelSchemes.map((s, idx) => ({ ...s, sId: 's_' + idx, disabled: false }))
             };
 
@@ -902,17 +907,36 @@
             renderAllProductPanels();
         }
 
-        /* 📂 Sheet 2 मधील Open / Non-Tieup स्कीम्स थेट लोड करणे */
-        function loadSheet2OpenSchemes() {
-            let schemesToUse = sheet2GenericRecords.length > 0 ? sheet2GenericRecords : [
-                { model: "OPEN", tenure: 10, advEmi: 2, dbd: 1.5, pf: 699, roi: 0 },
-                { model: "OPEN", tenure: 12, advEmi: 4, dbd: 2.0, pf: 799, roi: 0 },
-                { model: "OPEN", tenure: 8, advEmi: 0, dbd: 0.0, pf: 599, roi: 0 }
-            ];
+        /* 📂 Sheet 2 कॅटेगरी निवडण्यासाठी पॉपअप उघडणे */
+        function openCategorySelectionForSheet2() {
+            const selectEl = document.getElementById('sheet2CategorySelect');
+            if (sheet2CategoriesList.length === 0) extractSheet2Categories();
+
+            selectEl.innerHTML = sheet2CategoriesList.map(cat => `<option value="${cat}">${cat}</option>`).join('');
+            document.getElementById('categoryModal').style.display = 'flex';
+        }
+
+        /* 📂 निवडलेल्या कॅटेगरीनुसार Sheet 2 च्या स्कीम्स बास्केटमध्ये लोड करणे */
+        function confirmSheet2CategorySelection() {
+            const selectedCat = document.getElementById('sheet2CategorySelect').value;
+            document.getElementById('categoryModal').style.display = 'none';
+
+            // फक्त त्या निवडलेल्या कॅटेगरीच्या स्कीम्स फिल्टर करणे
+            let catSchemes = sheet2AllCategoryRecords.filter(r => r.category === selectedCat);
+            
+            // जर नेमक्या त्या कॅटेगरीच्या नसतील तर जनरल स्कीम्स फॉलबॅक
+            if (catSchemes.length === 0) {
+                catSchemes = [
+                    { category: selectedCat, tenure: 10, advEmi: 2, dbd: 1.5, pf: 699, roi: 0 },
+                    { category: selectedCat, tenure: 12, advEmi: 4, dbd: 2.0, pf: 799, roi: 0 },
+                    { category: selectedCat, tenure: 8, advEmi: 0, dbd: 0.0, pf: 599, roi: 0 }
+                ];
+            }
 
             let newProduct = {
                 id: 'prod_' + Date.now(),
-                name: "OPEN / NON-TIEUP SCHEMES",
+                name: `[${selectedCat}] NON-TIEUP`,
+                category: selectedCat,
                 invoice: 30000,
                 gtl: 1499,
                 rfc: 0,
@@ -920,21 +944,38 @@
                 margin: 0,
                 dealerContri: 0,
                 isCollapsed: false,
-                schemes: schemesToUse.map((s, idx) => ({ ...s, sId: 's2_' + idx, disabled: false }))
+                isSheet2: true, // Sheet 2 प्रॉडक्ट म्हणून मार्क
+                schemes: catSchemes.map((s, idx) => ({ ...s, sId: 's2_' + idx, disabled: false }))
             };
 
             selectedProductList.push(newProduct);
             renderAllProductPanels();
         }
 
+        /* कार्डवरूनच कॅटेगरी बदलल्यास स्कीम्स रिफ्रेश करणे */
+        function changeCardCategory(pId, newCat) {
+            let prod = selectedProductList.find(p => p.id === pId);
+            if (!prod) return;
+
+            prod.category = newCat;
+            prod.name = `[${newCat}] NON-TIEUP`;
+
+            let catSchemes = sheet2AllCategoryRecords.filter(r => r.category === newCat);
+            if (catSchemes.length > 0) {
+                prod.schemes = catSchemes.map((s, idx) => ({ ...s, sId: 's2_' + idx, disabled: false }));
+            }
+            renderAllProductPanels();
+        }
+
         /* ➕ फील्ड ऑफिसरसाठी नवीन Manual Product जोडणे */
         function addNewManualProductPrompt() {
-            let prodName = prompt("कृपया मॅन्युअल प्रॉडक्ट / मॉडेलचे नाव टाका:", "MANUAL PRODUCT");
+            let prodName = prompt("कृपया मॅन्युअल प्रॉडक्टचे नाव टाका:", "MANUAL PRODUCT");
             if (!prodName || prodName.trim() === "") return;
 
             let newProduct = {
                 id: 'prod_' + Date.now(),
                 name: prodName.trim().toUpperCase(),
+                category: "CUSTOM",
                 invoice: 25000,
                 gtl: 1199,
                 rfc: 0,
@@ -942,6 +983,7 @@
                 margin: 0,
                 dealerContri: 0,
                 isCollapsed: false,
+                isSheet2: false,
                 schemes: []
             };
 
@@ -957,10 +999,7 @@
 
         function toggleCollapseProduct(pId) {
             let prod = selectedProductList.find(p => p.id === pId);
-            if (prod) {
-                prod.isCollapsed = !prod.isCollapsed;
-                renderAllProductPanels();
-            }
+            if (prod) { prod.isCollapsed = !prod.isCollapsed; renderAllProductPanels(); }
         }
 
         function updateProductParam(pId, field, val) {
@@ -977,19 +1016,14 @@
                     if (gtlSelect) gtlSelect.value = prod.gtl;
                     if (rfcSelect) {
                         let opt = document.getElementById(`rfc_opt_${pId}`);
-                        if (opt) {
-                            opt.value = prod.rfcSlab;
-                            opt.innerText = prod.rfcSlab;
-                        }
+                        if (opt) { opt.value = prod.rfcSlab; opt.innerText = prod.rfcSlab; }
                     }
                 }
                 renderProductTableOnly(pId);
             }
         }
 
-        function recalcAllProducts() {
-            selectedProductList.forEach(p => renderProductTableOnly(p.id));
-        }
+        function recalcAllProducts() { selectedProductList.forEach(p => renderProductTableOnly(p.id)); }
 
         function openAddSchemeModal(pId, pName) {
             document.getElementById('modalTargetProdId').value = pId;
@@ -1002,9 +1036,7 @@
             document.getElementById('addSchemeModal').style.display = 'flex';
         }
 
-        function closeAddSchemeModal() {
-            document.getElementById('addSchemeModal').style.display = 'none';
-        }
+        function closeAddSchemeModal() { document.getElementById('addSchemeModal').style.display = 'none'; }
 
         function saveCustomSchemeFromField() {
             let pId = document.getElementById('modalTargetProdId').value;
@@ -1014,10 +1046,7 @@
             let pf = parseInt(document.getElementById('mPf').value) || 0;
             let roi = parseFloat(document.getElementById('mRoi').value) || 0;
 
-            if (ten <= 0) {
-                alert("कृपया वैध Tenure टाका!");
-                return;
-            }
+            if (ten <= 0) { alert("कृपया वैध Tenure टाका!"); return; }
 
             let prod = selectedProductList.find(p => p.id === pId);
             if (prod) {
@@ -1032,7 +1061,6 @@
                     disabled: false,
                     isCustom: true
                 };
-
                 prod.schemes.unshift(newCustomScheme);
                 closeAddSchemeModal();
                 renderProductTableOnly(pId);
@@ -1043,10 +1071,7 @@
             let prod = selectedProductList.find(p => p.id === pId);
             if (prod) {
                 let s = prod.schemes.find(x => x.sId === sId);
-                if (s) {
-                    s.disabled = !s.disabled;
-                    renderProductTableOnly(pId);
-                }
+                if (s) { s.disabled = !s.disabled; renderProductTableOnly(pId); }
             }
         }
 
@@ -1077,13 +1102,12 @@
 
                             textToCopy += `🔹 *Option ${count}:* ${sName}\n` +
                                           `💰 *DP:* ${sDp}\n` +
-                                          `🗓️ *EMI:* ${sEmi} x ${sMonths} Months\n` +
+                                          `🗓 *EMI:* ${sEmi} x ${sMonths} Months\n` +
                                           `✨ *Per Day:* ${sDay}\n\n`;
                             count++;
                         }
                     }
                 });
-
                 clipboardCopy(textToCopy, `टिकमार्क केलेल्या ${count - 1} स्कीम्स कॉपी झाल्या! ✅`);
             } else {
                 let textToCopy = `📱 *${prod.name}*\n` +
@@ -1092,7 +1116,6 @@
                                  `💰 *DP:* ₹${Number(dp).toLocaleString()}\n` +
                                  `🗓️ *EMI:* ₹${Number(emi).toLocaleString()} x ${months} Months\n` +
                                  `✨ *Per Day:* ₹${Number(perDay).toLocaleString()}`;
-
                 clipboardCopy(textToCopy, "स्कीम कॉपी झाली! ✅");
             }
         }
@@ -1101,27 +1124,30 @@
             if (navigator.clipboard && window.isSecureContext) {
                 navigator.clipboard.writeText(text).then(() => alert(successMsg));
             } else {
-                let ta = document.createElement("textarea");
-                ta.value = text;
-                document.body.appendChild(ta);
-                ta.select();
-                document.execCommand('copy');
-                document.body.removeChild(ta);
-                alert(successMsg);
+                let ta = document.createElement("textarea"); ta.value = text;
+                document.body.appendChild(ta); ta.select(); document.execCommand('copy');
+                document.body.removeChild(ta); alert(successMsg);
             }
         }
 
         function renderAllProductPanels() {
             const container = document.getElementById('selectedProductsContainer');
-            if (selectedProductList.length === 0) {
-                container.innerHTML = "";
-                return;
-            }
+            if (selectedProductList.length === 0) { container.innerHTML = ""; return; }
 
             container.innerHTML = selectedProductList.map((prod, idx) => {
                 let isCol = prod.isCollapsed;
                 let bodyDisplay = isCol ? "none" : "block";
                 let arrowIcon = isCol ? "▶" : "▼";
+
+                // जर Sheet 2 प्रॉडक्ट असेल तर कार्डवरच कॅटेगरी बदलण्याची सोय
+                let categorySelectorHtml = prod.isSheet2 ? `
+                    <div style="grid-column: span 2; background:#08193f; padding:6px; border-radius:4px; border:1px solid #1e3a68;">
+                        <label style="color:#38bdf8;">📂 CATEGORY (SHEET 2):</label>
+                        <select onchange="changeCardCategory('${prod.id}', this.value)" style="color:#38bdf8; font-weight:bold;">
+                            ${sheet2CategoriesList.map(c => `<option value="${c}" ${c === prod.category ? 'selected' : ''}>${c}</option>`).join('')}
+                        </select>
+                    </div>
+                ` : '';
 
                 return `
                 <div class="product-panel" id="panel_${prod.id}">
@@ -1140,6 +1166,7 @@
 
                     <div id="panel_body_${prod.id}" style="display:${bodyDisplay};">
                         <div class="sub-config-grid">
+                            ${categorySelectorHtml}
                             <div>
                                 <label>INVOICE (₹)</label>
                                 <input type="number" value="${prod.invoice}" placeholder="0" oninput="updateProductParam('${prod.id}', 'invoice', this.value)">
