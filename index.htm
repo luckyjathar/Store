@@ -242,7 +242,6 @@
 
         .btn-add-scheme { background: #10b981; color: white; }
         .btn-quote { background: #0284c7; color: white; }
-        .btn-copy-multi { background: #6366f1; color: white; }
         .btn-remove { background: #dc2626; color: white; }
 
         .sub-config-grid {
@@ -314,11 +313,16 @@
             background: #3b82f6;
             color: white;
             border: none;
-            padding: 3px 6px;
-            border-radius: 3px;
-            font-size: 10px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
             font-weight: 900;
             cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn-copy-scheme:hover {
+            background: #2563eb;
         }
 
         .btn-toggle-row {
@@ -516,7 +520,7 @@
             <span>🔄</span><span>SYNC DATA</span>
         </button>
         <button class="footer-btn" onclick="resetAllInputsToBlank()">
-            <span>🗑️️</span><span>CLEAR ALL</span>
+            <span>🗑</span><span>CLEAR ALL</span>
         </button>
     </div>
 
@@ -924,67 +928,54 @@
             }
         }
 
-        /* 📋 सिंगल स्कीम कॉपी */
-        function copySingleSchemeText(pId, sId, tenure, adv, dp, emi, months, perDay) {
-            let prod = selectedProductList.find(p => p.id === pId);
-            if (!prod) return;
-
-            let price = prod.invoice || "0";
-            let textToCopy = `📱 *${prod.name}*\n` +
-                             `💵 *Invoice:* ₹${Number(price).toLocaleString()}\n` +
-                             `✅ *Scheme:* ${tenure}/${adv}\n` +
-                             `💰 *Down Payment:* ₹${Number(dp).toLocaleString()}\n` +
-                             `🗓️ *EMI:* ₹${Number(emi).toLocaleString()} x ${months} Months\n` +
-                             `✨ *Per Day:* ₹${Number(perDay).toLocaleString()}`;
-
-            clipboardCopy(textToCopy, "स्कीम कॉपी झाली! ✅");
-        }
-
-        /* 📋 मल्टिपल सिलेक्टेड किंवा सर्व चालू स्कीम्स कॉपी करणे */
-        function copyMultipleSchemes(pId) {
+        /* 📋 स्मार्ट स्कीम कॉपी लॉजिक (चेक केलेल्या सर्व किंवा सिंगल स्कीम) */
+        function copySmartScheme(pId, currentRowEl, tenure, adv, dp, emi, months, perDay) {
             let prod = selectedProductList.find(p => p.id === pId);
             if (!prod) return;
 
             let tableElement = document.getElementById(`tbody_${pId}`);
             if (!tableElement) return;
 
-            // प्रथम चेकबॉक्सेस तपासणे (Selected Rows)
+            // टेबलमध्ये चेक केलेले चेकबॉक्सेस शोधा
             let checkedBoxes = tableElement.querySelectorAll('.scheme-checkbox:checked');
-            let targetRows = [];
+            let price = prod.invoice || "0";
 
+            // १. जर युझरने चेकबॉक्स टिक केलेले असतील, तर टिक केलेल्या सर्व स्कीम्स कॉपी करा
             if (checkedBoxes.length > 0) {
+                let textToCopy = `📱 *${prod.name}*\n💵 *Invoice:* ₹${Number(price).toLocaleString()}\n\n`;
+                let count = 1;
+
                 checkedBoxes.forEach(cb => {
                     let tr = cb.closest('tr');
-                    if (tr && !tr.classList.contains('row-disabled')) targetRows.push(tr);
+                    if (tr && !tr.classList.contains('row-disabled')) {
+                        let cols = tr.querySelectorAll('td');
+                        if (cols.length >= 7) {
+                            let sName = cols[1].innerText.replace('(FIELD)', '').trim();
+                            let sDp = cols[2].innerText.trim();
+                            let sEmi = cols[3].innerText.trim();
+                            let sMonths = cols[4].innerText.trim();
+                            let sDay = cols[5].innerText.trim();
+
+                            textToCopy += `🔹 *Option ${count}:* ${sName}\n` +
+                                          `💰 *DP:* ${sDp} | 🗓️ *EMI:* ${sEmi} x ${sMonths} M | ✨ *Day:* ${sDay}\n\n`;
+                            count++;
+                        }
+                    }
                 });
-            } else {
-                // चेक केलेले नसल्यास सर्व ॲक्टिव्ह स्कीम्स घेणे
-                targetRows = Array.from(tableElement.querySelectorAll('tr:not(.row-disabled)'));
+
+                clipboardCopy(textToCopy, `टिकमार्क केलेल्या ${count - 1} स्कीम्स यशस्वीरित्या कॉपी झाल्या! ✅`);
+            } 
+            // २. जर एकही चेकबॉक्स टिक नसेल, तर फक्त ज्या ओळीवर क्लिक केले ती एकच स्कीम कॉपी करा
+            else {
+                let textToCopy = `📱 *${prod.name}*\n` +
+                                 `💵 *Invoice:* ₹${Number(price).toLocaleString()}\n` +
+                                 `✅ *Scheme:* ${tenure}/${adv}\n` +
+                                 `💰 *Down Payment:* ₹${Number(dp).toLocaleString()}\n` +
+                                 `🗓️ *EMI:* ₹${Number(emi).toLocaleString()} x ${months} Months\n` +
+                                 `✨ *Per Day:* ₹${Number(perDay).toLocaleString()}`;
+
+                clipboardCopy(textToCopy, "स्कीम कॉपी झाली! ✅");
             }
-
-            if (targetRows.length === 0) {
-                alert("कॉपी करण्यासाठी स्कीम्स उपलब्ध नाहीत!");
-                return;
-            }
-
-            let price = prod.invoice || "0";
-            let textToCopy = `📱 *${prod.name}*\n💵 *Invoice:* ₹${Number(price).toLocaleString()}\n\n`;
-
-            targetRows.forEach((r, idx) => {
-                let cols = r.querySelectorAll('td');
-                if (cols.length >= 7) {
-                    let schemeName = cols[1].innerText.replace('(FIELD)', '').trim();
-                    let dp = cols[2].innerText.trim();
-                    let emi = cols[3].innerText.trim();
-                    let months = cols[4].innerText.trim();
-                    let perDay = cols[5].innerText.trim();
-
-                    textToCopy += `🔹 *Option ${idx + 1}:* ${schemeName}\n` +
-                                  `💰 *DP:* ${dp} | 🗓️ *EMI:* ${emi} x ${months} M | ✨ *Day:* ${perDay}\n\n`;
-                }
-            });
-
-            clipboardCopy(textToCopy, "निवडलेल्या स्कीम्स यशस्वीरित्या कॉपी झाल्या! ✅");
         }
 
         function clipboardCopy(text, successMsg) {
@@ -1023,7 +1014,6 @@
                             <span class="panel-inv-badge">₹${Number(prod.invoice||0).toLocaleString()}</span>
                         </div>
                         <div class="btn-panel-action" onclick="event.stopPropagation()">
-                            <button class="btn-action-sm btn-copy-multi" onclick="copyMultipleSchemes('${prod.id}')">📋 COPY SCHEMES</button>
                             <button class="btn-action-sm btn-add-scheme" onclick="openAddSchemeModal('${prod.id}', '${prod.name.replace(/'/g, "\\'")}')">➕ SCHEME</button>
                             <button class="btn-action-sm btn-quote" onclick="generateQuoteImage('${prod.id}')">📸 QUOTE</button>
                             <button class="btn-action-sm btn-remove" onclick="removeProductFromBasket('${prod.id}')">✖</button>
@@ -1205,7 +1195,7 @@
                         <td style="color:#fb923c;">₹${row.perDay.toLocaleString()}</td>
                         <td style="color:#f87171;">₹${Math.max(0, row.extraCharges).toLocaleString()}</td>
                         <td>
-                            <button class="btn-copy-scheme" onclick="copySingleSchemeText('${prod.id}', '${row.sId}', '${s.tenure}', '${s.advEmi}', '${Math.round(row.dp)}', '${Math.round(row.emi)}', '${row.months}', '${row.perDay}')">📋</button>
+                            <button class="btn-copy-scheme" title="टिक केलेल्या सर्व किंवा ही एक स्कीम कॉपी करा" onclick="copySmartScheme('${prod.id}', this, '${s.tenure}', '${s.advEmi}', '${Math.round(row.dp)}', '${Math.round(row.emi)}', '${row.months}', '${row.perDay}')">📋</button>
                         </td>
                         <td>${actionBtn}</td>
                     </tr>
@@ -1213,7 +1203,7 @@
             }).join('');
         }
 
-        /* 📸 मोठ्या फॉन्टची कोट इमेज (फक्त ५ घटक, NO LOAN COLUMN) */
+        /* 📸 मोठ्या फॉन्टची कोट इमेज */
         function generateQuoteImage(pId) {
             let prod = selectedProductList.find(p => p.id === pId);
             if (!prod) return;
