@@ -32,7 +32,7 @@
             gap: 16px;
         }
 
-        /* 1. SCENARIO CARD */
+        /* CARD STYLES */
         .scenario-card {
             background-color: #060e22;
             border: 2px solid #243b6b;
@@ -74,7 +74,7 @@
         .scenario-table td.label-col {
             width: 50%;
             color: #ffffff;
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 800;
             letter-spacing: 0.5px;
             border-right: 1px solid #1c2e4a;
@@ -116,7 +116,7 @@
             color: #ffffff;
         }
 
-        /* 2. MODEL SEARCH CARD */
+        /* SEARCH CARD */
         .search-card {
             background: #060e22;
             border: 2px solid #243b6b;
@@ -196,7 +196,7 @@
             color: #60a5fa;
         }
 
-        /* 3. SELECTED MODEL SCHEMES CONTAINER */
+        /* RESULTS & CALCULATION */
         .result-box {
             display: none;
             background: #060e22;
@@ -284,33 +284,62 @@
 
     <div class="main-wrapper">
         
-        <!-- 1. SCENARIO TABLE (DEFAULT BLANK) -->
+        <!-- 1. SCENARIO TOP (FIRST 4 FIELDS) -->
         <div class="scenario-card">
             <div class="scenario-header">Scenario</div>
             <table class="scenario-table">
+                <!-- 1. APPROVED -->
                 <tr>
                     <td class="label-col">APPROVED</td>
                     <td class="input-col">
                         <input type="number" class="form-input" id="approvedVal" placeholder="-" autocomplete="off" oninput="recalcIfActive()">
                     </td>
                 </tr>
+                <!-- 2. MAX LTV -->
                 <tr>
                     <td class="label-col">MAX LTV</td>
                     <td class="input-col">
                         <input type="number" class="form-input" id="maxLtvVal" placeholder="-" autocomplete="off" oninput="recalcIfActive()">
                     </td>
                 </tr>
+                <!-- 3. CUSTOMER TYPE -->
                 <tr>
-                    <td class="label-col">TYPE</td>
+                    <td class="label-col">CUSTOMER TYPE</td>
                     <td class="input-col">
                         <select class="form-select" id="typeVal" autocomplete="off" onchange="recalcIfActive()">
                             <option value="" selected>-</option>
                             <option value="NEW">NEW</option>
                             <option value="OLD">OLD</option>
                             <option value="EXISTING">EXISTING</option>
+                            <option value="EMI CARD">EMI CARD</option>
+                            <option value="W/O CARD">W/O CARD</option>
                         </select>
                     </td>
                 </tr>
+                <!-- 4. EMI CAPPING -->
+                <tr>
+                    <td class="label-col">EMI CAPPING</td>
+                    <td class="input-col">
+                        <input type="number" class="form-input" id="cappingVal" placeholder="-" autocomplete="off" oninput="recalcIfActive()">
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- 2. SEARCH BRAND / MODEL -->
+        <div class="search-card">
+            <div class="search-header-area">
+                <span class="search-title">🔍 Search Brand / Model</span>
+                <span id="dataStatusBadge" class="status-badge">DOWNLOADING...</span>
+            </div>
+            <input type="text" id="modelSearchInput" class="search-input" placeholder="Type Model or Brand..." oninput="handleModelSearch(this.value)" autocomplete="off" disabled>
+            <div id="modelDropdown" class="dropdown-list"></div>
+        </div>
+
+        <!-- 3. REMAINING SCENARIO OPTIONS -->
+        <div class="scenario-card">
+            <table class="scenario-table">
+                <!-- 5. GTL/RFC -->
                 <tr>
                     <td class="label-col">GTL/RFC</td>
                     <td class="input-col">
@@ -323,18 +352,21 @@
                         </select>
                     </td>
                 </tr>
+                <!-- 6. DEALER CONTRIBUTION (बदललेले नाव) -->
                 <tr>
-                    <td class="label-col">HI</td>
+                    <td class="label-col">DEALER CONTRI</td>
                     <td class="input-col">
-                        <input type="number" class="form-input" id="hiVal" placeholder="-" autocomplete="off" oninput="recalcIfActive()">
+                        <input type="number" class="form-input" id="dealerContriVal" placeholder="-" autocomplete="off" oninput="recalcIfActive()">
                     </td>
                 </tr>
+                <!-- 7. MARGIN -->
                 <tr>
                     <td class="label-col">MARGIN</td>
                     <td class="input-col">
                         <input type="number" class="form-input" id="marginVal" placeholder="-" autocomplete="off" oninput="recalcIfActive()">
                     </td>
                 </tr>
+                <!-- 8. PRODUCT -->
                 <tr class="highlight-row">
                     <td class="label-col" style="border-right-color: #b34100;">PRODUCT</td>
                     <td class="input-col">
@@ -346,6 +378,7 @@
                         </select>
                     </td>
                 </tr>
+                <!-- 9. CASHBACK -->
                 <tr>
                     <td class="label-col">CASHBACK</td>
                     <td class="input-col">
@@ -356,31 +389,14 @@
                         </select>
                     </td>
                 </tr>
-                <tr>
-                    <td class="label-col">CAPPING</td>
-                    <td class="input-col">
-                        <input type="number" class="form-input" id="cappingVal" placeholder="-" autocomplete="off" oninput="recalcIfActive()">
-                    </td>
-                </tr>
             </table>
         </div>
 
-        <!-- 2. MODEL SEARCH CARD -->
-        <div class="search-card">
-            <div class="search-header-area">
-                <span class="search-title">🔍 Search Brand / Model</span>
-                <span id="dataStatusBadge" class="status-badge">DOWNLOADING...</span>
-            </div>
-            <input type="text" id="modelSearchInput" class="search-input" placeholder="Type Model or Brand..." oninput="handleModelSearch(this.value)" autocomplete="off" disabled>
-            <div id="modelDropdown" class="dropdown-list"></div>
-        </div>
-
-        <!-- 3. SELECTED MODEL SCHEMES CONTAINER -->
+        <!-- 4. SELECTED MODEL SCHEMES & CALCULATION CONTAINER -->
         <div id="modelResultArea" class="result-box">
             <div class="result-header">
                 <div class="result-title" id="selectedModelName">📱 MODEL NAME</div>
                 
-                <!-- Toggle Tabs: LIVE SCHEMES vs FINAL CALCULATION -->
                 <div class="tab-btn-group">
                     <button id="btnLiveSchemes" class="toggle-btn active" onclick="switchView('LIVE')">LIVE SCHEMES</button>
                     <button id="btnFinalCalc" class="toggle-btn btn-calc" onclick="switchView('CALC')">FINAL CALCULATION</button>
@@ -401,7 +417,7 @@
         const MASTER_EXCEL_URL = "https://raw.githubusercontent.com/luckyjathar/testcalculator/main/master_data.xlsx";
         let masterDbRecords = [];
         let currentSelectedModel = null;
-        let currentViewMode = "LIVE"; // 'LIVE' kiva 'CALC'
+        let currentViewMode = "LIVE";
 
         window.addEventListener('pageshow', function() {
             resetAllInputsToBlank();
@@ -491,7 +507,7 @@
             });
 
             if (uniqueModels.length === 0) {
-                dropdown.innerHTML = `<div style="padding:10px; color:#888; text-align:center;">Kahihi model sapadle nahi.</div>`;
+                dropdown.innerHTML = `<div style="padding:10px; color:#888; text-align:center;">काहीही सापडले नाही.</div>`;
                 dropdown.style.display = 'block';
                 return;
             }
@@ -543,7 +559,6 @@
             const tbody = document.getElementById('schemesTableBody');
 
             if (currentViewMode === "LIVE") {
-                // 1. LIVE SCHEMES VIEW
                 thead.className = "";
                 thead.innerHTML = `
                     <tr>
@@ -565,7 +580,6 @@
                     </tr>
                 `).join('');
             } else {
-                // 2. FINAL CALCULATION VIEW
                 thead.className = "calc-header";
                 thead.innerHTML = `
                     <tr>
@@ -579,33 +593,28 @@
                     </tr>
                 `;
 
-                // Scenario Parameters Extract
                 let approvedLimit = parseFloat(document.getElementById('approvedVal').value) || 0;
                 let maxLtv = parseFloat(document.getElementById('maxLtvVal').value) || 100;
                 let custType = document.getElementById('typeVal').value || "NEW";
-                let margin = parseFloat(document.getElementById('marginVal').value) || 0;
-                let hiVal = parseFloat(document.getElementById('hiVal').value) || 0;
                 let emiCap = parseFloat(document.getElementById('cappingVal').value) || 0;
+                let margin = parseFloat(document.getElementById('marginVal').value) || 0;
+                let dealerContri = parseFloat(document.getElementById('dealerContriVal').value) || 0;
 
-                // Fees Logic
                 let baseFee = (custType === 'EMI CARD') ? 270 : (custType === 'W/O CARD' ? 320 : 850);
-                let totalFees = baseFee + margin + hiVal;
+                let totalFees = baseFee + margin + dealerContri;
 
                 tbody.innerHTML = modelSchemes.map(s => {
                     let price = s.mrp > 0 ? s.mrp : (approvedLimit > 0 ? approvedLimit : 30000);
                     let months = Math.max(1, s.tenure - s.advEmi);
 
-                    // Loan calculation based on Limit & LTV
                     let nbfcMaxL = approvedLimit > 0 ? (approvedLimit * s.tenure) / (months || 1) : price;
                     let loan = Math.min(price, nbfcMaxL);
 
-                    // LTV Cap
                     let schemeLtv = s.tenure > 0 ? (months / s.tenure) * 100 : 100;
                     if (schemeLtv > maxLtv && maxLtv > 0) {
                         loan = Math.floor(price * (maxLtv / 100));
                     }
 
-                    // 50% Min Loan Rule
                     let minAllowedLoan = price * 0.50;
                     if (loan < minAllowedLoan) loan = minAllowedLoan;
 
@@ -619,7 +628,6 @@
                     let roiInEmi = loan * roiRate;
                     let emi = baseEmi + roiInEmi;
 
-                    // EMI Capping handling
                     if (emiCap > 0 && emi > emiCap) {
                         loan = Math.max(minAllowedLoan, (emiCap / ((1 / s.tenure) + roiRate)));
                         baseEmi = loan / s.tenure;
@@ -649,7 +657,6 @@
             }
         }
 
-        // Outside click dropdown close
         document.addEventListener('click', function(e) {
             const dropdown = document.getElementById('modelDropdown');
             const searchInput = document.getElementById('modelSearchInput');
