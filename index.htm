@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scenario & Multi-Model Portal</title>
+    <title>Pro Financial Portal</title>
 
     <!-- SheetJS for Excel Reading -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -21,7 +21,8 @@
         body {
             background-color: #0b1329;
             color: #ffffff;
-            padding: 16px;
+            padding: 12px;
+            padding-bottom: 70px; /* फूटरसाठी जागा */
             display: flex;
             justify-content: center;
         }
@@ -31,7 +32,7 @@
             max-width: 480px;
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            gap: 14px;
         }
 
         /* 1. SCENARIO CARD */
@@ -46,13 +47,28 @@
         .scenario-header {
             background-color: #1e3a68;
             color: #ffffff;
-            text-align: center;
-            padding: 12px;
-            font-size: 26px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 14px;
+            border-bottom: 2px solid #243b6b;
+        }
+
+        .scenario-title {
+            font-size: 22px;
             font-weight: 900;
             font-style: italic;
             letter-spacing: 1px;
-            border-bottom: 2px solid #243b6b;
+        }
+
+        .status-badge {
+            font-size: 10px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            background: #10b981;
+            color: #fff;
         }
 
         .scenario-table {
@@ -117,27 +133,12 @@
             position: relative;
         }
 
-        .search-header-area {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-        }
-
         .search-title {
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 800;
             color: #60a5fa;
             text-transform: uppercase;
-        }
-
-        .status-badge {
-            font-size: 10px;
-            padding: 3px 8px;
-            border-radius: 4px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.2s;
+            margin-bottom: 8px;
         }
 
         .search-input {
@@ -178,9 +179,6 @@
             font-weight: 700;
             cursor: pointer;
             border-bottom: 1px solid #1c2e4a;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
         }
 
         .dropdown-item:hover {
@@ -194,7 +192,7 @@
             border: 2px solid #243b6b;
             border-radius: 8px;
             padding: 12px;
-            margin-bottom: 14px;
+            margin-bottom: 12px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
 
@@ -202,11 +200,14 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid #1c2e4a;
-            padding-bottom: 8px;
-            margin-bottom: 10px;
-            flex-wrap: wrap;
-            gap: 6px;
+            cursor: pointer;
+            padding-bottom: 6px;
+        }
+
+        .panel-header-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .panel-title {
@@ -215,43 +216,32 @@
             color: #f97316;
         }
 
+        .panel-inv-badge {
+            background: #0284c7;
+            color: #fff;
+            padding: 2px 7px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 900;
+        }
+
         .btn-panel-action {
             display: flex;
             gap: 5px;
         }
 
-        .btn-add-scheme {
-            background: #10b981;
-            color: white;
+        .btn-action-sm {
             border: none;
-            padding: 4px 8px;
+            padding: 4px 7px;
             border-radius: 4px;
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 800;
             cursor: pointer;
         }
 
-        .btn-quote {
-            background: #0284c7;
-            color: white;
-            border: none;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: 800;
-            cursor: pointer;
-        }
-
-        .btn-remove {
-            background: #dc2626;
-            color: white;
-            border: none;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: bold;
-            cursor: pointer;
-        }
+        .btn-add-scheme { background: #10b981; color: white; }
+        .btn-quote { background: #0284c7; color: white; }
+        .btn-remove { background: #dc2626; color: white; }
 
         .sub-config-grid {
             display: grid;
@@ -261,6 +251,7 @@
             padding: 10px;
             border-radius: 6px;
             border: 1px solid #1c2e4a;
+            margin-top: 8px;
             margin-bottom: 10px;
         }
 
@@ -310,10 +301,15 @@
             font-weight: 700;
         }
 
-        .row-disabled {
-            opacity: 0.35;
-            text-decoration: line-through;
-            background: #111827;
+        .btn-copy-scheme {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 3px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: 900;
+            cursor: pointer;
         }
 
         .btn-toggle-row {
@@ -327,61 +323,73 @@
 
         .btn-dis { background: #fee2e2; color: #dc2626; }
         .btn-ena { background: #d1fae5; color: #059669; }
+        .row-disabled { opacity: 0.35; text-decoration: line-through; background: #111827; }
 
         /* MODAL STYLES */
         .modal-overlay {
             display: none;
             position: fixed;
             inset: 0;
-            background: rgba(0,0,0,0.75);
+            background: rgba(0,0,0,0.85);
             z-index: 999;
             justify-content: center;
             align-items: center;
-            padding: 16px;
+            padding: 12px;
         }
 
         .modal-content {
             background: #060e22;
             border: 2px solid #243b6b;
             border-radius: 8px;
-            padding: 16px;
-            max-width: 440px;
+            padding: 14px;
+            max-width: 520px;
             width: 100%;
+            max-height: 92vh;
+            overflow-y: auto;
         }
 
-        .modal-title {
-            font-size: 16px;
-            font-weight: 900;
-            color: #60a5fa;
-            margin-bottom: 12px;
-            text-align: center;
-        }
-
-        .modal-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 14px;
-        }
-
-        .modal-grid label {
-            font-size: 11px;
-            color: #94a3b8;
-            font-weight: bold;
-            display: block;
-            margin-bottom: 3px;
-        }
-
-        .modal-grid input {
-            width: 100%;
-            background: #0b1736;
-            border: 1px solid #243b6b;
+        .copy-hint-box {
+            background: #0284c7;
             color: #ffffff;
-            padding: 8px;
-            border-radius: 4px;
-            font-size: 13px;
-            font-weight: bold;
-            outline: none;
+            padding: 8px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+
+        /* 4. FOOTER BAR */
+        .app-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #060e22;
+            border-top: 2px solid #1e3a68;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .footer-btn {
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            font-size: 11px;
+            font-weight: 800;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            cursor: pointer;
+        }
+
+        .footer-btn.active, .footer-btn:hover {
+            color: #38bdf8;
         }
     </style>
 </head>
@@ -389,9 +397,12 @@
 
     <div class="main-wrapper">
         
-        <!-- १. SCENARIO वरील मुख्य ऑप्शन्स (नवीन अचूक सिक्वेन्स) -->
+        <!-- १. SCENARIO CARD (TOP) -->
         <div class="scenario-card">
-            <div class="scenario-header">Scenario</div>
+            <div class="scenario-header">
+                <span class="scenario-title">Scenario</span>
+                <span id="dataStatusBadge" class="status-badge" onclick="forceRefreshMasterData()">CHECKING...</span>
+            </div>
             <table class="scenario-table">
                 <!-- १. CUSTOMER TYPE (सगळ्यात वरती) -->
                 <tr>
@@ -406,21 +417,21 @@
                         </select>
                     </td>
                 </tr>
-                <!-- २. APPROVED (त्याच्या खाली) -->
+                <!-- २. APPROVED -->
                 <tr>
                     <td class="label-col">APPROVED</td>
                     <td class="input-col">
                         <input type="number" class="form-input" id="approvedVal" placeholder="-" autocomplete="off" oninput="recalcAllProducts()">
                     </td>
                 </tr>
-                <!-- ३. MAX LTV (त्याच्या खाली - कमाल १०० ची कडक मर्यादा) -->
+                <!-- ३. MAX LTV (कमाल १०० मर्यादा) -->
                 <tr>
                     <td class="label-col">MAX LTV (%)</td>
                     <td class="input-col">
                         <input type="number" min="0" max="100" class="form-input" id="maxLtvVal" placeholder="100" autocomplete="off" oninput="validateMaxLtvInput(this); recalcAllProducts()">
                     </td>
                 </tr>
-                <!-- ४. EMI CAPPING (त्याच्या खाली) -->
+                <!-- ४. EMI CAPPING -->
                 <tr>
                     <td class="label-col">CAPPING</td>
                     <td class="input-col">
@@ -432,44 +443,41 @@
 
         <!-- २. SEARCH BRAND / MODEL -->
         <div class="search-card">
-            <div class="search-header-area">
-                <span class="search-title">🔍 Add Product / Model</span>
-                <span id="dataStatusBadge" class="status-badge" title="क्लिक करून फोर्स रिफ्रेश करा" onclick="forceRefreshMasterData()">CHECKING...</span>
-            </div>
-            <input type="text" id="modelSearchInput" class="search-input" placeholder="Type Model or Brand to Add..." oninput="handleModelSearch(this.value)" autocomplete="off" disabled>
+            <div class="search-title">🔍 Add Product / Model</div>
+            <input type="text" id="modelSearchInput" class="search-input" placeholder="Type Model Name to Add..." oninput="handleModelSearch(this.value)" autocomplete="off" disabled>
             <div id="modelDropdown" class="dropdown-list"></div>
         </div>
 
-        <!-- ३. सिलेक्ट केलेले सर्व प्रॉडक्ट्स पॅनेल्स -->
+        <!-- ३. सिलेक्ट केलेले प्रॉडक्ट्स कंटेनर -->
         <div id="selectedProductsContainer"></div>
 
     </div>
 
-    <!-- ➕ फील्ड ऑफिसरसाठी मॅन्युअल स्कीम ॲड करण्याचा पॉपअप -->
+    <!-- ➕ फील्ड ऑफिसर मॅन्युअल स्कीम ॲड पॉपअप -->
     <div id="addSchemeModal" class="modal-overlay">
         <div class="modal-content">
-            <div class="modal-title" id="addSchemeModalTitle">➕ नवीन स्कीम ॲड करा</div>
+            <div style="font-size:16px; font-weight:900; color:#60a5fa; margin-bottom:12px; text-align:center;" id="addSchemeModalTitle">➕ नवीन स्कीम जोडा</div>
             <input type="hidden" id="modalTargetProdId">
-            <div class="modal-grid">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;">
                 <div>
-                    <label>TENURE (महिन्यांची संख्या)</label>
-                    <input type="number" id="mTen" placeholder="उदा. 10">
+                    <label style="font-size:11px; color:#94a3b8; font-weight:bold; display:block; margin-bottom:3px;">TENURE (महिने)</label>
+                    <input type="number" id="mTen" placeholder="उदा. 10" style="width:100%; background:#0b1736; border:1px solid #243b6b; color:#fff; padding:8px; border-radius:4px; font-weight:bold;">
                 </div>
                 <div>
-                    <label>ADVANCE EMI</label>
-                    <input type="number" id="mAdv" placeholder="उदा. 2" value="0">
+                    <label style="font-size:11px; color:#94a3b8; font-weight:bold; display:block; margin-bottom:3px;">ADVANCE EMI</label>
+                    <input type="number" id="mAdv" placeholder="उदा. 2" value="0" style="width:100%; background:#0b1736; border:1px solid #243b6b; color:#fff; padding:8px; border-radius:4px; font-weight:bold;">
                 </div>
                 <div>
-                    <label>DBD %</label>
-                    <input type="number" step="0.01" id="mDbd" placeholder="उदा. 1.5" value="0">
+                    <label style="font-size:11px; color:#94a3b8; font-weight:bold; display:block; margin-bottom:3px;">DBD %</label>
+                    <input type="number" step="0.01" id="mDbd" placeholder="उदा. 1.5" value="0" style="width:100%; background:#0b1736; border:1px solid #243b6b; color:#fff; padding:8px; border-radius:4px; font-weight:bold;">
                 </div>
                 <div>
-                    <label>PROCESSING FEE (₹)</label>
-                    <input type="number" id="mPf" placeholder="उदा. 699" value="0">
+                    <label style="font-size:11px; color:#94a3b8; font-weight:bold; display:block; margin-bottom:3px;">PF (₹)</label>
+                    <input type="number" id="mPf" placeholder="उदा. 699" value="0" style="width:100%; background:#0b1736; border:1px solid #243b6b; color:#fff; padding:8px; border-radius:4px; font-weight:bold;">
                 </div>
                 <div style="grid-column: span 2;">
-                    <label>ROI %</label>
-                    <input type="number" step="0.01" id="mRoi" placeholder="उदा. 0" value="0">
+                    <label style="font-size:11px; color:#94a3b8; font-weight:bold; display:block; margin-bottom:3px;">ROI %</label>
+                    <input type="number" step="0.01" id="mRoi" placeholder="उदा. 0" value="0" style="width:100%; background:#0b1736; border:1px solid #243b6b; color:#fff; padding:8px; border-radius:4px; font-weight:bold;">
                 </div>
             </div>
             <div style="display:flex; gap:8px;">
@@ -479,15 +487,28 @@
         </div>
     </div>
 
-    <!-- 📸 QUOTE IMAGE PREVIEW MODAL -->
+    <!-- 📸 QUOTE IMAGE PREVIEW MODAL (मोठे फॉन्ट्स + कॉपी सूचना) -->
     <div id="imageViewerModal" class="modal-overlay">
-        <div class="modal-content" style="text-align:center;">
-            <img id="generatedQuoteImg" src="" alt="Customer Quote" style="width:100%; border-radius:6px; margin-bottom:12px;">
-            <div style="display:flex; gap:8px;">
-                <a id="downloadImgBtn" href="#" download="Customer_Loan_Quote.png" style="flex:1; background:#059669; color:white; padding:8px; border-radius:4px; font-weight:bold; text-decoration:none;">💾 DOWNLOAD IMAGE</a>
-                <button onclick="document.getElementById('imageViewerModal').style.display='none'" style="flex:1; background:#dc2626; color:white; border:none; padding:8px; border-radius:4px; font-weight:bold; cursor:pointer;">CLOSE</button>
+        <div class="modal-content">
+            <div class="copy-hint-box">
+                👉 इमेजवर Long Press (दाबून धरून) करून थेट Copy किंवा Share करा!
             </div>
+            <img id="generatedQuoteImg" src="" alt="Customer Quote" style="width:100%; border-radius:6px; margin-bottom:10px; display:block;">
+            <button onclick="document.getElementById('imageViewerModal').style.display='none'" style="width:100%; background:#dc2626; color:white; border:none; padding:10px; border-radius:4px; font-weight:bold; font-size:14px; cursor:pointer;">CLOSE ✖</button>
         </div>
+    </div>
+
+    <!-- 🌐 फुटर नेव्हिगेशन बार -->
+    <div class="app-footer">
+        <button class="footer-btn active" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+            <span>⚡</span><span>CALCULATOR</span>
+        </button>
+        <button class="footer-btn" onclick="forceRefreshMasterData()">
+            <span>🔄</span><span>SYNC DATA</span>
+        </button>
+        <button class="footer-btn" onclick="resetAllInputsToBlank()">
+            <span>🗑️</span><span>CLEAR ALL</span>
+        </button>
     </div>
 
     <script>
@@ -556,14 +577,38 @@
             });
         }
 
-        /* 100 पेक्षा जास्त आकडा टाकू न देणारा कडक नियम */
         function validateMaxLtvInput(el) {
             let val = parseFloat(el.value);
-            if (val > 100) {
-                el.value = 100;
-            } else if (val < 0) {
-                el.value = 0;
-            }
+            if (val > 100) el.value = 100;
+            else if (val < 0) el.value = 0;
+        }
+
+        /* GTL आणि RFC स्लॅब व्हॅल्यू फंक्शन्स */
+        function getGtlSlabValue(inv) {
+            let amount = parseFloat(inv) || 0;
+            if (amount > 100000) return 2498;
+            if (amount > 50000) return 1799;
+            if (amount > 30000) return 1499;
+            if (amount > 10000) return 1199;
+            if (amount > 0) return 699;
+            return 0;
+        }
+
+        function getRfcSlabValue(val) {
+            let amount = parseFloat(val) || 0;
+            if (amount < 8000) return 0;
+            if (amount <= 10000) return 1109;
+            if (amount <= 15000) return 1631;
+            if (amount <= 20000) return 2147;
+            if (amount <= 25000) return 2695;
+            if (amount <= 30000) return 3215;
+            if (amount <= 35000) return 3648;
+            if (amount <= 40000) return 4219;
+            if (amount <= 50000) return 5720;
+            if (amount <= 60000) return 8686;
+            if (amount <= 100000) return 11438;
+            if (amount <= 200000) return 16677;
+            return 0;
         }
 
         window.addEventListener('pageshow', async function() {
@@ -595,7 +640,7 @@
 
                     if (savedVersionTime > 0 && latestCommitTime > savedVersionTime) {
                         if (badge) {
-                            badge.innerText = "🔄 UPDATING DATA...";
+                            badge.innerText = "🔄 UPDATING...";
                             badge.style.background = "#f59e0b";
                             badge.style.color = "#000";
                         }
@@ -620,11 +665,11 @@
 
                     if (cachedTime && cachedDbRecords && cachedDbRecords.length > 0 && (now - cachedTime < CACHE_DURATION_MS)) {
                         masterDbRecords = cachedDbRecords;
-                        badge.innerText = `⚡ CACHED (${masterDbRecords.length})`;
+                        badge.innerText = `⚡ CACHED`;
                         badge.style.background = "#10b981";
                         badge.style.color = "#fff";
                         searchInput.disabled = false;
-                        searchInput.placeholder = "Type Model or Brand...";
+                        searchInput.placeholder = "Type Model Name to Add...";
                         return;
                     }
                 }
@@ -675,24 +720,24 @@
                 await saveToDB('cached_db_records', masterDbRecords);
                 await saveToDB('master_data_time', now);
 
-                badge.innerText = `READY (${masterDbRecords.length})`;
+                badge.innerText = `READY`;
                 badge.style.background = "#10b981";
                 badge.style.color = "#fff";
                 searchInput.disabled = false;
-                searchInput.placeholder = "Type Model or Brand...";
+                searchInput.placeholder = "Type Model Name to Add...";
 
             } catch (err) {
                 console.error("Master Data Load Error:", err);
                 let fallbackDb = await getFromDB('cached_db_records');
                 if (fallbackDb && fallbackDb.length > 0) {
                     masterDbRecords = fallbackDb;
-                    badge.innerText = `OFFLINE CACHE (${masterDbRecords.length})`;
+                    badge.innerText = `OFFLINE`;
                     badge.style.background = "#10b981";
                     badge.style.color = "#fff";
                     searchInput.disabled = false;
-                    searchInput.placeholder = "Type Model or Brand...";
+                    searchInput.placeholder = "Type Model Name to Add...";
                 } else {
-                    badge.innerText = "OFFLINE ERROR";
+                    badge.innerText = "ERROR";
                     badge.style.background = "#ef4444";
                     badge.style.color = "#fff";
                 }
@@ -721,7 +766,7 @@
             let seen = new Set();
 
             masterDbRecords.forEach(r => {
-                if ((r.model.includes(q) || r.brand.includes(q) || r.category.includes(q)) && !seen.has(r.model)) {
+                if ((r.model.includes(q) || r.brand.includes(q)) && !seen.has(r.model)) {
                     seen.add(r.model);
                     uniqueModels.push(r);
                 }
@@ -736,7 +781,6 @@
             dropdown.innerHTML = uniqueModels.slice(0, 30).map(m => `
                 <div class="dropdown-item" onclick="addNewProductToBasket('${m.model.replace(/'/g, "\\'")}')">
                     <span>📱 ${m.brand ? `[${m.brand}] ` : ''}${m.model}</span>
-                    <span style="font-size:10px; color:#94a3b8; background:#1e293b; padding:2px 5px; border-radius:3px;">${m.category}</span>
                 </div>
             `).join('');
 
@@ -753,13 +797,19 @@
             let modelSchemes = masterDbRecords.filter(r => r.model === modelName);
             let defaultMrp = modelSchemes[0] && modelSchemes[0].mrp > 0 ? modelSchemes[0].mrp : "";
 
+            let autoGtl = getGtlSlabValue(defaultMrp);
+            let autoRfcSlab = getRfcSlabValue(defaultMrp);
+
             let newProduct = {
                 id: 'prod_' + Date.now() + '_' + Math.floor(Math.random()*1000),
                 name: modelName,
                 invoice: defaultMrp,
-                gtlRfc: "120K",
+                gtl: autoGtl,
+                rfc: 0, // बाय डिफॉल्ट 0
+                rfcSlab: autoRfcSlab,
                 margin: 0,
                 dealerContri: 0,
+                isCollapsed: false, // मिनिमाइज स्टेट
                 schemes: modelSchemes.map((s, idx) => ({ ...s, sId: 's_' + idx, disabled: false }))
             };
 
@@ -772,10 +822,33 @@
             renderAllProductPanels();
         }
 
+        function toggleCollapseProduct(pId) {
+            let prod = selectedProductList.find(p => p.id === pId);
+            if (prod) {
+                prod.isCollapsed = !prod.isCollapsed;
+                renderAllProductPanels();
+            }
+        }
+
         function updateProductParam(pId, field, val) {
             let prod = selectedProductList.find(p => p.id === pId);
             if (prod) {
                 prod[field] = val;
+                if (field === 'invoice') {
+                    let invVal = parseFloat(val) || 0;
+                    prod.gtl = getGtlSlabValue(invVal);
+                    prod.rfcSlab = getRfcSlabValue(invVal);
+                    let gtlSelect = document.getElementById(`gtl_${pId}`);
+                    let rfcSelect = document.getElementById(`rfc_${pId}`);
+                    if (gtlSelect) gtlSelect.value = prod.gtl;
+                    if (rfcSelect) {
+                        let opt = document.getElementById(`rfc_opt_${pId}`);
+                        if (opt) {
+                            opt.value = prod.rfcSlab;
+                            opt.innerText = prod.rfcSlab;
+                        }
+                    }
+                }
                 renderProductTableOnly(pId);
             }
         }
@@ -843,6 +916,35 @@
             }
         }
 
+        /* 📋 सिंगल स्कीम कॉपी करणे (WhatsApp Format) */
+        function copySingleSchemeText(pId, sId, tenure, adv, dp, emi, months, perDay) {
+            let prod = selectedProductList.find(p => p.id === pId);
+            if (!prod) return;
+
+            let price = prod.invoice || "0";
+            let textToCopy = `📱 *${prod.name}*\n` +
+                             `💵 *Invoice:* ₹${Number(price).toLocaleString()}\n` +
+                             `✅ *Scheme:* ${tenure}/${adv}\n` +
+                             `💰 *Down Payment:* ₹${Number(dp).toLocaleString()}\n` +
+                             `🗓️ *EMI:* ₹${Number(emi).toLocaleString()} x ${months} Months\n` +
+                             `✨ *Per Day:* ₹${Number(perDay).toLocaleString()}`;
+
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(textToCopy).then(() => {
+                    alert("स्कीम यशस्वीरित्या कॉपी झाली! ✅");
+                });
+            } else {
+                let ta = document.createElement("textarea");
+                ta.value = textToCopy;
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+                alert("स्कीम कॉपी झाली! ✅");
+            }
+        }
+
+        /* सर्व प्रॉडक्ट पॅनेल्स रेंडर करणे (मिनिमाइज सपोर्टसह) */
         function renderAllProductPanels() {
             const container = document.getElementById('selectedProductsContainer');
             if (selectedProductList.length === 0) {
@@ -850,65 +952,87 @@
                 return;
             }
 
-            container.innerHTML = selectedProductList.map((prod, idx) => `
+            container.innerHTML = selectedProductList.map((prod, idx) => {
+                let isCol = prod.isCollapsed;
+                let bodyDisplay = isCol ? "none" : "block";
+                let arrowIcon = isCol ? "▶" : "▼";
+
+                return `
                 <div class="product-panel" id="panel_${prod.id}">
-                    <div class="panel-header">
-                        <span class="panel-title">📱 #${idx+1} ${prod.name}</span>
-                        <div class="btn-panel-action">
-                            <button class="btn-add-scheme" onclick="openAddSchemeModal('${prod.id}', '${prod.name.replace(/'/g, "\\'")}')">➕ ADD SCHEME</button>
-                            <button class="btn-quote" onclick="generateQuoteImage('${prod.id}')">📸 QUOTE</button>
-                            <button class="btn-remove" onclick="removeProductFromBasket('${prod.id}')">✖</button>
+                    <div class="panel-header" onclick="toggleCollapseProduct('${prod.id}')">
+                        <div class="panel-header-left">
+                            <span style="font-size:12px; color:#38bdf8;">${arrowIcon}</span>
+                            <span class="panel-title">📱 #${idx+1} ${prod.name}</span>
+                            <span class="panel-inv-badge">₹${Number(prod.invoice||0).toLocaleString()}</span>
+                        </div>
+                        <div class="btn-panel-action" onclick="event.stopPropagation()">
+                            <button class="btn-action-sm btn-add-scheme" onclick="openAddSchemeModal('${prod.id}', '${prod.name.replace(/'/g, "\\'")}')">➕ SCHEME</button>
+                            <button class="btn-action-sm btn-quote" onclick="generateQuoteImage('${prod.id}')">📸 QUOTE</button>
+                            <button class="btn-action-sm btn-remove" onclick="removeProductFromBasket('${prod.id}')">✖</button>
                         </div>
                     </div>
 
-                    <div class="sub-config-grid">
-                        <div>
-                            <label>INVOICE (₹)</label>
-                            <input type="number" value="${prod.invoice}" placeholder="0" oninput="updateProductParam('${prod.id}', 'invoice', this.value)">
+                    <!-- मिनिमाइज असताना खालील भाग लपवला जाईल -->
+                    <div id="panel_body_${prod.id}" style="display:${bodyDisplay};">
+                        <div class="sub-config-grid">
+                            <div>
+                                <label>INVOICE (₹)</label>
+                                <input type="number" value="${prod.invoice}" placeholder="0" oninput="updateProductParam('${prod.id}', 'invoice', this.value)">
+                            </div>
+                            <div>
+                                <label>GTL (₹) [SLAB]</label>
+                                <select id="gtl_${prod.id}" onchange="updateProductParam('${prod.id}', 'gtl', this.value)">
+                                    <option value="0" ${prod.gtl == 0 ? 'selected' : ''}>0</option>
+                                    <option value="699" ${prod.gtl == 699 ? 'selected' : ''}>699</option>
+                                    <option value="1199" ${prod.gtl == 1199 ? 'selected' : ''}>1199</option>
+                                    <option value="1499" ${prod.gtl == 1499 ? 'selected' : ''}>1499</option>
+                                    <option value="1799" ${prod.gtl == 1799 ? 'selected' : ''}>1799</option>
+                                    <option value="2498" ${prod.gtl == 2498 ? 'selected' : ''}>2498</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label>RFC (₹) [DEFAULT: 0]</label>
+                                <select id="rfc_${prod.id}" onchange="updateProductParam('${prod.id}', 'rfc', this.value)">
+                                    <option value="0" ${prod.rfc == 0 ? 'selected' : ''}>0</option>
+                                    <option id="rfc_opt_${prod.id}" value="${prod.rfcSlab}" ${prod.rfc > 0 ? 'selected' : ''}>${prod.rfcSlab}</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label>MARGIN (₹)</label>
+                                <input type="number" value="${prod.margin}" placeholder="0" oninput="updateProductParam('${prod.id}', 'margin', this.value)">
+                            </div>
+                            <div style="grid-column: span 2;">
+                                <label>DEALER CONTRI (₹)</label>
+                                <input type="number" value="${prod.dealerContri}" placeholder="0" oninput="updateProductParam('${prod.id}', 'dealerContri', this.value)">
+                            </div>
                         </div>
-                        <div>
-                            <label>GTL/RFC</label>
-                            <select onchange="updateProductParam('${prod.id}', 'gtlRfc', this.value)">
-                                <option value="120K" ${prod.gtlRfc === '120K' ? 'selected' : ''}>120K</option>
-                                <option value="100K" ${prod.gtlRfc === '100K' ? 'selected' : ''}>100K</option>
-                                <option value="80K" ${prod.gtlRfc === '80K' ? 'selected' : ''}>80K</option>
-                                <option value="50K" ${prod.gtlRfc === '50K' ? 'selected' : ''}>50K</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label>MARGIN (₹)</label>
-                            <input type="number" value="${prod.margin}" placeholder="0" oninput="updateProductParam('${prod.id}', 'margin', this.value)">
-                        </div>
-                        <div>
-                            <label>DEALER CONTRI (₹)</label>
-                            <input type="number" value="${prod.dealerContri}" placeholder="0" oninput="updateProductParam('${prod.id}', 'dealerContri', this.value)">
-                        </div>
-                    </div>
 
-                    <div class="table-responsive">
-                        <table class="scheme-table">
-                            <thead>
-                                <tr>
-                                    <th>SCHEME</th>
-                                    <th>LOAN</th>
-                                    <th>DP</th>
-                                    <th>EMI</th>
-                                    <th>M</th>
-                                    <th>DAY</th>
-                                    <th>EXTRA</th>
-                                    <th>ACTION</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tbody_${prod.id}"></tbody>
-                        </table>
+                        <div class="table-responsive">
+                            <table class="scheme-table">
+                                <thead>
+                                    <tr>
+                                        <th>SCHEME</th>
+                                        <th>DP</th>
+                                        <th>EMI</th>
+                                        <th>M</th>
+                                        <th>DAY</th>
+                                        <th>EXTRA</th>
+                                        <th>COPY</th>
+                                        <th>ACT</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbody_${prod.id}"></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
-            `).join('');
+                `;
+            }).join('');
 
             selectedProductList.forEach(p => renderProductTableOnly(p.id));
         }
 
-        /* आकडेमोड आणि नवीन सॉर्टिंग नियमावली */
+        /* टेबलमधील कॅल्क्युलेशन व सॉर्टिंग */
         function renderProductTableOnly(pId) {
             let prod = selectedProductList.find(p => p.id === pId);
             if (!prod) return;
@@ -918,13 +1042,15 @@
 
             let approvedLimit = parseFloat(document.getElementById('approvedVal').value) || 0;
             let rawMaxLtv = document.getElementById('maxLtvVal').value || "100";
-            let maxLtv = Math.min(100, Math.max(0, parseFloat(rawMaxLtv) || 100)); // 0 ते 100 च्या मधेच राहील
+            let maxLtv = Math.min(100, Math.max(0, parseFloat(rawMaxLtv) || 100));
             let custType = document.getElementById('typeVal').value || "NEW";
             let emiCap = parseFloat(document.getElementById('cappingVal').value) || 0;
 
             let invoiceAmount = parseFloat(prod.invoice) || 0;
             let margin = parseFloat(prod.margin) || 0;
             let dealerContri = parseFloat(prod.dealerContri) || 0;
+            let gtlVal = parseFloat(prod.gtl) || 0;
+            let rfcVal = parseFloat(prod.rfc) || 0;
 
             let baseFee = 850;
             if (custType === 'EMI CARD' || custType === 'VIRTUAL CARD') baseFee = 270;
@@ -932,7 +1058,6 @@
 
             let totalFees = baseFee + margin + dealerContri;
 
-            // 1. Max LTV नुसार फिल्टर करा
             let eligibleSchemes = prod.schemes.filter(s => {
                 if (s.tenure <= 0) return false;
                 let schemeLtv = ((s.tenure - s.advEmi) / s.tenure) * 100;
@@ -944,7 +1069,6 @@
                 return;
             }
 
-            // 2. कॅल्क्युलेशन ऑब्जेक्ट्स तयार करा
             let calculatedRows = eligibleSchemes.map(s => {
                 let price = invoiceAmount > 0 ? invoiceAmount : (s.mrp > 0 ? s.mrp : (approvedLimit > 0 ? approvedLimit : 30000));
                 let months = Math.max(1, s.tenure - s.advEmi);
@@ -965,13 +1089,14 @@
                 let baseEmi = loan / s.tenure;
                 if (baseEmi > 0 && baseEmi < 900) baseEmi = 900;
 
+                let insPerMonth = (gtlVal + rfcVal) / months;
                 let roiInEmi = loan * roiRate;
-                let emi = baseEmi + roiInEmi;
+                let emi = baseEmi + roiInEmi + insPerMonth;
 
                 if (emiCap > 0 && emi > emiCap) {
-                    loan = Math.max(minAllowedLoan, (emiCap / ((1 / s.tenure) + roiRate)));
+                    loan = Math.max(minAllowedLoan, ((emiCap - insPerMonth) / ((1 / s.tenure) + roiRate)));
                     baseEmi = loan / s.tenure;
-                    emi = baseEmi + (loan * roiRate);
+                    emi = baseEmi + (loan * roiRate) + insPerMonth;
                 }
 
                 let roiInDp = loan * roiRateDP;
@@ -996,46 +1121,40 @@
                 };
             });
 
-            // 3. ✨ तुमच्या अटींनुसार अचूक सॉर्टिंग (DP चढता -> EMI चढता -> महिने उतरता)
+            // अचूक सॉर्टिंग (DP चढता -> EMI चढता -> महिने उतरता)
             calculatedRows.sort((a, b) => {
-                // १. कमी डाऊन पेमेंट सर्वात वरती
-                if (a.dp !== b.dp) {
-                    return a.dp - b.dp;
-                }
-                // २. डाऊन पेमेंट समान असल्यास, कमी ईएमआय सर्वात वरती
-                if (a.emi !== b.emi) {
-                    return a.emi - b.emi;
-                }
-                // ३. ईएमआय पण समान असल्यास, सर्वात जास्त महिने वरती
+                if (a.dp !== b.dp) return a.dp - b.dp;
+                if (a.emi !== b.emi) return a.emi - b.emi;
                 return b.months - a.months;
             });
 
-            // 4. HTML रेंडर करा
             tbody.innerHTML = calculatedRows.map(row => {
                 let s = row.scheme;
                 let rowClass = row.disabled ? "row-disabled" : "";
                 let actionBtn = row.disabled 
-                    ? `<button class="btn-toggle-row btn-ena" onclick="toggleSchemeStatus('${prod.id}', '${row.sId}')">✅ चालू</button>`
-                    : `<button class="btn-toggle-row btn-dis" onclick="toggleSchemeStatus('${prod.id}', '${row.sId}')">🚫 बंद</button>`;
+                    ? `<button class="btn-toggle-row btn-ena" onclick="toggleSchemeStatus('${prod.id}', '${row.sId}')">✅</button>`
+                    : `<button class="btn-toggle-row btn-dis" onclick="toggleSchemeStatus('${prod.id}', '${row.sId}')">🚫</button>`;
 
                 let customBadge = row.isCustom ? `<span style="font-size:9px; color:#10b981;">(FIELD)</span>` : '';
 
                 return `
                     <tr class="${rowClass}">
                         <td style="color:#60a5fa; font-weight:900;">${s.tenure}/${s.advEmi} ${customBadge}</td>
-                        <td style="color:#34d399; font-weight:900;">₹${Math.floor(row.loan).toLocaleString()}</td>
                         <td style="color:#f59e0b; font-weight:900;">₹${Math.round(row.dp).toLocaleString()}</td>
                         <td style="color:#38bdf8; font-weight:900;">₹${Math.round(row.emi).toLocaleString()}</td>
                         <td style="color:#e2e8f0;">${row.months}</td>
                         <td style="color:#fb923c;">₹${row.perDay.toLocaleString()}</td>
                         <td style="color:#f87171;">₹${Math.max(0, row.extraCharges).toLocaleString()}</td>
+                        <td>
+                            <button class="btn-copy-scheme" onclick="copySingleSchemeText('${prod.id}', '${row.sId}', '${s.tenure}', '${s.advEmi}', '${Math.round(row.dp)}', '${Math.round(row.emi)}', '${row.months}', '${row.perDay}')">📋 COPY</button>
+                        </td>
                         <td>${actionBtn}</td>
                     </tr>
                 `;
             }).join('');
         }
 
-        /* 📸 कोट इमेज मध्ये सिनेरियोमधील सर्व इनपुट्स दाखवणारे फंक्शन */
+        /* 📸 मोठ्या फॉन्टची कोट इमेज (फक्त ५ घटक, NO LOAN COLUMN) */
         function generateQuoteImage(pId) {
             let prod = selectedProductList.find(p => p.id === pId);
             if (!prod) return;
@@ -1046,74 +1165,65 @@
                 return;
             }
 
-            // सिनेरियोचे सर्व इनपुट्स
+            // फक्त ५ मुख्य घटक
             let custType = document.getElementById('typeVal').value || "NEW";
             let approvedLimit = document.getElementById('approvedVal').value || "0";
             let maxLtv = document.getElementById('maxLtvVal').value || "100";
             let capping = document.getElementById('cappingVal').value || "NONE";
-
-            // मॉडेलचे स्वतःचे इनपुट्स
             let price = prod.invoice || "0";
-            let gtlRfc = prod.gtlRfc || "-";
-            let margin = prod.margin || "0";
-            let dealerContri = prod.dealerContri || "0";
 
+            // मोबाइलसाठी मोठी रुंदी आणि मोठे फॉन्ट कंटेनर
             let quoteDiv = document.createElement('div');
-            quoteDiv.style.width = "480px";
-            quoteDiv.style.padding = "16px";
+            quoteDiv.style.width = "650px";
+            quoteDiv.style.padding = "24px";
             quoteDiv.style.background = "#060e22";
             quoteDiv.style.color = "#ffffff";
-            quoteDiv.style.borderRadius = "8px";
-            quoteDiv.style.border = "2px solid #243b6b";
+            quoteDiv.style.borderRadius = "12px";
+            quoteDiv.style.border = "3px solid #243b6b";
             quoteDiv.style.fontFamily = "sans-serif";
             quoteDiv.style.position = "absolute";
             quoteDiv.style.top = "-9999px";
 
             quoteDiv.innerHTML = `
-                <div style="background: linear-gradient(180deg, #1e3a68 0%, #0c2044 100%); padding: 12px; border-radius: 6px; text-align: center; margin-bottom: 12px; border: 1px solid #38bdf8;">
-                    <h2 style="font-size: 20px; font-weight: 900; color: #ffffff; margin-bottom: 8px;">🎉 SPECIAL LOAN OFFER</h2>
+                <div style="background: linear-gradient(180deg, #1e3a68 0%, #0c2044 100%); padding: 18px; border-radius: 10px; text-align: center; margin-bottom: 18px; border: 2px solid #38bdf8;">
+                    <h2 style="font-size: 28px; font-weight: 900; color: #ffffff; margin-bottom: 12px; letter-spacing: 1px;">🎉 SPECIAL LOAN OFFER</h2>
                     
-                    <!-- सिनेरियोचे सर्व इनपुट्स ग्रिड -->
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; background: rgba(0,0,0,0.3); padding: 8px; border-radius: 6px; font-size: 11px; font-weight: bold; text-align: left;">
+                    <!-- फक्त ५ आवश्यक घटक (मोठे आणि ठळक फॉन्ट) -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: rgba(0,0,0,0.4); padding: 12px; border-radius: 8px; font-size: 15px; font-weight: 900; text-align: left;">
                         <div><span style="color:#94a3b8;">CUSTOMER TYPE:</span> <span style="color:#38bdf8;">${custType}</span></div>
                         <div><span style="color:#94a3b8;">APPROVED LIMIT:</span> <span style="color:#34d399;">₹${Number(approvedLimit).toLocaleString()}</span></div>
                         <div><span style="color:#94a3b8;">MAX LTV:</span> <span style="color:#f59e0b;">${maxLtv}%</span></div>
                         <div><span style="color:#94a3b8;">EMI CAPPING:</span> <span style="color:#f87171;">${capping}</span></div>
-                        <div><span style="color:#94a3b8;">GTL/RFC:</span> <span>${gtlRfc}</span></div>
-                        <div><span style="color:#94a3b8;">MARGIN:</span> <span>₹${margin}</span></div>
-                        <div><span style="color:#94a3b8;">DEALER CONTRI:</span> <span>₹${dealerContri}</span></div>
-                        <div><span style="color:#94a3b8;">INVOICE PRICE:</span> <span style="color:#38bdf8;">₹${Number(price).toLocaleString()}</span></div>
+                        <div style="grid-column: span 2; border-top: 1px dashed #334155; padding-top: 6px;"><span style="color:#94a3b8;">INVOICE PRICE:</span> <span style="color:#38bdf8; font-size:18px;">₹${Number(price).toLocaleString()}</span></div>
                     </div>
                 </div>
 
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px; border-bottom: 1px solid #1c2e4a; padding-bottom: 6px;">
-                    <h3 style="font-size: 16px; font-weight: 900; color: #f97316;">📱 ${prod.name}</h3>
-                    <span style="background: #0284c7; color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 900;">INV: ₹${Number(price).toLocaleString()}</span>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 16px; border-bottom: 2px solid #1c2e4a; padding-bottom: 10px;">
+                    <h3 style="font-size: 24px; font-weight: 900; color: #f97316;">📱 ${prod.name}</h3>
                 </div>
 
-                <table style="width: 100%; border-collapse: collapse; font-size: 11px; text-align: center;">
+                <!-- स्कीम टेबल: LOAN COLUMN वगळून, मोठे फॉन्ट्स -->
+                <table style="width: 100%; border-collapse: collapse; font-size: 16px; text-align: center;">
                     <thead>
-                        <tr style="background: #064e3b; color: #ffffff;">
-                            <th style="padding: 6px 3px; border: 1px solid #047857;">SCHEME</th>
-                            <th style="padding: 6px 3px; border: 1px solid #047857;">LOAN</th>
-                            <th style="padding: 6px 3px; border: 1px solid #047857;">DP</th>
-                            <th style="padding: 6px 3px; border: 1px solid #047857;">EMI</th>
-                            <th style="padding: 6px 3px; border: 1px solid #047857;">M</th>
-                            <th style="padding: 6px 3px; border: 1px solid #047857;">DAY</th>
+                        <tr style="background: #064e3b; color: #ffffff; font-size: 16px;">
+                            <th style="padding: 10px 6px; border: 2px solid #047857;">SCHEME</th>
+                            <th style="padding: 10px 6px; border: 2px solid #047857;">DOWN PAYMENT</th>
+                            <th style="padding: 10px 6px; border: 2px solid #047857;">MONTHLY EMI</th>
+                            <th style="padding: 10px 6px; border: 2px solid #047857;">MONTHS</th>
+                            <th style="padding: 10px 6px; border: 2px solid #047857;">PER DAY</th>
                         </tr>
                     </thead>
                     <tbody>
                         ${Array.from(tableElement.querySelectorAll('tr:not(.row-disabled)')).map(r => {
                             let cols = r.querySelectorAll('td');
-                            if (cols.length < 6) return '';
+                            if (cols.length < 5) return '';
                             return `
-                                <tr style="border-bottom: 1px solid #1c2e4a; font-weight: bold;">
-                                    <td style="padding: 6px 3px; color: #60a5fa;">${cols[0].innerText.replace('(FIELD)', '').trim()}</td>
-                                    <td style="padding: 6px 3px; color: #34d399;">${cols[1].innerText}</td>
-                                    <td style="padding: 6px 3px; color: #f59e0b;">${cols[2].innerText}</td>
-                                    <td style="padding: 6px 3px; color: #38bdf8;">${cols[3].innerText}</td>
-                                    <td style="padding: 6px 3px; color: #e2e8f0;">${cols[4].innerText}</td>
-                                    <td style="padding: 6px 3px; color: #fb923c;">${cols[5].innerText}</td>
+                                <tr style="border-bottom: 1px solid #1c2e4a; font-weight: 900; font-size: 17px;">
+                                    <td style="padding: 12px 6px; color: #60a5fa;">${cols[0].innerText.replace('(FIELD)', '').trim()}</td>
+                                    <td style="padding: 12px 6px; color: #f59e0b;">${cols[1].innerText}</td>
+                                    <td style="padding: 12px 6px; color: #38bdf8;">${cols[2].innerText}</td>
+                                    <td style="padding: 12px 6px; color: #e2e8f0;">${cols[3].innerText}</td>
+                                    <td style="padding: 12px 6px; color: #fb923c;">${cols[4].innerText}</td>
                                 </tr>
                             `;
                         }).join('')}
@@ -1127,8 +1237,6 @@
                 document.body.removeChild(quoteDiv);
                 let imgData = canvas.toDataURL("image/png");
                 document.getElementById('generatedQuoteImg').src = imgData;
-                document.getElementById('downloadImgBtn').href = imgData;
-                document.getElementById('downloadImgBtn').download = `${prod.name}_Loan_Quote.png`;
                 document.getElementById('imageViewerModal').style.display = 'flex';
             });
         }
