@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="mr">
+<html lang="hi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scenario & Master Data Search</title>
 
-    <!-- SheetJS for Live Excel Reading -->
+    <!-- SheetJS for Excel Reading -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
     <style>
@@ -141,11 +141,11 @@
 
         .status-badge {
             font-size: 10px;
-            padding: 2px 6px;
+            padding: 3px 8px;
             border-radius: 4px;
             font-weight: bold;
-            background: #f59e0b;
-            color: #000;
+            cursor: pointer;
+            transition: 0.2s;
         }
 
         .search-input {
@@ -330,7 +330,7 @@
         <div class="search-card">
             <div class="search-header-area">
                 <span class="search-title">🔍 Search Brand / Model</span>
-                <span id="dataStatusBadge" class="status-badge">DOWNLOADING...</span>
+                <span id="dataStatusBadge" class="status-badge" title="क्लिक करके फ़ोर्स रिफ्रेश कर सकते हैं" onclick="forceRefreshMasterData()">CHECKING...</span>
             </div>
             <input type="text" id="modelSearchInput" class="search-input" placeholder="Type Model or Brand..." oninput="handleModelSearch(this.value)" autocomplete="off" disabled>
             <div id="modelDropdown" class="dropdown-list"></div>
@@ -352,7 +352,7 @@
                         </select>
                     </td>
                 </tr>
-                <!-- 6. DEALER CONTRIBUTION (बदललेले नाव) -->
+                <!-- 6. DEALER CONTRIBUTION -->
                 <tr>
                     <td class="label-col">DEALER CONTRI</td>
                     <td class="input-col">
@@ -414,14 +414,78 @@
     </div>
 
     <script>
-        const MASTER_EXCEL_URL = "https://raw.githubusercontent.com/luckyjathar/testcalculator/main/master_data.xlsx";
+        /* ========================================================================= */
+        /* ओरिजिनल कैशिंग इंजन (INDEXEDDB + 12 HOURS CACHE DURATION)                */
+        /* ========================================================================= */
+        const PRIMARY_EXCEL_URL = "https://raw.githubusercontent.com/luckyjathar/testcalculator/main/master_data.xlsx";
+        const SECONDARY_EXCEL_URL = "https://raw.githubusercontent.com/luckyjathar/CALCULATOR/main/master_data.xlsx";
+        const LOCAL_EXCEL_URL = "./master_data.xlsx";
+
+        const DB_NAME = "PersistentPortalDB";
+        const DB_VERSION = 2;
+        const STORE_NAME = "dataStore";
+        const CACHE_DURATION_MS = 12 * 60 * 60 * 1000; // 12 घंटे (दिन में केवल 2 बार)
+
+        let dbInstance = null;
         let masterDbRecords = [];
         let currentSelectedModel = null;
         let currentViewMode = "LIVE";
 
-        window.addEventListener('pageshow', function() {
+        function initDB() {
+            return new Promise((resolve, reject) => {
+                let request = indexedDB.open(DB_NAME, DB_VERSION);
+                request.onupgradeneeded = function(e) {
+                    let db = e.target.result;
+                    if (!db.objectStoreNames.contains(STORE_NAME)) {
+                        db.createObjectStore(STORE_NAME);
+                    }
+                };
+                request.onsuccess = function(e) {
+                    dbInstance = e.target.result;
+                    resolve(dbInstance);
+                };
+                request.onerror = function(e) { reject(e); };
+            });
+        }
+
+        function saveToDB(key, data) {
+            return new Promise((resolve, reject) => {
+                if (!dbInstance) return reject("DB not initialized");
+                try {
+                    let tx = dbInstance.transaction(STORE_NAME, 'readwrite');
+                    let store = tx.objectStore(STORE_NAME);
+                    let req = store.put(JSON.stringify(data), key);
+                    req.onsuccess = () => resolve();
+                    req.onerror = (e) => reject(e.target.error);
+                } catch(e) { reject(e); }
+            });
+        }
+
+        function getFromDB(key) {
+            return new Promise((resolve, reject) => {
+                if (!dbInstance) return resolve(null);
+                try {
+                    let tx = dbInstance.transaction(STORE_NAME, 'readonly');
+                    let store = tx.objectStore(STORE_NAME);
+                    let req = store.get(key);
+                    req.onsuccess = (e) => {
+                        let res = e.target.result;
+                        if (res) {
+                            if (typeof res === 'string') resolve(JSON.parse(res));
+                            else resolve(res);
+                        } else {
+                            resolve(null);
+                        }
+                    };
+                    req.onerror = (e) => reject(e.target.error);
+                } catch(e) { reject(e); }
+            });
+        }
+
+        window.addEventListener('pageshow', async function() {
             resetAllInputsToBlank();
-            fetchMasterDataFromRepo();
+            await initDB();
+            await fetchFromMasterStream(false);
         });
 
         function resetAllInputsToBlank() {
@@ -435,21 +499,54 @@
             if (dropdown) dropdown.style.display = 'none';
         }
 
-        async function fetchMasterDataFromRepo() {
+        /* स्मार्ट मास्टर डेटा लोडर: पहले IndexedDB चेक करेगा, अगर 12 घंटे पुराना न हो तो डाउनलोड नहीं करेगा */
+        async function fetchFromMasterStream(forceSync = false) {
             const badge = document.getElementById('dataStatusBadge');
             const searchInput = document.getElementById('modelSearchInput');
+            let now = Date.now();
 
             try {
+                if (!forceSync) {
+                    let cachedTime = await getFromDB('master_data_time');
+                    let cachedDbRecords = await getFromDB('cached_db_records');
+
+                    // अगर कैश मौजूद है और 12 घंटे से कम समय हुआ है, तो बिना डाउनलोड किए तुरंत लोड करें
+                    if (cachedTime && cachedDbRecords && cachedDbRecords.length > 0 && (now - cachedTime < CACHE_DURATION_MS)) {
+                        masterDbRecords = cachedDbRecords;
+                        badge.innerText = `⚡ CACHED (${masterDbRecords.length})`;
+                        badge.style.background = "#10b981";
+                        badge.style.color = "#fff";
+                        searchInput.disabled = false;
+                        searchInput.placeholder = "Type Model or Brand...";
+                        return;
+                    }
+                }
+
+                // अगर कैश नहीं है या 12 घंटे पूरे हो चुके हैं, तभी लाइव डाउनलोड होगा
                 badge.innerText = "DOWNLOADING...";
                 badge.style.background = "#f59e0b";
                 badge.style.color = "#000";
 
-                let res = await fetch(MASTER_EXCEL_URL + "?t=" + Date.now());
-                if (!res.ok) throw new Error("File load zali nahi");
+                const urlsToTry = [
+                    PRIMARY_EXCEL_URL + '?t=' + now,
+                    SECONDARY_EXCEL_URL + '?t=' + now,
+                    LOCAL_EXCEL_URL + '?t=' + now
+                ];
 
-                let dataBuffer = await res.arrayBuffer();
+                let dataBuffer = null;
+                for (let url of urlsToTry) {
+                    try {
+                        let res = await fetch(url);
+                        if (res.ok) {
+                            dataBuffer = await res.arrayBuffer();
+                            break;
+                        }
+                    } catch(e) {}
+                }
+
+                if (!dataBuffer) throw new Error("एक्सेल डाउनलोड विफल रहा");
+
                 let wb = XLSX.read(new Uint8Array(dataBuffer), { type: 'array' });
-
                 let sheet1 = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { raw: false, defval: "" });
                 let sheet2 = wb.SheetNames.length > 1 ? XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[1]], { raw: false, defval: "" }) : [];
 
@@ -469,17 +566,37 @@
                     };
                 }).filter(r => r.model !== "" && r.model !== "NON TIEUP");
 
-                badge.innerText = "READY (" + masterDbRecords.length + ")";
+                // IndexedDB में 12 घंटे के लिए सेव करें
+                await saveToDB('cached_db_records', masterDbRecords);
+                await saveToDB('master_data_time', now);
+
+                badge.innerText = `READY (${masterDbRecords.length})`;
                 badge.style.background = "#10b981";
                 badge.style.color = "#fff";
                 searchInput.disabled = false;
                 searchInput.placeholder = "Type Model or Brand...";
+
             } catch (err) {
                 console.error("Master Data Load Error:", err);
-                badge.innerText = "OFFLINE ERROR";
-                badge.style.background = "#ef4444";
-                badge.style.color = "#fff";
+                let fallbackDb = await getFromDB('cached_db_records');
+                if (fallbackDb && fallbackDb.length > 0) {
+                    masterDbRecords = fallbackDb;
+                    badge.innerText = `OFFLINE CACHE (${masterDbRecords.length})`;
+                    badge.style.background = "#10b981";
+                    badge.style.color = "#fff";
+                    searchInput.disabled = false;
+                    searchInput.placeholder = "Type Model or Brand...";
+                } else {
+                    badge.innerText = "OFFLINE ERROR";
+                    badge.style.background = "#ef4444";
+                    badge.style.color = "#fff";
+                }
             }
+        }
+
+        // जरूरत पड़ने पर बैज पर क्लिक करके फ़ोर्स रिफ्रेश करने की सुविधा
+        async function forceRefreshMasterData() {
+            await fetchFromMasterStream(true);
         }
 
         function findVal(row, keys) {
@@ -507,7 +624,7 @@
             });
 
             if (uniqueModels.length === 0) {
-                dropdown.innerHTML = `<div style="padding:10px; color:#888; text-align:center;">काहीही सापडले नाही.</div>`;
+                dropdown.innerHTML = `<div style="padding:10px; color:#888; text-align:center;">कोई मॉडल नहीं मिला।</div>`;
                 dropdown.style.display = 'block';
                 return;
             }
