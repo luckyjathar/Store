@@ -28,7 +28,7 @@
 
         .main-wrapper {
             width: 100%;
-            max-width: 460px;
+            max-width: 480px;
             display: flex;
             flex-direction: column;
             gap: 16px;
@@ -101,16 +101,6 @@
         .form-select {
             cursor: pointer;
             background-color: #060e22;
-        }
-
-        .highlight-row {
-            background-color: #d35400;
-        }
-
-        .highlight-row .form-select {
-            background-color: #d35400;
-            color: #ffffff;
-            font-weight: 900;
         }
 
         option {
@@ -215,19 +205,48 @@
             border-bottom: 1px solid #1c2e4a;
             padding-bottom: 8px;
             margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 6px;
         }
 
         .panel-title {
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 900;
             color: #f97316;
+        }
+
+        .btn-panel-action {
+            display: flex;
+            gap: 5px;
+        }
+
+        .btn-add-scheme {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .btn-quote {
+            background: #0284c7;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 800;
+            cursor: pointer;
         }
 
         .btn-remove {
             background: #dc2626;
             color: white;
             border: none;
-            padding: 3px 8px;
+            padding: 4px 8px;
             border-radius: 4px;
             font-size: 11px;
             font-weight: bold;
@@ -265,22 +284,6 @@
             outline: none;
         }
 
-        .btn-quote {
-            background: #0284c7;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: 800;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .btn-quote:hover { background: #0369a1; }
-
         .table-responsive {
             width: 100%;
             overflow-x: auto;
@@ -307,7 +310,25 @@
             font-weight: 700;
         }
 
-        /* MODAL FOR IMAGE VIEWER */
+        .row-disabled {
+            opacity: 0.35;
+            text-decoration: line-through;
+            background: #111827;
+        }
+
+        .btn-toggle-row {
+            padding: 3px 6px;
+            border-radius: 4px;
+            border: none;
+            font-size: 10px;
+            font-weight: 900;
+            cursor: pointer;
+        }
+
+        .btn-dis { background: #fee2e2; color: #dc2626; }
+        .btn-ena { background: #d1fae5; color: #059669; }
+
+        /* MODAL STYLES */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -323,17 +344,44 @@
             background: #060e22;
             border: 2px solid #243b6b;
             border-radius: 8px;
-            padding: 14px;
-            max-width: 480px;
+            padding: 16px;
+            max-width: 440px;
             width: 100%;
+        }
+
+        .modal-title {
+            font-size: 16px;
+            font-weight: 900;
+            color: #60a5fa;
+            margin-bottom: 12px;
             text-align: center;
         }
 
-        .modal-content img {
+        .modal-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .modal-grid label {
+            font-size: 11px;
+            color: #94a3b8;
+            font-weight: bold;
+            display: block;
+            margin-bottom: 3px;
+        }
+
+        .modal-grid input {
             width: 100%;
-            border-radius: 6px;
-            margin-bottom: 12px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            background: #0b1736;
+            border: 1px solid #243b6b;
+            color: #ffffff;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: bold;
+            outline: none;
         }
     </style>
 </head>
@@ -341,25 +389,11 @@
 
     <div class="main-wrapper">
         
-        <!-- १. SCENARIO वरील ४ मुख्य ऑप्शन्स -->
+        <!-- १. SCENARIO वरील मुख्य ऑप्शन्स (नवीन अचूक सिक्वेन्स) -->
         <div class="scenario-card">
             <div class="scenario-header">Scenario</div>
             <table class="scenario-table">
-                <!-- १. APPROVED -->
-                <tr>
-                    <td class="label-col">APPROVED</td>
-                    <td class="input-col">
-                        <input type="number" class="form-input" id="approvedVal" placeholder="-" autocomplete="off" oninput="recalcAllProducts()">
-                    </td>
-                </tr>
-                <!-- २. MAX LTV -->
-                <tr>
-                    <td class="label-col">MAX LTV</td>
-                    <td class="input-col">
-                        <input type="text" class="form-input" id="maxLtvVal" placeholder="-" autocomplete="off" oninput="recalcAllProducts()">
-                    </td>
-                </tr>
-                <!-- ३. CUSTOMER TYPE -->
+                <!-- १. CUSTOMER TYPE (सगळ्यात वरती) -->
                 <tr>
                     <td class="label-col">CUSTOMER TYPE</td>
                     <td class="input-col">
@@ -372,7 +406,21 @@
                         </select>
                     </td>
                 </tr>
-                <!-- ४. EMI CAPPING -->
+                <!-- २. APPROVED (त्याच्या खाली) -->
+                <tr>
+                    <td class="label-col">APPROVED</td>
+                    <td class="input-col">
+                        <input type="number" class="form-input" id="approvedVal" placeholder="-" autocomplete="off" oninput="recalcAllProducts()">
+                    </td>
+                </tr>
+                <!-- ३. MAX LTV (त्याच्या खाली - कमाल १०० ची कडक मर्यादा) -->
+                <tr>
+                    <td class="label-col">MAX LTV (%)</td>
+                    <td class="input-col">
+                        <input type="number" min="0" max="100" class="form-input" id="maxLtvVal" placeholder="100" autocomplete="off" oninput="validateMaxLtvInput(this); recalcAllProducts()">
+                    </td>
+                </tr>
+                <!-- ४. EMI CAPPING (त्याच्या खाली) -->
                 <tr>
                     <td class="label-col">CAPPING</td>
                     <td class="input-col">
@@ -382,7 +430,7 @@
             </table>
         </div>
 
-        <!-- २. SEARCH BRAND / MODEL (नवीन मॉडेल ॲड करण्यासाठी) -->
+        <!-- २. SEARCH BRAND / MODEL -->
         <div class="search-card">
             <div class="search-header-area">
                 <span class="search-title">🔍 Add Product / Model</span>
@@ -392,15 +440,49 @@
             <div id="modelDropdown" class="dropdown-list"></div>
         </div>
 
-        <!-- ३. सर्व सिलेक्ट केलेले प्रॉडक्ट्स येथे रेंडर होतील -->
+        <!-- ३. सिलेक्ट केलेले सर्व प्रॉडक्ट्स पॅनेल्स -->
         <div id="selectedProductsContainer"></div>
 
     </div>
 
-    <!-- QUOTE IMAGE PREVIEW MODAL -->
-    <div id="imageViewerModal" class="modal-overlay">
+    <!-- ➕ फील्ड ऑफिसरसाठी मॅन्युअल स्कीम ॲड करण्याचा पॉपअप -->
+    <div id="addSchemeModal" class="modal-overlay">
         <div class="modal-content">
-            <img id="generatedQuoteImg" src="" alt="Customer Quote">
+            <div class="modal-title" id="addSchemeModalTitle">➕ नवीन स्कीम ॲड करा</div>
+            <input type="hidden" id="modalTargetProdId">
+            <div class="modal-grid">
+                <div>
+                    <label>TENURE (महिन्यांची संख्या)</label>
+                    <input type="number" id="mTen" placeholder="उदा. 10">
+                </div>
+                <div>
+                    <label>ADVANCE EMI</label>
+                    <input type="number" id="mAdv" placeholder="उदा. 2" value="0">
+                </div>
+                <div>
+                    <label>DBD %</label>
+                    <input type="number" step="0.01" id="mDbd" placeholder="उदा. 1.5" value="0">
+                </div>
+                <div>
+                    <label>PROCESSING FEE (₹)</label>
+                    <input type="number" id="mPf" placeholder="उदा. 699" value="0">
+                </div>
+                <div style="grid-column: span 2;">
+                    <label>ROI %</label>
+                    <input type="number" step="0.01" id="mRoi" placeholder="उदा. 0" value="0">
+                </div>
+            </div>
+            <div style="display:flex; gap:8px;">
+                <button onclick="saveCustomSchemeFromField()" style="flex:1; background:#10b981; color:white; padding:8px; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">सेव्ह करा ✅</button>
+                <button onclick="closeAddSchemeModal()" style="flex:1; background:#dc2626; color:white; border:none; padding:8px; border-radius:4px; font-weight:bold; cursor:pointer;">रद्द करा</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 📸 QUOTE IMAGE PREVIEW MODAL -->
+    <div id="imageViewerModal" class="modal-overlay">
+        <div class="modal-content" style="text-align:center;">
+            <img id="generatedQuoteImg" src="" alt="Customer Quote" style="width:100%; border-radius:6px; margin-bottom:12px;">
             <div style="display:flex; gap:8px;">
                 <a id="downloadImgBtn" href="#" download="Customer_Loan_Quote.png" style="flex:1; background:#059669; color:white; padding:8px; border-radius:4px; font-weight:bold; text-decoration:none;">💾 DOWNLOAD IMAGE</a>
                 <button onclick="document.getElementById('imageViewerModal').style.display='none'" style="flex:1; background:#dc2626; color:white; border:none; padding:8px; border-radius:4px; font-weight:bold; cursor:pointer;">CLOSE</button>
@@ -421,7 +503,7 @@
 
         let dbInstance = null;
         let masterDbRecords = [];
-        let selectedProductList = []; // मल्टिपल प्रॉडक्ट्स साठवण्यासाठी Array
+        let selectedProductList = [];
 
         function initDB() {
             return new Promise((resolve, reject) => {
@@ -472,6 +554,16 @@
                     req.onerror = (e) => reject(e.target.error);
                 } catch(e) { reject(e); }
             });
+        }
+
+        /* 100 पेक्षा जास्त आकडा टाकू न देणारा कडक नियम */
+        function validateMaxLtvInput(el) {
+            let val = parseFloat(el.value);
+            if (val > 100) {
+                el.value = 100;
+            } else if (val < 0) {
+                el.value = 0;
+            }
         }
 
         window.addEventListener('pageshow', async function() {
@@ -651,7 +743,6 @@
             dropdown.style.display = 'block';
         }
 
-        /* नवीन मॉडेल बास्केटमध्ये ॲड करणे (प्रत्येकाचे स्वतःचे स्वतंत्र पॅरामीटर्स) */
         function addNewProductToBasket(modelName) {
             const dropdown = document.getElementById('modelDropdown');
             const searchInput = document.getElementById('modelSearchInput');
@@ -659,16 +750,17 @@
             searchInput.value = '';
             dropdown.style.display = 'none';
 
-            let rec = masterDbRecords.find(r => r.model === modelName);
-            let defaultMrp = rec && rec.mrp > 0 ? rec.mrp : "";
+            let modelSchemes = masterDbRecords.filter(r => r.model === modelName);
+            let defaultMrp = modelSchemes[0] && modelSchemes[0].mrp > 0 ? modelSchemes[0].mrp : "";
 
             let newProduct = {
-                id: Date.now() + Math.random(),
+                id: 'prod_' + Date.now() + '_' + Math.floor(Math.random()*1000),
                 name: modelName,
                 invoice: defaultMrp,
                 gtlRfc: "120K",
                 margin: 0,
-                dealerContri: 0
+                dealerContri: 0,
+                schemes: modelSchemes.map((s, idx) => ({ ...s, sId: 's_' + idx, disabled: false }))
             };
 
             selectedProductList.push(newProduct);
@@ -692,7 +784,65 @@
             selectedProductList.forEach(p => renderProductTableOnly(p.id));
         }
 
-        /* सर्व प्रॉडक्ट्सचे पॅनेल्स तयार करणे */
+        function openAddSchemeModal(pId, pName) {
+            document.getElementById('modalTargetProdId').value = pId;
+            document.getElementById('addSchemeModalTitle').innerText = `➕ ${pName} मध्ये नवीन स्कीम जोडा`;
+            document.getElementById('mTen').value = '';
+            document.getElementById('mAdv').value = '0';
+            document.getElementById('mDbd').value = '0';
+            document.getElementById('mPf').value = '0';
+            document.getElementById('mRoi').value = '0';
+            document.getElementById('addSchemeModal').style.display = 'flex';
+        }
+
+        function closeAddSchemeModal() {
+            document.getElementById('addSchemeModal').style.display = 'none';
+        }
+
+        function saveCustomSchemeFromField() {
+            let pId = document.getElementById('modalTargetProdId').value;
+            let ten = parseInt(document.getElementById('mTen').value) || 0;
+            let adv = parseInt(document.getElementById('mAdv').value) || 0;
+            let dbd = parseFloat(document.getElementById('mDbd').value) || 0;
+            let pf = parseInt(document.getElementById('mPf').value) || 0;
+            let roi = parseFloat(document.getElementById('mRoi').value) || 0;
+
+            if (ten <= 0) {
+                alert("कृपया वैध Tenure टाका!");
+                return;
+            }
+
+            let prod = selectedProductList.find(p => p.id === pId);
+            if (prod) {
+                let newCustomScheme = {
+                    model: prod.name,
+                    tenure: ten,
+                    advEmi: adv,
+                    dbd: dbd,
+                    pf: pf,
+                    roi: roi,
+                    sId: 'custom_' + Date.now(),
+                    disabled: false,
+                    isCustom: true
+                };
+
+                prod.schemes.unshift(newCustomScheme);
+                closeAddSchemeModal();
+                renderProductTableOnly(pId);
+            }
+        }
+
+        function toggleSchemeStatus(pId, sId) {
+            let prod = selectedProductList.find(p => p.id === pId);
+            if (prod) {
+                let s = prod.schemes.find(x => x.sId === sId);
+                if (s) {
+                    s.disabled = !s.disabled;
+                    renderProductTableOnly(pId);
+                }
+            }
+        }
+
         function renderAllProductPanels() {
             const container = document.getElementById('selectedProductsContainer');
             if (selectedProductList.length === 0) {
@@ -704,21 +854,21 @@
                 <div class="product-panel" id="panel_${prod.id}">
                     <div class="panel-header">
                         <span class="panel-title">📱 #${idx+1} ${prod.name}</span>
-                        <div style="display:flex; gap:6px;">
-                            <button class="btn-quote" onclick="generateQuoteImage('${prod.id}')">📸 QUOTE IMAGE</button>
-                            <button class="btn-remove" onclick="removeProductFromBasket(${prod.id})">✖ REMOVE</button>
+                        <div class="btn-panel-action">
+                            <button class="btn-add-scheme" onclick="openAddSchemeModal('${prod.id}', '${prod.name.replace(/'/g, "\\'")}')">➕ ADD SCHEME</button>
+                            <button class="btn-quote" onclick="generateQuoteImage('${prod.id}')">📸 QUOTE</button>
+                            <button class="btn-remove" onclick="removeProductFromBasket('${prod.id}')">✖</button>
                         </div>
                     </div>
 
-                    <!-- स्वतंत्र पॅरामीटर्स (GTL/RFC, INVOICE, MARGIN, DEALER CONTRI) -->
                     <div class="sub-config-grid">
                         <div>
                             <label>INVOICE (₹)</label>
-                            <input type="number" value="${prod.invoice}" placeholder="0" oninput="updateProductParam(${prod.id}, 'invoice', this.value)">
+                            <input type="number" value="${prod.invoice}" placeholder="0" oninput="updateProductParam('${prod.id}', 'invoice', this.value)">
                         </div>
                         <div>
                             <label>GTL/RFC</label>
-                            <select onchange="updateProductParam(${prod.id}, 'gtlRfc', this.value)">
+                            <select onchange="updateProductParam('${prod.id}', 'gtlRfc', this.value)">
                                 <option value="120K" ${prod.gtlRfc === '120K' ? 'selected' : ''}>120K</option>
                                 <option value="100K" ${prod.gtlRfc === '100K' ? 'selected' : ''}>100K</option>
                                 <option value="80K" ${prod.gtlRfc === '80K' ? 'selected' : ''}>80K</option>
@@ -727,16 +877,15 @@
                         </div>
                         <div>
                             <label>MARGIN (₹)</label>
-                            <input type="number" value="${prod.margin}" placeholder="0" oninput="updateProductParam(${prod.id}, 'margin', this.value)">
+                            <input type="number" value="${prod.margin}" placeholder="0" oninput="updateProductParam('${prod.id}', 'margin', this.value)">
                         </div>
                         <div>
                             <label>DEALER CONTRI (₹)</label>
-                            <input type="number" value="${prod.dealerContri}" placeholder="0" oninput="updateProductParam(${prod.id}, 'dealerContri', this.value)">
+                            <input type="number" value="${prod.dealerContri}" placeholder="0" oninput="updateProductParam('${prod.id}', 'dealerContri', this.value)">
                         </div>
                     </div>
 
-                    <!-- टेबल कंटेनर -->
-                    <div class="table-responsive" id="tableContainer_${prod.id}">
+                    <div class="table-responsive">
                         <table class="scheme-table">
                             <thead>
                                 <tr>
@@ -744,9 +893,10 @@
                                     <th>LOAN</th>
                                     <th>DP</th>
                                     <th>EMI</th>
-                                    <th>MONTHS</th>
-                                    <th>PER DAY</th>
+                                    <th>M</th>
+                                    <th>DAY</th>
                                     <th>EXTRA</th>
+                                    <th>ACTION</th>
                                 </tr>
                             </thead>
                             <tbody id="tbody_${prod.id}"></tbody>
@@ -758,7 +908,7 @@
             selectedProductList.forEach(p => renderProductTableOnly(p.id));
         }
 
-        /* टेबलमधील आकडेमोड अचूक भरणे */
+        /* आकडेमोड आणि नवीन सॉर्टिंग नियमावली */
         function renderProductTableOnly(pId) {
             let prod = selectedProductList.find(p => p.id === pId);
             if (!prod) return;
@@ -766,11 +916,9 @@
             const tbody = document.getElementById(`tbody_${pId}`);
             if (!tbody) return;
 
-            let modelSchemes = masterDbRecords.filter(r => r.model === prod.name);
-
             let approvedLimit = parseFloat(document.getElementById('approvedVal').value) || 0;
-            let rawMaxLtv = document.getElementById('maxLtvVal').value.replace('%', '').trim();
-            let maxLtv = parseFloat(rawMaxLtv) || 100;
+            let rawMaxLtv = document.getElementById('maxLtvVal').value || "100";
+            let maxLtv = Math.min(100, Math.max(0, parseFloat(rawMaxLtv) || 100)); // 0 ते 100 च्या मधेच राहील
             let custType = document.getElementById('typeVal').value || "NEW";
             let emiCap = parseFloat(document.getElementById('cappingVal').value) || 0;
 
@@ -778,26 +926,26 @@
             let margin = parseFloat(prod.margin) || 0;
             let dealerContri = parseFloat(prod.dealerContri) || 0;
 
-            // कस्टमर टाईप चार्जेस
             let baseFee = 850;
             if (custType === 'EMI CARD' || custType === 'VIRTUAL CARD') baseFee = 270;
             else if (custType === 'W/O CARD') baseFee = 320;
 
             let totalFees = baseFee + margin + dealerContri;
 
-            // Max LTV फिल्टर
-            let eligibleSchemes = modelSchemes.filter(s => {
+            // 1. Max LTV नुसार फिल्टर करा
+            let eligibleSchemes = prod.schemes.filter(s => {
                 if (s.tenure <= 0) return false;
                 let schemeLtv = ((s.tenure - s.advEmi) / s.tenure) * 100;
                 return schemeLtv <= maxLtv;
             });
 
             if (eligibleSchemes.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" style="color:#f87171; padding:10px;">Max LTV (${maxLtv}%) च्या मर्यादेत एकही स्कीम नाही.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="8" style="color:#f87171; padding:10px;">Max LTV (${maxLtv}%) च्या मर्यादेत एकही स्कीम नाही.</td></tr>`;
                 return;
             }
 
-            tbody.innerHTML = eligibleSchemes.map(s => {
+            // 2. कॅल्क्युलेशन ऑब्जेक्ट्स तयार करा
+            let calculatedRows = eligibleSchemes.map(s => {
                 let price = invoiceAmount > 0 ? invoiceAmount : (s.mrp > 0 ? s.mrp : (approvedLimit > 0 ? approvedLimit : 30000));
                 let months = Math.max(1, s.tenure - s.advEmi);
 
@@ -834,38 +982,84 @@
                 let perDay = Math.round(emi / 30);
                 let extraCharges = Math.round((dp + (emi * months)) - price);
 
+                return {
+                    scheme: s,
+                    loan,
+                    dp,
+                    emi,
+                    months,
+                    perDay,
+                    extraCharges,
+                    disabled: s.disabled,
+                    sId: s.sId,
+                    isCustom: s.isCustom
+                };
+            });
+
+            // 3. ✨ तुमच्या अटींनुसार अचूक सॉर्टिंग (DP चढता -> EMI चढता -> महिने उतरता)
+            calculatedRows.sort((a, b) => {
+                // १. कमी डाऊन पेमेंट सर्वात वरती
+                if (a.dp !== b.dp) {
+                    return a.dp - b.dp;
+                }
+                // २. डाऊन पेमेंट समान असल्यास, कमी ईएमआय सर्वात वरती
+                if (a.emi !== b.emi) {
+                    return a.emi - b.emi;
+                }
+                // ३. ईएमआय पण समान असल्यास, सर्वात जास्त महिने वरती
+                return b.months - a.months;
+            });
+
+            // 4. HTML रेंडर करा
+            tbody.innerHTML = calculatedRows.map(row => {
+                let s = row.scheme;
+                let rowClass = row.disabled ? "row-disabled" : "";
+                let actionBtn = row.disabled 
+                    ? `<button class="btn-toggle-row btn-ena" onclick="toggleSchemeStatus('${prod.id}', '${row.sId}')">✅ चालू</button>`
+                    : `<button class="btn-toggle-row btn-dis" onclick="toggleSchemeStatus('${prod.id}', '${row.sId}')">🚫 बंद</button>`;
+
+                let customBadge = row.isCustom ? `<span style="font-size:9px; color:#10b981;">(FIELD)</span>` : '';
+
                 return `
-                    <tr>
-                        <td style="color:#60a5fa; font-weight:900;">${s.tenure}/${s.advEmi}</td>
-                        <td style="color:#34d399; font-weight:900;">₹${Math.floor(loan).toLocaleString()}</td>
-                        <td style="color:#f59e0b; font-weight:900;">₹${Math.round(dp).toLocaleString()}</td>
-                        <td style="color:#38bdf8; font-weight:900;">₹${Math.round(emi).toLocaleString()}</td>
-                        <td style="color:#e2e8f0;">${months}</td>
-                        <td style="color:#fb923c;">₹${perDay.toLocaleString()}</td>
-                        <td style="color:#f87171;">₹${Math.max(0, extraCharges).toLocaleString()}</td>
+                    <tr class="${rowClass}">
+                        <td style="color:#60a5fa; font-weight:900;">${s.tenure}/${s.advEmi} ${customBadge}</td>
+                        <td style="color:#34d399; font-weight:900;">₹${Math.floor(row.loan).toLocaleString()}</td>
+                        <td style="color:#f59e0b; font-weight:900;">₹${Math.round(row.dp).toLocaleString()}</td>
+                        <td style="color:#38bdf8; font-weight:900;">₹${Math.round(row.emi).toLocaleString()}</td>
+                        <td style="color:#e2e8f0;">${row.months}</td>
+                        <td style="color:#fb923c;">₹${row.perDay.toLocaleString()}</td>
+                        <td style="color:#f87171;">₹${Math.max(0, row.extraCharges).toLocaleString()}</td>
+                        <td>${actionBtn}</td>
                     </tr>
                 `;
             }).join('');
         }
 
-        /* 📸 प्रत्येक मॉडेलची स्वतंत्र Quote Image तयार करणे */
+        /* 📸 कोट इमेज मध्ये सिनेरियोमधील सर्व इनपुट्स दाखवणारे फंक्शन */
         function generateQuoteImage(pId) {
-            let prod = selectedProductList.find(p => p.id == pId);
+            let prod = selectedProductList.find(p => p.id === pId);
             if (!prod) return;
 
             let tableElement = document.getElementById(`tbody_${pId}`);
-            if (!tableElement || tableElement.querySelectorAll('tr').length === 0) {
-                alert("कोटेशनसाठी स्कीम्स उपलब्ध नाहीत!");
+            if (!tableElement || tableElement.querySelectorAll('tr:not(.row-disabled)').length === 0) {
+                alert("कोटेशनसाठी किमान एक ॲक्टिव्ह स्कीम आवश्यक आहे!");
                 return;
             }
 
-            let approvedLimit = document.getElementById('approvedVal').value || "0";
+            // सिनेरियोचे सर्व इनपुट्स
             let custType = document.getElementById('typeVal').value || "NEW";
-            let price = prod.invoice || "0";
+            let approvedLimit = document.getElementById('approvedVal').value || "0";
+            let maxLtv = document.getElementById('maxLtvVal').value || "100";
+            let capping = document.getElementById('cappingVal').value || "NONE";
 
-            // तात्पुरते कॅन्व्हास कंटेनर
+            // मॉडेलचे स्वतःचे इनपुट्स
+            let price = prod.invoice || "0";
+            let gtlRfc = prod.gtlRfc || "-";
+            let margin = prod.margin || "0";
+            let dealerContri = prod.dealerContri || "0";
+
             let quoteDiv = document.createElement('div');
-            quoteDiv.style.width = "460px";
+            quoteDiv.style.width = "480px";
             quoteDiv.style.padding = "16px";
             quoteDiv.style.background = "#060e22";
             quoteDiv.style.color = "#ffffff";
@@ -877,15 +1071,24 @@
 
             quoteDiv.innerHTML = `
                 <div style="background: linear-gradient(180deg, #1e3a68 0%, #0c2044 100%); padding: 12px; border-radius: 6px; text-align: center; margin-bottom: 12px; border: 1px solid #38bdf8;">
-                    <h2 style="font-size: 20px; font-weight: 900; color: #ffffff; margin-bottom: 4px;">🎉 SPECIAL LOAN OFFER</h2>
-                    <div style="font-size: 13px; font-weight: 800; color: #94a3b8;">
-                        LIMIT: ₹${approvedLimit} | TYPE: ${custType}
+                    <h2 style="font-size: 20px; font-weight: 900; color: #ffffff; margin-bottom: 8px;">🎉 SPECIAL LOAN OFFER</h2>
+                    
+                    <!-- सिनेरियोचे सर्व इनपुट्स ग्रिड -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; background: rgba(0,0,0,0.3); padding: 8px; border-radius: 6px; font-size: 11px; font-weight: bold; text-align: left;">
+                        <div><span style="color:#94a3b8;">CUSTOMER TYPE:</span> <span style="color:#38bdf8;">${custType}</span></div>
+                        <div><span style="color:#94a3b8;">APPROVED LIMIT:</span> <span style="color:#34d399;">₹${Number(approvedLimit).toLocaleString()}</span></div>
+                        <div><span style="color:#94a3b8;">MAX LTV:</span> <span style="color:#f59e0b;">${maxLtv}%</span></div>
+                        <div><span style="color:#94a3b8;">EMI CAPPING:</span> <span style="color:#f87171;">${capping}</span></div>
+                        <div><span style="color:#94a3b8;">GTL/RFC:</span> <span>${gtlRfc}</span></div>
+                        <div><span style="color:#94a3b8;">MARGIN:</span> <span>₹${margin}</span></div>
+                        <div><span style="color:#94a3b8;">DEALER CONTRI:</span> <span>₹${dealerContri}</span></div>
+                        <div><span style="color:#94a3b8;">INVOICE PRICE:</span> <span style="color:#38bdf8;">₹${Number(price).toLocaleString()}</span></div>
                     </div>
                 </div>
 
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px; border-bottom: 1px solid #1c2e4a; padding-bottom: 6px;">
                     <h3 style="font-size: 16px; font-weight: 900; color: #f97316;">📱 ${prod.name}</h3>
-                    <span style="background: #0284c7; color: #fff; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: 900;">INV: ₹${price}</span>
+                    <span style="background: #0284c7; color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 900;">INV: ₹${Number(price).toLocaleString()}</span>
                 </div>
 
                 <table style="width: 100%; border-collapse: collapse; font-size: 11px; text-align: center;">
@@ -900,12 +1103,12 @@
                         </tr>
                     </thead>
                     <tbody>
-                        ${Array.from(tableElement.querySelectorAll('tr')).map(r => {
+                        ${Array.from(tableElement.querySelectorAll('tr:not(.row-disabled)')).map(r => {
                             let cols = r.querySelectorAll('td');
                             if (cols.length < 6) return '';
                             return `
                                 <tr style="border-bottom: 1px solid #1c2e4a; font-weight: bold;">
-                                    <td style="padding: 6px 3px; color: #60a5fa;">${cols[0].innerText}</td>
+                                    <td style="padding: 6px 3px; color: #60a5fa;">${cols[0].innerText.replace('(FIELD)', '').trim()}</td>
                                     <td style="padding: 6px 3px; color: #34d399;">${cols[1].innerText}</td>
                                     <td style="padding: 6px 3px; color: #f59e0b;">${cols[2].innerText}</td>
                                     <td style="padding: 6px 3px; color: #38bdf8;">${cols[3].innerText}</td>
@@ -925,7 +1128,7 @@
                 let imgData = canvas.toDataURL("image/png");
                 document.getElementById('generatedQuoteImg').src = imgData;
                 document.getElementById('downloadImgBtn').href = imgData;
-                document.getElementById('downloadImgBtn').download = `${prod.name}_Quote.png`;
+                document.getElementById('downloadImgBtn').download = `${prod.name}_Loan_Quote.png`;
                 document.getElementById('imageViewerModal').style.display = 'flex';
             });
         }
