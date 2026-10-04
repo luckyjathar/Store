@@ -5,419 +5,76 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pro Financial Portal</title>
 
-    <!-- SheetJS for Excel Reading -->
+    <!-- SheetJS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <!-- html2canvas for Quote Image Generation -->
+    <!-- html2canvas -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        }
-
-        body {
-            background-color: #0b1329;
-            color: #ffffff;
-            padding: 12px;
-            padding-bottom: 75px;
-            display: flex;
-            justify-content: center;
-        }
-
-        .main-wrapper {
-            width: 100%;
-            max-width: 500px;
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-        }
-
-        /* 1. SCENARIO CARD */
-        .scenario-card {
-            background-color: #060e22;
-            border: 2px solid #243b6b;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
-        }
-
-        .scenario-header {
-            background-color: #1e3a68;
-            color: #ffffff;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 14px;
-            border-bottom: 2px solid #243b6b;
-        }
-
-        .scenario-title {
-            font-size: 22px;
-            font-weight: 900;
-            font-style: italic;
-            letter-spacing: 1px;
-        }
-
-        .status-badge {
-            font-size: 10px;
-            padding: 3px 8px;
-            border-radius: 4px;
-            font-weight: bold;
-            cursor: pointer;
-            background: #10b981;
-            color: #fff;
-        }
-
-        .scenario-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .scenario-table tr {
-            border-bottom: 1px solid #1c2e4a;
-        }
-
-        .scenario-table tr:last-child {
-            border-bottom: none;
-        }
-
-        .scenario-table td {
-            padding: 10px 14px;
-            vertical-align: middle;
-        }
-
-        .scenario-table td.label-col {
-            width: 50%;
-            color: #ffffff;
-            font-size: 14px;
-            font-weight: 800;
-            letter-spacing: 0.5px;
-            border-right: 1px solid #1c2e4a;
-        }
-
-        .scenario-table td.input-col {
-            width: 50%;
-            padding: 6px 10px;
-        }
-
-        .form-input, .form-select {
-            width: 100%;
-            background: transparent;
-            border: none;
-            outline: none;
-            color: #ffffff;
-            font-size: 15px;
-            font-weight: 800;
-            text-align: center;
-        }
-
-        .form-select {
-            cursor: pointer;
-            background-color: #060e22;
-        }
-
-        option {
-            background-color: #060e22;
-            color: #ffffff;
-        }
-
-        /* 2. SEARCH CARD */
-        .search-card {
-            background: #060e22;
-            border: 2px solid #243b6b;
-            border-radius: 8px;
-            padding: 12px;
-            position: relative;
-        }
-
-        .search-title {
-            font-size: 13px;
-            font-weight: 800;
-            color: #60a5fa;
-            text-transform: uppercase;
-            margin-bottom: 8px;
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 10px 14px;
-            border-radius: 6px;
-            border: 1px solid #243b6b;
-            background: #0b1736;
-            color: #ffffff;
-            font-size: 14px;
-            font-weight: bold;
-            outline: none;
-        }
-
-        .search-input:focus {
-            border-color: #3b82f6;
-        }
-
-        .dropdown-list {
-            position: absolute;
-            left: 12px;
-            right: 12px;
-            top: 100%;
-            background: #0f1c3f;
-            border: 1px solid #243b6b;
-            border-radius: 6px;
-            max-height: 240px;
-            overflow-y: auto;
-            z-index: 50;
-            display: none;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.6);
-            margin-top: 4px;
-        }
-
-        .dropdown-item {
-            padding: 10px 12px;
-            font-size: 13px;
-            font-weight: 700;
-            cursor: pointer;
-            border-bottom: 1px solid #1c2e4a;
-        }
-
-        .dropdown-item:hover {
-            background: #1e3a68;
-            color: #60a5fa;
-        }
-
-        /* 3. DYNAMIC PRODUCT PANELS */
-        .product-panel {
-            background: #060e22;
-            border: 2px solid #243b6b;
-            border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        }
-
-        .panel-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-            padding-bottom: 6px;
-        }
-
-        .panel-header-left {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .panel-title {
-            font-size: 15px;
-            font-weight: 900;
-            color: #f97316;
-        }
-
-        .panel-inv-badge {
-            background: #0284c7;
-            color: #fff;
-            padding: 2px 7px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: 900;
-        }
-
-        .btn-panel-action {
-            display: flex;
-            gap: 5px;
-            flex-wrap: wrap;
-        }
-
-        .btn-action-sm {
-            border: none;
-            padding: 4px 7px;
-            border-radius: 4px;
-            font-size: 10px;
-            font-weight: 800;
-            cursor: pointer;
-        }
-
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: #0b1329; color: #ffffff; padding: 12px; padding-bottom: 75px; display: flex; justify-content: center; }
+        .main-wrapper { width: 100%; max-width: 500px; display: flex; flex-direction: column; gap: 14px; }
+        .scenario-card { background-color: #060e22; border: 2px solid #243b6b; border-radius: 8px; overflow: hidden; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5); }
+        .scenario-header { background-color: #1e3a68; color: #ffffff; display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-bottom: 2px solid #243b6b; }
+        .scenario-title { font-size: 22px; font-weight: 900; font-style: italic; letter-spacing: 1px; }
+        .status-badge { font-size: 10px; padding: 3px 8px; border-radius: 4px; font-weight: bold; cursor: pointer; background: #10b981; color: #fff; }
+        .scenario-table { width: 100%; border-collapse: collapse; }
+        .scenario-table tr { border-bottom: 1px solid #1c2e4a; }
+        .scenario-table tr:last-child { border-bottom: none; }
+        .scenario-table td { padding: 10px 14px; vertical-align: middle; }
+        .scenario-table td.label-col { width: 50%; color: #ffffff; font-size: 14px; font-weight: 800; letter-spacing: 0.5px; border-right: 1px solid #1c2e4a; }
+        .scenario-table td.input-col { width: 50%; padding: 6px 10px; }
+        .form-input, .form-select { width: 100%; background: transparent; border: none; outline: none; color: #ffffff; font-size: 15px; font-weight: 800; text-align: center; }
+        .form-select { cursor: pointer; background-color: #060e22; }
+        option { background-color: #060e22; color: #ffffff; }
+        .search-card { background: #060e22; border: 2px solid #243b6b; border-radius: 8px; padding: 12px; position: relative; }
+        .search-title { font-size: 13px; font-weight: 800; color: #60a5fa; text-transform: uppercase; margin-bottom: 8px; }
+        .search-input { width: 100%; padding: 10px 14px; border-radius: 6px; border: 1px solid #243b6b; background: #0b1736; color: #ffffff; font-size: 14px; font-weight: bold; outline: none; }
+        .search-input:focus { border-color: #3b82f6; }
+        .dropdown-list { position: absolute; left: 12px; right: 12px; top: 100%; background: #0f1c3f; border: 1px solid #243b6b; border-radius: 6px; max-height: 240px; overflow-y: auto; z-index: 50; display: none; box-shadow: 0 8px 16px rgba(0,0,0,0.6); margin-top: 4px; }
+        .dropdown-item { padding: 10px 12px; font-size: 13px; font-weight: 700; cursor: pointer; border-bottom: 1px solid #1c2e4a; }
+        .dropdown-item:hover { background: #1e3a68; color: #60a5fa; }
+        .product-panel { background: #060e22; border: 2px solid #243b6b; border-radius: 8px; padding: 12px; margin-bottom: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        .panel-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; padding-bottom: 6px; }
+        .panel-header-left { display: flex; align-items: center; gap: 8px; }
+        .panel-title { font-size: 15px; font-weight: 900; color: #f97316; }
+        .panel-inv-badge { background: #0284c7; color: #fff; padding: 2px 7px; border-radius: 4px; font-size: 12px; font-weight: 900; }
+        .btn-panel-action { display: flex; gap: 5px; flex-wrap: wrap; }
+        .btn-action-sm { border: none; padding: 4px 7px; border-radius: 4px; font-size: 10px; font-weight: 800; cursor: pointer; }
         .btn-add-scheme { background: #10b981; color: white; }
         .btn-quote { background: #0284c7; color: white; }
         .btn-remove { background: #dc2626; color: white; }
-
-        .sub-config-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            background: #0b1736;
-            padding: 10px;
-            border-radius: 6px;
-            border: 1px solid #1c2e4a;
-            margin-top: 8px;
-            margin-bottom: 10px;
-        }
-
-        .sub-config-grid label {
-            font-size: 10px;
-            font-weight: 800;
-            color: #94a3b8;
-            display: block;
-            margin-bottom: 2px;
-        }
-
-        .sub-config-grid input, .sub-config-grid select {
-            width: 100%;
-            background: #060e22;
-            border: 1px solid #243b6b;
-            color: #fff;
-            padding: 6px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: bold;
-            outline: none;
-        }
-
-        .table-responsive {
-            width: 100%;
-            overflow-x: auto;
-        }
-
-        .scheme-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 11px;
-            text-align: center;
-            white-space: nowrap;
-        }
-
-        .scheme-table th {
-            background: #064e3b;
-            color: #ffffff;
-            padding: 8px 4px;
-            border: 1px solid #047857;
-        }
-
-        .scheme-table td {
-            padding: 8px 4px;
-            border: 1px solid #1c2e4a;
-            font-weight: 700;
-        }
-
-        .scheme-checkbox {
-            width: 16px;
-            height: 16px;
-            cursor: pointer;
-            accent-color: #38bdf8;
-        }
-
-        .btn-copy-scheme {
-            background: #3b82f6;
-            color: white;
-            border: none;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: 900;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        .btn-copy-scheme:hover {
-            background: #2563eb;
-        }
-
-        .btn-toggle-row {
-            padding: 3px 6px;
-            border-radius: 4px;
-            border: none;
-            font-size: 10px;
-            font-weight: 900;
-            cursor: pointer;
-        }
-
+        .sub-config-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: #0b1736; padding: 10px; border-radius: 6px; border: 1px solid #1c2e4a; margin-top: 8px; margin-bottom: 10px; }
+        .sub-config-grid label { font-size: 10px; font-weight: 800; color: #94a3b8; display: block; margin-bottom: 2px; }
+        .sub-config-grid input, .sub-config-grid select { width: 100%; background: #060e22; border: 1px solid #243b6b; color: #fff; padding: 6px; border-radius: 4px; font-size: 12px; font-weight: bold; outline: none; }
+        .table-responsive { width: 100%; overflow-x: auto; }
+        .scheme-table { width: 100%; border-collapse: collapse; font-size: 11px; text-align: center; white-space: nowrap; }
+        .scheme-table th { background: #064e3b; color: #ffffff; padding: 8px 4px; border: 1px solid #047857; }
+        .scheme-table td { padding: 8px 4px; border: 1px solid #1c2e4a; font-weight: 700; }
+        .scheme-checkbox { width: 16px; height: 16px; cursor: pointer; accent-color: #38bdf8; }
+        .btn-copy-scheme { background: #3b82f6; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 900; cursor: pointer; }
+        .btn-toggle-row { padding: 3px 6px; border-radius: 4px; border: none; font-size: 10px; font-weight: 900; cursor: pointer; }
         .btn-dis { background: #fee2e2; color: #dc2626; }
         .btn-ena { background: #d1fae5; color: #059669; }
         .row-disabled { opacity: 0.35; text-decoration: line-through; background: #111827; }
-
-        /* MODAL STYLES */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.85);
-            z-index: 999;
-            justify-content: center;
-            align-items: center;
-            padding: 12px;
-        }
-
-        .modal-content {
-            background: #060e22;
-            border: 2px solid #243b6b;
-            border-radius: 8px;
-            padding: 14px;
-            max-width: 520px;
-            width: 100%;
-            max-height: 92vh;
-            overflow-y: auto;
-        }
-
-        .copy-hint-box {
-            background: #0284c7;
-            color: #ffffff;
-            padding: 9px 12px;
-            border-radius: 6px;
-            font-size: 13px;
-            font-weight: 800;
-            text-align: center;
-            margin-bottom: 10px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-        }
-
-        /* 4. FOOTER BAR */
-        .app-footer {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: #060e22;
-            border-top: 2px solid #1e3a68;
-            padding: 8px 16px;
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            z-index: 100;
-        }
-
-        .footer-btn {
-            background: transparent;
-            border: none;
-            color: #94a3b8;
-            font-size: 11px;
-            font-weight: 800;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 3px;
-            cursor: pointer;
-        }
-
-        .footer-btn.active, .footer-btn:hover {
-            color: #38bdf8;
-        }
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 999; justify-content: center; align-items: center; padding: 12px; }
+        .modal-content { background: #060e22; border: 2px solid #243b6b; border-radius: 8px; padding: 14px; max-width: 520px; width: 100%; max-height: 92vh; overflow-y: auto; }
+        .copy-hint-box { background: #0284c7; color: #ffffff; padding: 9px 12px; border-radius: 6px; font-size: 13px; font-weight: 800; text-align: center; margin-bottom: 10px; }
+        .app-footer { position: fixed; bottom: 0; left: 0; right: 0; background: #060e22; border-top: 2px solid #1e3a68; padding: 8px 16px; display: flex; justify-content: space-around; align-items: center; z-index: 100; }
+        .footer-btn { background: transparent; border: none; color: #94a3b8; font-size: 11px; font-weight: 800; display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; }
+        .footer-btn.active, .footer-btn:hover { color: #38bdf8; }
     </style>
 </head>
 <body>
 
     <div class="main-wrapper">
-        
-        <!-- १. SCENARIO CARD -->
+        <!-- 1. SCENARIO CARD -->
         <div class="scenario-card">
             <div class="scenario-header">
                 <span class="scenario-title">Scenario</span>
                 <span id="dataStatusBadge" class="status-badge" onclick="forceRefreshMasterData()">CHECKING...</span>
             </div>
             <table class="scenario-table">
-                <!-- १. CUSTOMER TYPE (सगळ्यात वरती) -->
                 <tr>
                     <td class="label-col">CUSTOMER TYPE</td>
                     <td class="input-col">
@@ -425,26 +82,22 @@
                             <option value="" selected>-</option>
                             <option value="NEW">NEW</option>
                             <option value="EMI CARD">EMI CARD</option>
-                            <option value="VIRTUAL CARD">VIRTUAL CARD</option>
                             <option value="W/O CARD">W/O CARD</option>
                         </select>
                     </td>
                 </tr>
-                <!-- २. APPROVED -->
                 <tr>
                     <td class="label-col">APPROVED</td>
                     <td class="input-col">
                         <input type="number" class="form-input" id="approvedVal" placeholder="-" autocomplete="off" oninput="recalcAllProducts()">
                     </td>
                 </tr>
-                <!-- ३. MAX LTV (कमाल १०० मर्यादा) -->
                 <tr>
                     <td class="label-col">MAX LTV (%)</td>
                     <td class="input-col">
                         <input type="number" min="0" max="100" class="form-input" id="maxLtvVal" placeholder="100" autocomplete="off" oninput="validateMaxLtvInput(this); recalcAllProducts()">
                     </td>
                 </tr>
-                <!-- ४. EMI CAPPING -->
                 <tr>
                     <td class="label-col">CAPPING</td>
                     <td class="input-col">
@@ -454,19 +107,18 @@
             </table>
         </div>
 
-        <!-- २. SEARCH BRAND / MODEL -->
+        <!-- 2. SEARCH CARD -->
         <div class="search-card">
             <div class="search-title">🔍 Add Product / Model</div>
             <input type="text" id="modelSearchInput" class="search-input" placeholder="Type Model Name to Add..." oninput="handleModelSearch(this.value)" autocomplete="off" disabled>
             <div id="modelDropdown" class="dropdown-list"></div>
         </div>
 
-        <!-- ३. सिलेक्ट केलेले प्रॉडक्ट्स कंटेनर -->
+        <!-- 3. SELECTED PRODUCTS CONTAINER -->
         <div id="selectedProductsContainer"></div>
-
     </div>
 
-    <!-- ➕ फील्ड ऑफिसर मॅन्युअल स्कीम ॲड पॉपअप -->
+    <!-- ADD SCHEME MODAL -->
     <div id="addSchemeModal" class="modal-overlay">
         <div class="modal-content">
             <div style="font-size:16px; font-weight:900; color:#60a5fa; margin-bottom:12px; text-align:center;" id="addSchemeModalTitle">➕ नवीन स्कीम जोडा</div>
@@ -500,28 +152,20 @@
         </div>
     </div>
 
-    <!-- 📸 QUOTE IMAGE PREVIEW MODAL -->
+    <!-- QUOTE IMAGE PREVIEW MODAL -->
     <div id="imageViewerModal" class="modal-overlay">
         <div class="modal-content">
-            <div class="copy-hint-box">
-                👉 इमेजवर Long Press (दाबून धरून) करून थेट Copy किंवा Share करा!
-            </div>
+            <div class="copy-hint-box">👉 इमेजवर Long Press (दाबून धरून) करून थेट Copy किंवा Share करा!</div>
             <img id="generatedQuoteImg" src="" alt="Customer Quote" style="width:100%; border-radius:6px; margin-bottom:10px; display:block;">
             <button onclick="document.getElementById('imageViewerModal').style.display='none'" style="width:100%; background:#dc2626; color:white; border:none; padding:10px; border-radius:4px; font-weight:bold; font-size:14px; cursor:pointer;">CLOSE ✖</button>
         </div>
     </div>
 
-    <!-- 🌐 FOOTER BAR -->
+    <!-- FOOTER -->
     <div class="app-footer">
-        <button class="footer-btn active" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
-            <span>⚡</span><span>CALCULATOR</span>
-        </button>
-        <button class="footer-btn" onclick="forceRefreshMasterData()">
-            <span>🔄</span><span>SYNC DATA</span>
-        </button>
-        <button class="footer-btn" onclick="resetAllInputsToBlank()">
-            <span>🗑</span><span>CLEAR ALL</span>
-        </button>
+        <button class="footer-btn active" onclick="window.scrollTo({top: 0, behavior: 'smooth'})"><span>⚡</span><span>CALCULATOR</span></button>
+        <button class="footer-btn" onclick="forceRefreshMasterData()"><span>🔄</span><span>SYNC DATA</span></button>
+        <button class="footer-btn" onclick="resetAllInputsToBlank()"><span>🗑</span><span>CLEAR ALL</span></button>
     </div>
 
     <script>
@@ -544,14 +188,9 @@
                 let request = indexedDB.open(DB_NAME, DB_VERSION);
                 request.onupgradeneeded = function(e) {
                     let db = e.target.result;
-                    if (!db.objectStoreNames.contains(STORE_NAME)) {
-                        db.createObjectStore(STORE_NAME);
-                    }
+                    if (!db.objectStoreNames.contains(STORE_NAME)) db.createObjectStore(STORE_NAME);
                 };
-                request.onsuccess = function(e) {
-                    dbInstance = e.target.result;
-                    resolve(dbInstance);
-                };
+                request.onsuccess = function(e) { dbInstance = e.target.result; resolve(dbInstance); };
                 request.onerror = function(e) { reject(e); };
             });
         }
@@ -578,12 +217,7 @@
                     let req = store.get(key);
                     req.onsuccess = (e) => {
                         let res = e.target.result;
-                        if (res) {
-                            if (typeof res === 'string') resolve(JSON.parse(res));
-                            else resolve(res);
-                        } else {
-                            resolve(null);
-                        }
+                        resolve(res ? JSON.parse(res) : null);
                     };
                     req.onerror = (e) => reject(e.target.error);
                 } catch(e) { reject(e); }
@@ -596,9 +230,10 @@
             else if (val < 0) el.value = 0;
         }
 
+        /* 🎯 ओरिजनल GTL स्लॅब प्रमाणे अचूक व्हॅल्यू */
         function getGtlSlabValue(inv) {
             let amount = parseFloat(inv) || 0;
-            if (amount > 100000) return 2498;
+            if (amount > 100000) return 2398;
             if (amount > 50000) return 1799;
             if (amount > 30000) return 1499;
             if (amount > 10000) return 1199;
@@ -606,6 +241,7 @@
             return 0;
         }
 
+        /* 🎯 ओरिजनल RFC स्लॅब प्रमाणे व्हॅल्यू */
         function getRfcSlabValue(val) {
             let amount = parseFloat(val) || 0;
             if (amount < 8000) return 0;
@@ -644,18 +280,12 @@
             try {
                 let res = await fetch(GITHUB_COMMIT_API + "&t=" + Date.now());
                 if (!res.ok) return;
-
                 let commits = await res.json();
                 if (commits && commits.length > 0) {
                     let latestCommitTime = new Date(commits[0].commit.committer.date).getTime();
                     let savedVersionTime = await getFromDB('master_data_version_time') || 0;
-
                     if (savedVersionTime > 0 && latestCommitTime > savedVersionTime) {
-                        if (badge) {
-                            badge.innerText = "🔄 UPDATING...";
-                            badge.style.background = "#f59e0b";
-                            badge.style.color = "#000";
-                        }
+                        if (badge) { badge.innerText = "🔄 UPDATING..."; badge.style.background = "#f59e0b"; badge.style.color = "#000"; }
                         await saveToDB('master_data_version_time', latestCommitTime);
                         await fetchFromMasterStream(true);
                     } else if (savedVersionTime === 0) {
@@ -674,37 +304,20 @@
                 if (!forceSync) {
                     let cachedTime = await getFromDB('master_data_time');
                     let cachedDbRecords = await getFromDB('cached_db_records');
-
                     if (cachedTime && cachedDbRecords && cachedDbRecords.length > 0 && (now - cachedTime < CACHE_DURATION_MS)) {
                         masterDbRecords = cachedDbRecords;
-                        badge.innerText = `⚡ CACHED`;
-                        badge.style.background = "#10b981";
-                        badge.style.color = "#fff";
-                        searchInput.disabled = false;
-                        searchInput.placeholder = "Type Model Name to Add...";
+                        badge.innerText = `⚡ CACHED`; badge.style.background = "#10b981"; badge.style.color = "#fff";
+                        searchInput.disabled = false; searchInput.placeholder = "Type Model Name to Add...";
                         return;
                     }
                 }
 
-                badge.innerText = "DOWNLOADING...";
-                badge.style.background = "#f59e0b";
-                badge.style.color = "#000";
+                badge.innerText = "DOWNLOADING..."; badge.style.background = "#f59e0b"; badge.style.color = "#000";
 
-                const urlsToTry = [
-                    PRIMARY_EXCEL_URL + '?t=' + now,
-                    SECONDARY_EXCEL_URL + '?t=' + now,
-                    LOCAL_EXCEL_URL + '?t=' + now
-                ];
-
+                const urlsToTry = [ PRIMARY_EXCEL_URL + '?t=' + now, SECONDARY_EXCEL_URL + '?t=' + now, LOCAL_EXCEL_URL + '?t=' + now ];
                 let dataBuffer = null;
                 for (let url of urlsToTry) {
-                    try {
-                        let res = await fetch(url);
-                        if (res.ok) {
-                            dataBuffer = await res.arrayBuffer();
-                            break;
-                        }
-                    } catch(e) {}
+                    try { let res = await fetch(url); if (res.ok) { dataBuffer = await res.arrayBuffer(); break; } } catch(e) {}
                 }
 
                 if (!dataBuffer) throw new Error("Excel लोड अयशस्वी");
@@ -712,7 +325,6 @@
                 let wb = XLSX.read(new Uint8Array(dataBuffer), { type: 'array' });
                 let sheet1 = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { raw: false, defval: "" });
                 let sheet2 = wb.SheetNames.length > 1 ? XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[1]], { raw: false, defval: "" }) : [];
-
                 let allRows = [...sheet1, ...sheet2];
 
                 masterDbRecords = allRows.map(row => {
@@ -732,33 +344,22 @@
                 await saveToDB('cached_db_records', masterDbRecords);
                 await saveToDB('master_data_time', now);
 
-                badge.innerText = `READY`;
-                badge.style.background = "#10b981";
-                badge.style.color = "#fff";
-                searchInput.disabled = false;
-                searchInput.placeholder = "Type Model Name to Add...";
-
+                badge.innerText = `READY`; badge.style.background = "#10b981"; badge.style.color = "#fff";
+                searchInput.disabled = false; searchInput.placeholder = "Type Model Name to Add...";
             } catch (err) {
                 console.error("Master Data Load Error:", err);
                 let fallbackDb = await getFromDB('cached_db_records');
                 if (fallbackDb && fallbackDb.length > 0) {
                     masterDbRecords = fallbackDb;
-                    badge.innerText = `OFFLINE`;
-                    badge.style.background = "#10b981";
-                    badge.style.color = "#fff";
-                    searchInput.disabled = false;
-                    searchInput.placeholder = "Type Model Name to Add...";
+                    badge.innerText = `OFFLINE`; badge.style.background = "#10b981"; badge.style.color = "#fff";
+                    searchInput.disabled = false; searchInput.placeholder = "Type Model Name to Add...";
                 } else {
-                    badge.innerText = "ERROR";
-                    badge.style.background = "#ef4444";
-                    badge.style.color = "#fff";
+                    badge.innerText = "ERROR"; badge.style.background = "#ef4444"; badge.style.color = "#fff";
                 }
             }
         }
 
-        async function forceRefreshMasterData() {
-            await fetchFromMasterStream(true);
-        }
+        async function forceRefreshMasterData() { await fetchFromMasterStream(true); }
 
         function findVal(row, keys) {
             let foundKey = Object.keys(row).find(k => keys.includes(k.toUpperCase().replace(/\s/g, '')));
@@ -768,26 +369,19 @@
         function handleModelSearch(query) {
             const dropdown = document.getElementById('modelDropdown');
             const q = query.trim().toUpperCase();
-
-            if (!q) {
-                dropdown.style.display = 'none';
-                return;
-            }
+            if (!q) { dropdown.style.display = 'none'; return; }
 
             let uniqueModels = [];
             let seen = new Set();
-
             masterDbRecords.forEach(r => {
                 if ((r.model.includes(q) || r.brand.includes(q)) && !seen.has(r.model)) {
-                    seen.add(r.model);
-                    uniqueModels.push(r);
+                    seen.add(r.model); uniqueModels.push(r);
                 }
             });
 
             if (uniqueModels.length === 0) {
                 dropdown.innerHTML = `<div style="padding:10px; color:#888; text-align:center;">कोणतेही मॉडेल सापडले नाही.</div>`;
-                dropdown.style.display = 'block';
-                return;
+                dropdown.style.display = 'block'; return;
             }
 
             dropdown.innerHTML = uniqueModels.slice(0, 30).map(m => `
@@ -795,16 +389,13 @@
                     <span>📱 ${m.brand ? `[${m.brand}] ` : ''}${m.model}</span>
                 </div>
             `).join('');
-
             dropdown.style.display = 'block';
         }
 
         function addNewProductToBasket(modelName) {
             const dropdown = document.getElementById('modelDropdown');
             const searchInput = document.getElementById('modelSearchInput');
-
-            searchInput.value = '';
-            dropdown.style.display = 'none';
+            searchInput.value = ''; dropdown.style.display = 'none';
 
             let modelSchemes = masterDbRecords.filter(r => r.model === modelName);
             let defaultMrp = modelSchemes[0] && modelSchemes[0].mrp > 0 ? modelSchemes[0].mrp : "";
@@ -836,10 +427,7 @@
 
         function toggleCollapseProduct(pId) {
             let prod = selectedProductList.find(p => p.id === pId);
-            if (prod) {
-                prod.isCollapsed = !prod.isCollapsed;
-                renderAllProductPanels();
-            }
+            if (prod) { prod.isCollapsed = !prod.isCollapsed; renderAllProductPanels(); }
         }
 
         function updateProductParam(pId, field, val) {
@@ -855,19 +443,14 @@
                     if (gtlSelect) gtlSelect.value = prod.gtl;
                     if (rfcSelect) {
                         let opt = document.getElementById(`rfc_opt_${pId}`);
-                        if (opt) {
-                            opt.value = prod.rfcSlab;
-                            opt.innerText = prod.rfcSlab;
-                        }
+                        if (opt) { opt.value = prod.rfcSlab; opt.innerText = prod.rfcSlab; }
                     }
                 }
                 renderProductTableOnly(pId);
             }
         }
 
-        function recalcAllProducts() {
-            selectedProductList.forEach(p => renderProductTableOnly(p.id));
-        }
+        function recalcAllProducts() { selectedProductList.forEach(p => renderProductTableOnly(p.id)); }
 
         function openAddSchemeModal(pId, pName) {
             document.getElementById('modalTargetProdId').value = pId;
@@ -880,9 +463,7 @@
             document.getElementById('addSchemeModal').style.display = 'flex';
         }
 
-        function closeAddSchemeModal() {
-            document.getElementById('addSchemeModal').style.display = 'none';
-        }
+        function closeAddSchemeModal() { document.getElementById('addSchemeModal').style.display = 'none'; }
 
         function saveCustomSchemeFromField() {
             let pId = document.getElementById('modalTargetProdId').value;
@@ -892,10 +473,7 @@
             let pf = parseInt(document.getElementById('mPf').value) || 0;
             let roi = parseFloat(document.getElementById('mRoi').value) || 0;
 
-            if (ten <= 0) {
-                alert("कृपया वैध Tenure टाका!");
-                return;
-            }
+            if (ten <= 0) { alert("कृपया वैध Tenure टाका!"); return; }
 
             let prod = selectedProductList.find(p => p.id === pId);
             if (prod) {
@@ -910,7 +488,6 @@
                     disabled: false,
                     isCustom: true
                 };
-
                 prod.schemes.unshift(newCustomScheme);
                 closeAddSchemeModal();
                 renderProductTableOnly(pId);
@@ -921,14 +498,11 @@
             let prod = selectedProductList.find(p => p.id === pId);
             if (prod) {
                 let s = prod.schemes.find(x => x.sId === sId);
-                if (s) {
-                    s.disabled = !s.disabled;
-                    renderProductTableOnly(pId);
-                }
+                if (s) { s.disabled = !s.disabled; renderProductTableOnly(pId); }
             }
         }
 
-        /* 📋 स्मार्ट स्कीम कॉपी लॉजिक (चेक केलेल्या सर्व किंवा सिंगल स्कीम) */
+        /* 📋 एकाखाली एक कॉपी लॉजिक */
         function copySmartScheme(pId, currentRowEl, tenure, adv, dp, emi, months, perDay) {
             let prod = selectedProductList.find(p => p.id === pId);
             if (!prod) return;
@@ -936,13 +510,11 @@
             let tableElement = document.getElementById(`tbody_${pId}`);
             if (!tableElement) return;
 
-            // टेबलमध्ये चेक केलेले चेकबॉक्सेस शोधा
             let checkedBoxes = tableElement.querySelectorAll('.scheme-checkbox:checked');
             let price = prod.invoice || "0";
 
-            // १. जर युझरने चेकबॉक्स टिक केलेले असतील, तर टिक केलेल्या सर्व स्कीम्स कॉपी करा
             if (checkedBoxes.length > 0) {
-                let textToCopy = `📱 *${prod.name}*\n💵 *Invoice:* ₹${Number(price).toLocaleString()}\n\n`;
+                let textToCopy = `📱 *${prod.name}*\n` + `💵 *Invoice:* ₹${Number(price).toLocaleString()}\n\n`;
                 let count = 1;
 
                 checkedBoxes.forEach(cb => {
@@ -957,23 +529,21 @@
                             let sDay = cols[5].innerText.trim();
 
                             textToCopy += `🔹 *Option ${count}:* ${sName}\n` +
-                                          `💰 *DP:* ${sDp} | 🗓️ *EMI:* ${sEmi} x ${sMonths} M | ✨ *Day:* ${sDay}\n\n`;
+                                          `💰 *DP:* ${sDp}\n` +
+                                          `🗓️ *EMI:* ${sEmi} x ${sMonths} Months\n` +
+                                          `✨ *Per Day:* ${sDay}\n\n`;
                             count++;
                         }
                     }
                 });
-
-                clipboardCopy(textToCopy, `टिकमार्क केलेल्या ${count - 1} स्कीम्स यशस्वीरित्या कॉपी झाल्या! ✅`);
-            } 
-            // २. जर एकही चेकबॉक्स टिक नसेल, तर फक्त ज्या ओळीवर क्लिक केले ती एकच स्कीम कॉपी करा
-            else {
+                clipboardCopy(textToCopy, `टिकमार्क केलेल्या ${count - 1} स्कीम्स कॉपी झाल्या! ✅`);
+            } else {
                 let textToCopy = `📱 *${prod.name}*\n` +
-                                 `💵 *Invoice:* ₹${Number(price).toLocaleString()}\n` +
+                                 `💵 *Invoice:* ₹${Number(price).toLocaleString()}\n\n` +
                                  `✅ *Scheme:* ${tenure}/${adv}\n` +
-                                 `💰 *Down Payment:* ₹${Number(dp).toLocaleString()}\n` +
+                                 `💰 *DP:* ₹${Number(dp).toLocaleString()}\n` +
                                  `🗓️ *EMI:* ₹${Number(emi).toLocaleString()} x ${months} Months\n` +
                                  `✨ *Per Day:* ₹${Number(perDay).toLocaleString()}`;
-
                 clipboardCopy(textToCopy, "स्कीम कॉपी झाली! ✅");
             }
         }
@@ -982,23 +552,15 @@
             if (navigator.clipboard && window.isSecureContext) {
                 navigator.clipboard.writeText(text).then(() => alert(successMsg));
             } else {
-                let ta = document.createElement("textarea");
-                ta.value = text;
-                document.body.appendChild(ta);
-                ta.select();
-                document.execCommand('copy');
-                document.body.removeChild(ta);
-                alert(successMsg);
+                let ta = document.createElement("textarea"); ta.value = text;
+                document.body.appendChild(ta); ta.select(); document.execCommand('copy');
+                document.body.removeChild(ta); alert(successMsg);
             }
         }
 
-        /* सर्व प्रॉडक्ट पॅनेल्स रेंडर करणे */
         function renderAllProductPanels() {
             const container = document.getElementById('selectedProductsContainer');
-            if (selectedProductList.length === 0) {
-                container.innerHTML = "";
-                return;
-            }
+            if (selectedProductList.length === 0) { container.innerHTML = ""; return; }
 
             container.innerHTML = selectedProductList.map((prod, idx) => {
                 let isCol = prod.isCollapsed;
@@ -1034,7 +596,7 @@
                                     <option value="1199" ${prod.gtl == 1199 ? 'selected' : ''}>1199</option>
                                     <option value="1499" ${prod.gtl == 1499 ? 'selected' : ''}>1499</option>
                                     <option value="1799" ${prod.gtl == 1799 ? 'selected' : ''}>1799</option>
-                                    <option value="2498" ${prod.gtl == 2498 ? 'selected' : ''}>2498</option>
+                                    <option value="2398" ${prod.gtl == 2398 ? 'selected' : ''}>2398</option>
                                 </select>
                             </div>
                             <div>
@@ -1080,7 +642,7 @@
             selectedProductList.forEach(p => renderProductTableOnly(p.id));
         }
 
-        /* टेबलमधील कॅल्क्युलेशन व सॉर्टिंग */
+        /* 🎯 कॅल्क्युलेशन इंजिन (ओरिजिनल कोड प्रमाणे) */
         function renderProductTableOnly(pId) {
             let prod = selectedProductList.find(p => p.id === pId);
             if (!prod) return;
@@ -1100,10 +662,8 @@
             let gtlVal = parseFloat(prod.gtl) || 0;
             let rfcVal = parseFloat(prod.rfc) || 0;
 
-            let baseFee = 850;
-            if (custType === 'EMI CARD' || custType === 'VIRTUAL CARD') baseFee = 270;
-            else if (custType === 'W/O CARD') baseFee = 320;
-
+            // ओरिजिनल फीस
+            let baseFee = (custType === 'EMI CARD') ? 270 : (custType === 'W/O CARD' ? 320 : 850);
             let totalFees = baseFee + margin + dealerContri;
 
             let eligibleSchemes = prod.schemes.filter(s => {
@@ -1119,12 +679,13 @@
 
             let calculatedRows = eligibleSchemes.map(s => {
                 let price = invoiceAmount > 0 ? invoiceAmount : (s.mrp > 0 ? s.mrp : (approvedLimit > 0 ? approvedLimit : 30000));
-                let months = Math.max(1, s.tenure - s.advEmi);
+                let inst = s.tenure - s.advEmi;
+                if (inst < 1) inst = 1;
 
-                let nbfcMaxL = approvedLimit > 0 ? (approvedLimit * s.tenure) / (months || 1) : price;
+                let nbfcMaxL = approvedLimit > 0 ? (approvedLimit * s.tenure) / (inst || 1) : price;
                 let loan = Math.min(price, nbfcMaxL);
 
-                let schemeLtv = ((s.tenure - s.advEmi) / s.tenure) * 100;
+                let schemeLtv = (inst / s.tenure) * 100;
                 if (schemeLtv > maxLtv) loan = Math.floor(price * (maxLtv / 100));
 
                 let minAllowedLoan = price * 0.50;
@@ -1134,33 +695,34 @@
                 let roiRate = s.roi / 1200;
                 let roiRateDP = roiRate * s.advEmi;
 
+                let insTotal = gtlVal + rfcVal;
                 let baseEmi = loan / s.tenure;
                 if (baseEmi > 0 && baseEmi < 900) baseEmi = 900;
 
-                let insPerMonth = (gtlVal + rfcVal) / months;
                 let roiInEmi = loan * roiRate;
-                let emi = baseEmi + roiInEmi + insPerMonth;
+                let emi = (loan / s.tenure) + (insTotal / inst) + roiInEmi;
 
+                // EMI Capping
                 if (emiCap > 0 && emi > emiCap) {
-                    loan = Math.max(minAllowedLoan, ((emiCap - insPerMonth) / ((1 / s.tenure) + roiRate)));
-                    baseEmi = loan / s.tenure;
-                    emi = baseEmi + (loan * roiRate) + insPerMonth;
+                    loan = (emiCap - (insTotal / inst)) / ((1 / s.tenure) + roiRate);
+                    if (loan < minAllowedLoan) loan = minAllowedLoan;
+                    roiInEmi = loan * roiRate;
+                    emi = (loan / s.tenure) + (insTotal / inst) + roiInEmi;
                 }
 
                 let roiInDp = loan * roiRateDP;
-                let dbdAmt = loan * dbdRate;
-                let dpExact = price - loan + (baseEmi * s.advEmi) + dbdAmt + s.pf + totalFees + roiInDp;
+                let dpExact = price - loan + ((loan / s.tenure) * s.advEmi) + (loan * dbdRate) + s.pf + totalFees + roiInDp;
                 let dp = Math.ceil(dpExact / 10) * 10;
 
-                let perDay = Math.round(emi / 30);
-                let extraCharges = Math.round((dp + (emi * months)) - price);
+                let perDay = emi / 30;
+                let extraCharges = ((emi * inst) + dp) - price;
 
                 return {
                     scheme: s,
                     loan,
                     dp,
                     emi,
-                    months,
+                    months: inst,
                     perDay,
                     extraCharges,
                     disabled: s.disabled,
@@ -1192,10 +754,10 @@
                         <td style="color:#f59e0b; font-weight:900;">₹${Math.round(row.dp).toLocaleString()}</td>
                         <td style="color:#38bdf8; font-weight:900;">₹${Math.round(row.emi).toLocaleString()}</td>
                         <td style="color:#e2e8f0;">${row.months}</td>
-                        <td style="color:#fb923c;">₹${row.perDay.toLocaleString()}</td>
-                        <td style="color:#f87171;">₹${Math.max(0, row.extraCharges).toLocaleString()}</td>
+                        <td style="color:#fb923c;">₹${Math.round(row.perDay).toLocaleString()}</td>
+                        <td style="color:#f87171;">₹${Math.max(0, Math.round(row.extraCharges)).toLocaleString()}</td>
                         <td>
-                            <button class="btn-copy-scheme" title="टिक केलेल्या सर्व किंवा ही एक स्कीम कॉपी करा" onclick="copySmartScheme('${prod.id}', this, '${s.tenure}', '${s.advEmi}', '${Math.round(row.dp)}', '${Math.round(row.emi)}', '${row.months}', '${row.perDay}')">📋</button>
+                            <button class="btn-copy-scheme" title="टिक केलेल्या सर्व किंवा ही एक स्कीम कॉपी करा" onclick="copySmartScheme('${prod.id}', this, '${s.tenure}', '${s.advEmi}', '${Math.round(row.dp)}', '${Math.round(row.emi)}', '${row.months}', '${Math.round(row.perDay)}')">📋</button>
                         </td>
                         <td>${actionBtn}</td>
                     </tr>
@@ -1234,7 +796,6 @@
             quoteDiv.innerHTML = `
                 <div style="background: linear-gradient(180deg, #1e3a68 0%, #0c2044 100%); padding: 18px; border-radius: 10px; text-align: center; margin-bottom: 18px; border: 2px solid #38bdf8;">
                     <h2 style="font-size: 28px; font-weight: 900; color: #ffffff; margin-bottom: 12px; letter-spacing: 1px;">🎉 SPECIAL LOAN OFFER</h2>
-                    
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: rgba(0,0,0,0.4); padding: 12px; border-radius: 8px; font-size: 15px; font-weight: 900; text-align: left;">
                         <div><span style="color:#94a3b8;">CUSTOMER TYPE:</span> <span style="color:#38bdf8;">${custType}</span></div>
                         <div><span style="color:#94a3b8;">APPROVED LIMIT:</span> <span style="color:#34d399;">₹${Number(approvedLimit).toLocaleString()}</span></div>
