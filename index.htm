@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scenario & Master Data Search</title>
+
+    <!-- SheetJS for Live Excel Reading -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        body {
+            background-color: #0b1329;
+            color: #ffffff;
+            padding: 16px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .main-wrapper {
+            width: 100%;
+            max-width: 420px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* 1. SCENARIO CARD */
+        .scenario-card {
+            background-color: #060e22;
+            border: 2px solid #243b6b;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+        }
+
+        .scenario-header {
+            background-color: #1e3a68;
+            color: #ffffff;
+            text-align: center;
+            padding: 12px;
+            font-size: 26px;
+            font-weight: 900;
+            font-style: italic;
+            letter-spacing: 1px;
+            border-bottom: 2px solid #243b6b;
+        }
+
+        .scenario-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .scenario-table tr {
+            border-bottom: 1px solid #1c2e4a;
+        }
+
+        .scenario-table tr:last-child {
+            border-bottom: none;
+        }
+
+        .scenario-table td {
+            padding: 10px 14px;
+            vertical-align: middle;
+        }
+
+        .scenario-table td.label-col {
+            width: 50%;
+            color: #ffffff;
+            font-size: 15px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            border-right: 1px solid #1c2e4a;
+        }
+
+        .scenario-table td.input-col {
+            width: 50%;
+            padding: 6px 10px;
+        }
+
+        .form-input, .form-select {
+            width: 100%;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: #ffffff;
+            font-size: 15px;
+            font-weight: 800;
+            text-align: center;
+        }
+
+        .form-select {
+            cursor: pointer;
+            background-color: #060e22;
+        }
+
+        .highlight-row {
+            background-color: #d35400;
+        }
+
+        .highlight-row .form-select {
+            background-color: #d35400;
+            color: #ffffff;
+            font-weight: 900;
+        }
+
+        option {
+            background-color: #060e22;
+            color: #ffffff;
+        }
+
+        /* 2. MODEL SEARCH CARD */
+        .search-card {
+            background: #060e22;
+            border: 2px solid #243b6b;
+            border-radius: 8px;
+            padding: 12px;
+            position: relative;
+        }
+
+        .search-header-area {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .search-title {
+            font-size: 14px;
+            font-weight: 800;
+            color: #60a5fa;
+            text-transform: uppercase;
+        }
+
+        .status-badge {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+            background: #f59e0b;
+            color: #000;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 6px;
+            border: 1px solid #243b6b;
+            background: #0b1736;
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: bold;
+            outline: none;
+        }
+
+        .search-input:focus {
+            border-color: #3b82f6;
+        }
+
+        .dropdown-list {
+            position: absolute;
+            left: 12px;
+            right: 12px;
+            top: 100%;
+            background: #0f1c3f;
+            border: 1px solid #243b6b;
+            border-radius: 6px;
+            max-height: 240px;
+            overflow-y: auto;
+            z-index: 50;
+            display: none;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.6);
+            margin-top: 4px;
+        }
+
+        .dropdown-item {
+            padding: 10px 12px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            border-bottom: 1px solid #1c2e4a;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .dropdown-item:hover {
+            background: #1e3a68;
+            color: #60a5fa;
+        }
+
+        /* 3. SELECTED MODEL SCHEMES CONTAINER */
+        .result-box {
+            display: none;
+            background: #060e22;
+            border: 2px solid #243b6b;
+            border-radius: 8px;
+            padding: 12px;
+        }
+
+        .result-title {
+            font-size: 15px;
+            font-weight: 900;
+            color: #f97316;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .scheme-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .scheme-table th {
+            background: #1e3a68;
+            color: #ffffff;
+            padding: 8px 4px;
+            border: 1px solid #243b6b;
+        }
+
+        .scheme-table td {
+            padding: 8px 4px;
+            border: 1px solid #1c2e4a;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-wrapper">
+        
+        <!-- 1. SCENARIO TABLE (DEFAULT BLANK) -->
+        <div class="scenario-card">
+            <div class="scenario-header">Scenario</div>
+            <table class="scenario-table">
+                <tr>
+                    <td class="label-col">APPROVED</td>
+                    <td class="input-col">
+                        <input type="number" class="form-input" id="approvedVal" placeholder="-" autocomplete="off">
+                    </td>
+                </tr>
+                <tr>
+                    <td class="label-col">MAX LTV</td>
+                    <td class="input-col">
+                        <input type="text" class="form-input" id="maxLtvVal" placeholder="-" autocomplete="off">
+                    </td>
+                </tr>
+                <tr>
+                    <td class="label-col">TYPE</td>
+                    <td class="input-col">
+                        <select class="form-select" id="typeVal" autocomplete="off">
+                            <option value="" selected>-</option>
+                            <option value="NEW">NEW</option>
+                            <option value="OLD">OLD</option>
+                            <option value="EXISTING">EXISTING</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="label-col">GTL/RFC</td>
+                    <td class="input-col">
+                        <select class="form-select" id="gtlRfcVal" autocomplete="off">
+                            <option value="" selected>-</option>
+                            <option value="120K">120K</option>
+                            <option value="100K">100K</option>
+                            <option value="80K">80K</option>
+                            <option value="50K">50K</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="label-col">HI</td>
+                    <td class="input-col">
+                        <input type="number" class="form-input" id="hiVal" placeholder="-" autocomplete="off">
+                    </td>
+                </tr>
+                <tr>
+                    <td class="label-col">MARGIN</td>
+                    <td class="input-col">
+                        <input type="number" class="form-input" id="marginVal" placeholder="-" autocomplete="off">
+                    </td>
+                </tr>
+                <tr class="highlight-row">
+                    <td class="label-col" style="border-right-color: #b34100;">PRODUCT</td>
+                    <td class="input-col">
+                        <select class="form-select" id="productVal" autocomplete="off">
+                            <option value="" selected>-</option>
+                            <option value="RDP">RDP</option>
+                            <option value="CD">CD</option>
+                            <option value="DIGITAL">DIGITAL</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="label-col">CASHBACK</td>
+                    <td class="input-col">
+                        <select class="form-select" id="cashbackVal" autocomplete="off">
+                            <option value="" selected>-</option>
+                            <option value="NO">NO</option>
+                            <option value="YES">YES</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="label-col">CAPPING</td>
+                    <td class="input-col">
+                        <input type="number" class="form-input" id="cappingVal" placeholder="-" autocomplete="off">
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- 2. MODEL SEARCH CARD (FETCHED FROM TESTCALCULATOR MASTER DATA) -->
+        <div class="search-card">
+            <div class="search-header-area">
+                <span class="search-title">🔍 Search Brand / Model</span>
+                <span id="dataStatusBadge" class="status-badge">DOWNLOADING...</span>
+            </div>
+            <input type="text" id="modelSearchInput" class="search-input" placeholder="Type Model or Brand..." oninput="handleModelSearch(this.value)" autocomplete="off" disabled>
+            <div id="modelDropdown" class="dropdown-list"></div>
+        </div>
+
+        <!-- 3. SELECTED MODEL SCHEMES CONTAINER -->
+        <div id="modelResultArea" class="result-box">
+            <div class="result-title">
+                <span id="selectedModelName">📱 MODEL NAME</span>
+                <span style="font-size: 11px; background:#1e3a68; color:#fff; padding:3px 8px; border-radius:4px;">LIVE SCHEMES</span>
+            </div>
+            
+            <table class="scheme-table">
+                <thead>
+                    <tr>
+                        <th>T/A</th>
+                        <th>ADV</th>
+                        <th>DBD%</th>
+                        <th>PF</th>
+                        <th>ROI%</th>
+                    </tr>
+                </thead>
+                <tbody id="schemesTableBody"></tbody>
+            </table>
+        </div>
+
+    </div>
+
+    <script>
+        const MASTER_EXCEL_URL = "https://raw.githubusercontent.com/luckyjathar/testcalculator/main/master_data.xlsx";
+        let masterDbRecords = [];
+
+        window.addEventListener('pageshow', function() {
+            resetAllInputsToBlank();
+            fetchMasterDataFromRepo();
+        });
+
+        function resetAllInputsToBlank() {
+            document.querySelectorAll('.form-input, .search-input').forEach(input => input.value = '');
+            document.querySelectorAll('.form-select').forEach(select => select.selectedIndex = 0);
+            
+            const resultArea = document.getElementById('modelResultArea');
+            if (resultArea) resultArea.style.display = 'none';
+
+            const dropdown = document.getElementById('modelDropdown');
+            if (dropdown) dropdown.style.display = 'none';
+        }
+
+        // Live Excel file download & parsing logic
+        async function fetchMasterDataFromRepo() {
+            const badge = document.getElementById('dataStatusBadge');
+            const searchInput = document.getElementById('modelSearchInput');
+
+            try {
+                badge.innerText = "DOWNLOADING...";
+                badge.style.background = "#f59e0b";
+                badge.style.color = "#000";
+
+                let res = await fetch(MASTER_EXCEL_URL + "?t=" + Date.now());
+                if (!res.ok) throw new Error("File load zali nahi");
+
+                let dataBuffer = await res.arrayBuffer();
+                let wb = XLSX.read(new Uint8Array(dataBuffer), { type: 'array' });
+
+                let sheet1 = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { raw: false, defval: "" });
+                let sheet2 = wb.SheetNames.length > 1 ? XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[1]], { raw: false, defval: "" }) : [];
+
+                let allRows = [...sheet1, ...sheet2];
+
+                masterDbRecords = allRows.map(row => {
+                    return {
+                        model: String(findVal(row, ['MODEL', 'BRANDMODEL', 'ASSET']) || "").toUpperCase().trim(),
+                        brand: String(findVal(row, ['BRAND', 'MAKE']) || "").toUpperCase().trim(),
+                        category: String(findVal(row, ['CATEGORY', 'CAT']) || "OTHER").toUpperCase().trim(),
+                        tenure: parseInt(findVal(row, ['TOTALTENURE', 'TENURE', 'TA'])) || 0,
+                        advEmi: parseInt(findVal(row, ['ADVANCEEMI', 'ADV'])) || 0,
+                        dbd: parseFloat(findVal(row, ['DBD', 'DBD%'])) || 0,
+                        pf: parseInt(findVal(row, ['PF', 'PROCESSINGFEE'])) || 0,
+                        roi: parseFloat(findVal(row, ['ROI', 'ROI%'])) || 0
+                    };
+                }).filter(r => r.model !== "" && r.model !== "NON TIEUP");
+
+                badge.innerText = "READY (" + masterDbRecords.length + ")";
+                badge.style.background = "#10b981";
+                badge.style.color = "#fff";
+                searchInput.disabled = false;
+                searchInput.placeholder = "Type Model or Brand...";
+            } catch (err) {
+                console.error("Master Data Load Error:", err);
+                badge.innerText = "OFFLINE ERROR";
+                badge.style.background = "#ef4444";
+                badge.style.color = "#fff";
+            }
+        }
+
+        function findVal(row, keys) {
+            let foundKey = Object.keys(row).find(k => keys.includes(k.toUpperCase().replace(/\s/g, '')));
+            return foundKey ? row[foundKey] : null;
+        }
+
+        // Live Search Filter
+        function handleModelSearch(query) {
+            const dropdown = document.getElementById('modelDropdown');
+            const q = query.trim().toUpperCase();
+
+            if (!q) {
+                dropdown.style.display = 'none';
+                return;
+            }
+
+            // Master data madhun filter karne
+            let uniqueModels = [];
+            let seen = new Set();
+
+            masterDbRecords.forEach(r => {
+                if ((r.model.includes(q) || r.brand.includes(q) || r.category.includes(q)) && !seen.has(r.model)) {
+                    seen.add(r.model);
+                    uniqueModels.push(r);
+                }
+            });
+
+            if (uniqueModels.length === 0) {
+                dropdown.innerHTML = `<div style="padding:10px; color:#888; text-align:center;">Kahihi model sapadle nahi.</div>`;
+                dropdown.style.display = 'block';
+                return;
+            }
+
+            dropdown.innerHTML = uniqueModels.slice(0, 30).map(m => `
+                <div class="dropdown-item" onclick="selectModel('${m.model.replace(/'/g, "\\'")}')">
+                    <span>📱 ${m.brand ? `[${m.brand}] ` : ''}${m.model}</span>
+                    <span style="font-size:10px; color:#94a3b8; background:#1e293b; padding:2px 5px; border-radius:3px;">${m.category}</span>
+                </div>
+            `).join('');
+
+            dropdown.style.display = 'block';
+        }
+
+        // Model Select kelyanantar tya model chya schemes dakhvne
+        function selectModel(modelName) {
+            const dropdown = document.getElementById('modelDropdown');
+            const searchInput = document.getElementById('modelSearchInput');
+            const resultArea = document.getElementById('modelResultArea');
+            const title = document.getElementById('selectedModelName');
+            const tbody = document.getElementById('schemesTableBody');
+
+            searchInput.value = modelName;
+            dropdown.style.display = 'none';
+
+            let modelSchemes = masterDbRecords.filter(r => r.model === modelName);
+            if (modelSchemes.length === 0) return;
+
+            title.innerText = "📱 " + modelName;
+
+            tbody.innerHTML = modelSchemes.map(s => `
+                <tr>
+                    <td style="color:#60a5fa; font-weight:900;">${s.tenure}/${s.advEmi}</td>
+                    <td>${s.advEmi}</td>
+                    <td>${s.dbd}%</td>
+                    <td>₹${s.pf}</td>
+                    <td>${s.roi}%</td>
+                </tr>
+            `).join('');
+
+            resultArea.style.display = 'block';
+        }
+
+        // Outside click dropdown close
+        document.addEventListener('click', function(e) {
+            const dropdown = document.getElementById('modelDropdown');
+            const searchInput = document.getElementById('modelSearchInput');
+            if (dropdown && !dropdown.contains(e.target) && e.target !== searchInput) {
+                dropdown.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
