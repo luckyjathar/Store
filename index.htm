@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pro Financial Portal</title>
 
-    <!-- SheetJS CDN for Excel Reading -->
+    <!-- SheetJS CDN for Live Excel Reading -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
-    <!-- html2canvas CDN for Quote Image Generation -->
+    <!-- html2canvas CDN for High-Quality Quote Image Generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
@@ -445,18 +445,21 @@
             color: #38bdf8;
         }
 
-        /* HISTORY LIST ITEM */
+        /* HISTORY CARD */
         .history-card {
             background: #0b1736;
             border: 1px solid #243b6b;
             border-radius: 6px;
-            padding: 10px;
-            margin-bottom: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
             text-align: left;
         }
         .history-time { font-size: 10px; color: #94a3b8; margin-bottom: 4px; }
-        .history-title { font-size: 14px; font-weight: 900; color: #f97316; }
-        .history-details { font-size: 11px; color: #cbd5e1; margin-top: 4px; white-space: pre-line; }
+        .history-title { font-size: 15px; font-weight: 900; color: #f97316; }
+        .history-tags { display: flex; flex-wrap: wrap; gap: 5px; margin: 6px 0; }
+        .history-tag { font-size: 10px; font-weight: bold; background: #1e293b; color: #38bdf8; padding: 2px 6px; border-radius: 3px; }
+        .history-details { font-size: 11px; color: #94a3b8; margin-top: 4px; white-space: pre-line; background: #060e22; padding: 6px; border-radius: 4px; }
+        .history-actions { display: flex; gap: 8px; margin-top: 8px; }
     </style>
 </head>
 <body>
@@ -523,7 +526,7 @@
 
     </div>
 
-    <!-- 📜 QUOTE HISTORY MODAL -->
+    <!-- 📜 QUOTE HISTORY MODAL (FULL PROFILE RESTORE SUPPORT) -->
     <div id="historyModal" class="modal-overlay">
         <div class="modal-content">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
@@ -705,7 +708,7 @@
         }
 
         /* ========================================================================= */
-        /* 📜 RECENT SEARCH & QUOTE HISTORY STORAGE (LOCALSTORAGE)                   */
+        /* 📜 RECENT SEARCH & FULL PROFILE SNAPSHOT ENGINE                          */
         /* ========================================================================= */
         function saveToRecentSearches(modelName) {
             try {
@@ -738,23 +741,73 @@
             dropdown.style.display = 'block';
         }
 
-        function saveQuoteToHistory(prodName, invoice, summaryText) {
+        /* 💾 संपूर्ण प्रोफाइल स्नॅपशॉट सेव्ह करणे (Scenario + Model + Cross-Sell) */
+        function saveFullProfileSnapshot(prodId, summaryText) {
             try {
+                let targetProd = selectedProductList.find(p => p.id === prodId);
+                if (!targetProd) return;
+
                 let history = JSON.parse(localStorage.getItem('portal_quote_history') || '[]');
                 let now = new Date();
                 let timeStr = now.toLocaleDateString('mr-IN') + ' ' + now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-                history.unshift({
+                let snapshot = {
                     id: Date.now(),
-                    model: prodName,
-                    invoice: invoice,
                     time: timeStr,
-                    text: summaryText
-                });
+                    scenario: {
+                        type: document.getElementById('typeVal').value,
+                        approved: document.getElementById('approvedVal').value,
+                        maxLtv: document.getElementById('maxLtvVal').value,
+                        capping: document.getElementById('cappingVal').value
+                    },
+                    product: JSON.parse(JSON.stringify(targetProd)),
+                    summary: summaryText
+                };
 
-                if (history.length > 20) history = history.slice(0, 20); // कमाल २० कोट्स
+                history.unshift(snapshot);
+                if (history.length > 25) history = history.slice(0, 25);
                 localStorage.setItem('portal_quote_history', JSON.stringify(history));
-            } catch(e) {}
+            } catch(e) {
+                console.error("Snapshot save error:", e);
+            }
+        }
+
+        /* 🔄 संपूर्ण प्रोफाइल लोड / रिस्टोअर करणे (Full Profile Restore) */
+        function restoreProfileFromHistory(snapshotId) {
+            try {
+                let history = JSON.parse(localStorage.getItem('portal_quote_history') || '[]');
+                let item = history.find(h => h.id === snapshotId);
+                if (!item) {
+                    alert("प्रोफाइल सापडली नाही!");
+                    return;
+                }
+
+                // 1. Scenario रिस्टोअर करा
+                if (item.scenario) {
+                    document.getElementById('typeVal').value = item.scenario.type || "";
+                    document.getElementById('approvedVal').value = item.scenario.approved || "";
+                    document.getElementById('maxLtvVal').value = item.scenario.maxLtv || "100";
+                    document.getElementById('cappingVal').value = item.scenario.capping || "";
+                    persistScenarioData();
+                }
+
+                // 2. प्रॉडक्ट बास्केटमध्ये प्रोफाइल लोड करा
+                let restoredProd = JSON.parse(JSON.stringify(item.product));
+                restoredProd.id = 'prod_' + Date.now() + '_' + Math.floor(Math.random()*1000);
+                restoredProd.isCollapsed = false;
+
+                // जुन्या लिस्टच्या वरती हा प्रॉडक्ट आणा
+                selectedProductList.unshift(restoredProd);
+                renderAllProductPanels();
+
+                document.getElementById('historyModal').style.display = 'none';
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                alert(`✅ ${restoredProd.name} ची पूर्ण प्रोफाइल (Scenario, Invoice, GTL, RFC, Margin) यशस्वीरित्या लोड झाली!`);
+
+            } catch(e) {
+                console.error("Profile restore error:", e);
+                alert("प्रोफाइल रिस्टोअर करताना त्रुटी आली.");
+            }
         }
 
         function openHistoryModal() {
@@ -765,20 +818,42 @@
             if (history.length === 0) {
                 container.innerHTML = `<div style="text-align:center; padding:20px; color:#94a3b8;">कोणताही कोट इतिहास उपलब्ध नाही.</div>`;
             } else {
-                container.innerHTML = history.map(h => `
+                container.innerHTML = history.map(h => {
+                    let sc = h.scenario || {};
+                    let p = h.product || {};
+                    return `
                     <div class="history-card">
                         <div class="history-time">📅 ${h.time}</div>
-                        <div class="history-title">📱 ${h.model} (₹${Number(h.invoice).toLocaleString()})</div>
-                        <div class="history-details">${h.text}</div>
-                        <button onclick="clipboardCopy('${h.text.replace(/'/g, "\\'").replace(/\n/g, "\\n")}', 'इतिहास कोट कॉपी झाला! ✅')" style="background:#0284c7; color:white; border:none; padding:4px 8px; border-radius:3px; font-size:10px; font-weight:bold; margin-top:6px; cursor:pointer;">📋 COPY THIS</button>
+                        <div class="history-title">📱 ${p.name || h.model}</div>
+                        
+                        <div class="history-tags">
+                            <span class="history-tag">INV: ₹${Number(p.invoice||0).toLocaleString()}</span>
+                            <span class="history-tag">TYPE: ${sc.type||'-'}</span>
+                            <span class="history-tag">APP: ₹${Number(sc.approved||0).toLocaleString()}</span>
+                            <span class="history-tag">LTV: ${sc.maxLtv||100}%</span>
+                            <span class="history-tag">CAP: ${sc.capping||'NONE'}</span>
+                            <span class="history-tag">GTL: ₹${p.gtl||0}</span>
+                            <span class="history-tag">RFC: ₹${p.rfc||0}</span>
+                            <span class="history-tag">MGN: ₹${p.margin||0}</span>
+                        </div>
+
+                        <div class="history-actions">
+                            <button onclick="restoreProfileFromHistory(${h.id})" style="flex:1; background:#10b981; color:white; border:none; padding:7px 10px; border-radius:4px; font-size:11px; font-weight:900; cursor:pointer;">
+                                🔄 RESTORE FULL PROFILE
+                            </button>
+                            <button onclick="clipboardCopy('${(h.summary||'').replace(/'/g, "\\'").replace(/\n/g, "\\n")}', 'मजकूर कॉपी झाला! ✅')" style="background:#0284c7; color:white; border:none; padding:7px 10px; border-radius:4px; font-size:11px; font-weight:bold; cursor:pointer;">
+                                📋 COPY TEXT
+                            </button>
+                        </div>
                     </div>
-                `).join('');
+                    `;
+                }).join('');
             }
             modal.style.display = 'flex';
         }
 
         function clearAllHistory() {
-            if (confirm("सर्व कोट इतिहास क्लिअर करायचा आहे का?")) {
+            if (confirm("सर्व कोट इतिहास पूर्णपणे क्लिअर करायचा आहे का?")) {
                 localStorage.removeItem('portal_quote_history');
                 openHistoryModal();
             }
@@ -806,9 +881,6 @@
             } catch(e) {}
         }
 
-        /* ========================================================================= */
-        /* LOAD & EVENT LISTENERS                                                    */
-        /* ========================================================================= */
         window.addEventListener('pageshow', async function() {
             restoreScenarioData();
             await initDB();
@@ -850,6 +922,21 @@
                     }
                 }
             } catch(e) {}
+        }
+
+        function parseSchemeValues(row) {
+            let tenure = parseInt(findVal(row, ['TOTALTENURE', 'TENURE', 'TA'])) || 0;
+            let advEmi = parseInt(findVal(row, ['ADVANCEEMI', 'ADV', 'ADVEMI'])) || 0;
+
+            if (tenure === 0) {
+                let schemeText = String(findVal(row, ['SCHEME', 'SCHEMENAME', 'PLAN']) || "");
+                let parts = schemeText.split(/[\/\_\-\s]+/);
+                if (parts.length >= 2) {
+                    tenure = parseInt(parts[0]) || 0;
+                    advEmi = parseInt(parts[1]) || 0;
+                }
+            }
+            return { tenure, advEmi };
         }
 
         async function fetchFromMasterStream(forceSync = false) {
@@ -901,13 +988,14 @@
                 let sheet2 = wb.SheetNames.length > 1 ? XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[1]], { raw: false, defval: "" }) : [];
 
                 masterDbRecords = sheet1.map(row => {
+                    let parsed = parseSchemeValues(row);
                     return {
                         model: String(findVal(row, ['MODEL', 'BRANDMODEL', 'ASSET']) || "").toUpperCase().trim(),
                         brand: String(findVal(row, ['BRAND', 'MAKE']) || "").toUpperCase().trim(),
-                        category: String(findVal(row, ['CATEGORY', 'CAT']) || "OTHER").toUpperCase().trim(),
+                        category: String(findVal(row, ['CATEGORY', 'CAT', 'PRODUCT']) || "OTHER").toUpperCase().trim(),
                         mrp: parseFloat(findVal(row, ['MRP', 'PRICE', 'M.R.P'])) || 0,
-                        tenure: parseInt(findVal(row, ['TOTALTENURE', 'TENURE', 'TA'])) || 0,
-                        advEmi: parseInt(findVal(row, ['ADVANCEEMI', 'ADV'])) || 0,
+                        tenure: parsed.tenure,
+                        advEmi: parsed.advEmi,
                         dbd: parseFloat(findVal(row, ['DBD', 'DBD%'])) || 0,
                         pf: parseInt(findVal(row, ['PF', 'PROCESSINGFEE'])) || 0,
                         roi: parseFloat(findVal(row, ['ROI', 'ROI%'])) || 0
@@ -915,11 +1003,12 @@
                 }).filter(r => r.model !== "" && r.model !== "NON TIEUP");
 
                 sheet2AllCategoryRecords = sheet2.map(row => {
-                    let catName = String(findVal(row, ['CATEGORY', 'CAT', 'PRODUCTCATEGORY', 'PRODUCT']) || "GENERAL").toUpperCase().trim();
+                    let parsed = parseSchemeValues(row);
+                    let catName = String(findVal(row, ['CATEGORY', 'CAT', 'PRODUCTCATEGORY', 'PRODUCT', 'ASSET', 'ASSETCATEGORY', 'TYPE']) || "GENERAL").toUpperCase().trim();
                     return {
                         category: catName,
-                        tenure: parseInt(findVal(row, ['TOTALTENURE', 'TENURE', 'TA'])) || 0,
-                        advEmi: parseInt(findVal(row, ['ADVANCEEMI', 'ADV'])) || 0,
+                        tenure: parsed.tenure,
+                        advEmi: parsed.advEmi,
                         dbd: parseFloat(findVal(row, ['DBD', 'DBD%'])) || 0,
                         pf: parseInt(findVal(row, ['PF', 'PROCESSINGFEE'])) || 0,
                         roi: parseFloat(findVal(row, ['ROI', 'ROI%'])) || 0
@@ -962,18 +1051,23 @@
         function extractSheet2Categories() {
             let catSet = new Set();
             sheet2AllCategoryRecords.forEach(r => {
-                if (r.category && r.category !== "") catSet.add(r.category);
+                if (r.category && r.category !== "" && r.category !== "UNDEFINED") {
+                    catSet.add(r.category);
+                }
             });
             sheet2CategoriesList = Array.from(catSet);
             if (sheet2CategoriesList.length === 0) {
-                sheet2CategoriesList = ["SMARTPHONE / MOBILE", "LED / TV", "REFRIGERATOR", "WASHING MACHINE", "AC", "LAPTOP", "GENERAL"];
+                sheet2CategoriesList = ["SMARTPHONE", "LED / TV", "REFRIGERATOR", "WASHING MACHINE", "AC", "LAPTOP", "GENERAL"];
             }
         }
 
         async function forceRefreshMasterData() { await fetchFromMasterStream(true); }
 
         function findVal(row, keys) {
-            let foundKey = Object.keys(row).find(k => keys.includes(k.toUpperCase().replace(/\s/g, '')));
+            let foundKey = Object.keys(row).find(k => {
+                let cleanKey = k.toUpperCase().replace(/[\s\_\-\.]/g, '');
+                return keys.some(expected => cleanKey === expected.replace(/[\s\_\-\.]/g, ''));
+            });
             return foundKey ? row[foundKey] : null;
         }
 
@@ -1050,7 +1144,7 @@
             const selectedCat = document.getElementById('sheet2CategorySelect').value;
             document.getElementById('categoryModal').style.display = 'none';
 
-            let catSchemes = sheet2AllCategoryRecords.filter(r => r.category === selectedCat);
+            let catSchemes = sheet2AllCategoryRecords.filter(r => r.category.trim() === selectedCat.trim());
             if (catSchemes.length === 0) {
                 catSchemes = [
                     { category: selectedCat, tenure: 10, advEmi: 2, dbd: 1.5, pf: 699, roi: 0 },
@@ -1085,7 +1179,7 @@
             prod.category = newCat;
             prod.name = `[${newCat}] NON-TIEUP`;
 
-            let catSchemes = sheet2AllCategoryRecords.filter(r => r.category === newCat);
+            let catSchemes = sheet2AllCategoryRecords.filter(r => r.category.trim() === newCat.trim());
             if (catSchemes.length > 0) {
                 prod.schemes = catSchemes.map((s, idx) => ({ ...s, sId: 's2_' + idx, disabled: false }));
             }
@@ -1244,8 +1338,8 @@
                 clipboardCopy(textToCopy, "स्कीम कॉपी झाली! ✅");
             }
 
-            // इतिहासामध्ये सुरक्षित सेव्ह करणे
-            saveQuoteToHistory(prod.name, price, textToCopy);
+            // संपूर्ण स्नॅपशॉट प्रोफाइल हिस्ट्रीमध्ये सेव्ह करणे
+            saveFullProfileSnapshot(prod.id, textToCopy);
         }
 
         function clipboardCopy(text, successMsg) {
@@ -1550,8 +1644,8 @@
                 document.getElementById('generatedQuoteImg').src = imgData;
                 document.getElementById('imageViewerModal').style.display = 'flex';
                 
-                // इमेज जनरेट झाल्यावर हिस्ट्रीमध्ये सेव्ह
-                saveQuoteToHistory(prod.name, price, "📸 कोट इमेज जनरेट झाली");
+                // इमेज जनरेट झाल्यावरही संपूर्ण स्नॅपशॉट प्रोफाइल हिस्ट्रीमध्ये सेव्ह
+                saveFullProfileSnapshot(prod.id, `📱 ${prod.name} (₹${Number(price).toLocaleString()}) - Quote Generated`);
             });
         }
 
