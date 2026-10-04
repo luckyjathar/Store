@@ -444,6 +444,19 @@
         .footer-btn.active, .footer-btn:hover {
             color: #38bdf8;
         }
+
+        /* HISTORY LIST ITEM */
+        .history-card {
+            background: #0b1736;
+            border: 1px solid #243b6b;
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 8px;
+            text-align: left;
+        }
+        .history-time { font-size: 10px; color: #94a3b8; margin-bottom: 4px; }
+        .history-title { font-size: 14px; font-weight: 900; color: #f97316; }
+        .history-details { font-size: 11px; color: #cbd5e1; margin-top: 4px; white-space: pre-line; }
     </style>
 </head>
 <body>
@@ -460,7 +473,7 @@
                 <tr>
                     <td class="label-col">CUSTOMER TYPE</td>
                     <td class="input-col">
-                        <select class="form-select" id="typeVal" autocomplete="off" onchange="recalcAllProducts()">
+                        <select class="form-select" id="typeVal" autocomplete="off" onchange="persistScenarioData(); recalcAllProducts()">
                             <option value="" selected>-</option>
                             <option value="NEW">NEW</option>
                             <option value="EMI CARD">EMI CARD</option>
@@ -471,19 +484,19 @@
                 <tr>
                     <td class="label-col">APPROVED</td>
                     <td class="input-col">
-                        <input type="number" class="form-input" id="approvedVal" placeholder="-" autocomplete="off" oninput="recalcAllProducts()">
+                        <input type="number" class="form-input" id="approvedVal" placeholder="-" autocomplete="off" oninput="persistScenarioData(); recalcAllProducts()">
                     </td>
                 </tr>
                 <tr>
                     <td class="label-col">MAX LTV (%)</td>
                     <td class="input-col">
-                        <input type="number" min="0" max="100" class="form-input" id="maxLtvVal" placeholder="100" autocomplete="off" oninput="validateMaxLtvInput(this); recalcAllProducts()">
+                        <input type="number" min="0" max="100" class="form-input" id="maxLtvVal" placeholder="100" autocomplete="off" oninput="validateMaxLtvInput(this); persistScenarioData(); recalcAllProducts()">
                     </td>
                 </tr>
                 <tr>
                     <td class="label-col">CAPPING</td>
                     <td class="input-col">
-                        <input type="number" class="form-input" id="cappingVal" placeholder="-" autocomplete="off" oninput="recalcAllProducts()">
+                        <input type="number" class="form-input" id="cappingVal" placeholder="-" autocomplete="off" oninput="persistScenarioData(); recalcAllProducts()">
                     </td>
                 </tr>
             </table>
@@ -492,10 +505,9 @@
         <!-- २. SEARCH BRAND / MODEL & QUICK BUTTONS -->
         <div class="search-card">
             <div class="search-title">🔍 Add Product / Model</div>
-            <input type="text" id="modelSearchInput" class="search-input" placeholder="Type Model Name to Add..." oninput="handleModelSearch(this.value)" autocomplete="off" disabled>
+            <input type="text" id="modelSearchInput" class="search-input" placeholder="Type Model Name to Add..." onfocus="showRecentSearchesIfEmpty()" oninput="handleModelSearch(this.value)" autocomplete="off" disabled>
             <div id="modelDropdown" class="dropdown-list"></div>
 
-            <!-- ⚡ थेट एका क्लिकवर लोड होणारी बटणे -->
             <div class="quick-action-row">
                 <button type="button" class="quick-btn btn-sheet2" onclick="openCategorySelectionForSheet2()">
                     📂 OPEN SCHEMES (BY CATEGORY)
@@ -509,6 +521,18 @@
         <!-- ३. सिलेक्ट केलेले प्रॉडक्ट्स कंटेनर -->
         <div id="selectedProductsContainer"></div>
 
+    </div>
+
+    <!-- 📜 QUOTE HISTORY MODAL -->
+    <div id="historyModal" class="modal-overlay">
+        <div class="modal-content">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                <span style="font-size:16px; font-weight:900; color:#38bdf8;">📜 RECENT QUOTE HISTORY</span>
+                <button onclick="clearAllHistory()" style="background:#dc2626; color:white; border:none; padding:4px 8px; border-radius:4px; font-size:11px; font-weight:bold; cursor:pointer;">CLEAR 🗑</button>
+            </div>
+            <div id="historyListContainer" style="max-height:60vh; overflow-y:auto;"></div>
+            <button onclick="document.getElementById('historyModal').style.display='none'" style="width:100%; background:#243b6b; color:white; border:none; padding:8px; border-radius:4px; font-weight:bold; margin-top:10px; cursor:pointer;">CLOSE</button>
+        </div>
     </div>
 
     <!-- 📂 SHEET 2 कॅटेगरी निवडण्याचा पॉपअप -->
@@ -578,6 +602,9 @@
         <button class="footer-btn active" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
             <span>⚡</span><span>CALCULATOR</span>
         </button>
+        <button class="footer-btn" onclick="openHistoryModal()">
+            <span>📜</span><span>HISTORY</span>
+        </button>
         <button class="footer-btn" onclick="forceRefreshMasterData()">
             <span>🔄</span><span>SYNC DATA</span>
         </button>
@@ -598,9 +625,9 @@
         const CACHE_DURATION_MS = 12 * 60 * 60 * 1000;
 
         let dbInstance = null;
-        let masterDbRecords = [];         // Sheet 1 (Specific Models)
-        let sheet2AllCategoryRecords = []; // Sheet 2 (Category Wise Schemes)
-        let sheet2CategoriesList = [];    // Sheet 2 Unique Categories
+        let masterDbRecords = [];         
+        let sheet2AllCategoryRecords = []; 
+        let sheet2CategoriesList = [];    
         let selectedProductList = [];
 
         function initDB() {
@@ -677,8 +704,113 @@
             return 0;
         }
 
+        /* ========================================================================= */
+        /* 📜 RECENT SEARCH & QUOTE HISTORY STORAGE (LOCALSTORAGE)                   */
+        /* ========================================================================= */
+        function saveToRecentSearches(modelName) {
+            try {
+                let recents = JSON.parse(localStorage.getItem('portal_recent_searches') || '[]');
+                recents = recents.filter(m => m !== modelName);
+                recents.unshift(modelName);
+                if (recents.length > 5) recents = recents.slice(0, 5);
+                localStorage.setItem('portal_recent_searches', JSON.stringify(recents));
+            } catch(e) {}
+        }
+
+        function showRecentSearchesIfEmpty() {
+            const input = document.getElementById('modelSearchInput');
+            const dropdown = document.getElementById('modelDropdown');
+            if (input.value.trim() !== '') return;
+
+            let recents = JSON.parse(localStorage.getItem('portal_recent_searches') || '[]');
+            if (recents.length === 0) return;
+
+            dropdown.innerHTML = `
+                <div style="padding:6px 12px; font-size:11px; font-weight:bold; color:#94a3b8; background:#0b1736; border-bottom:1px solid #1c2e4a;">
+                    🕒 RECENT SEARCHES:
+                </div>
+            ` + recents.map(m => `
+                <div class="dropdown-item" onclick="addNewProductToBasket('${m.replace(/'/g, "\\'")}')">
+                    <span>🕒 ${m}</span>
+                </div>
+            `).join('');
+
+            dropdown.style.display = 'block';
+        }
+
+        function saveQuoteToHistory(prodName, invoice, summaryText) {
+            try {
+                let history = JSON.parse(localStorage.getItem('portal_quote_history') || '[]');
+                let now = new Date();
+                let timeStr = now.toLocaleDateString('mr-IN') + ' ' + now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+                history.unshift({
+                    id: Date.now(),
+                    model: prodName,
+                    invoice: invoice,
+                    time: timeStr,
+                    text: summaryText
+                });
+
+                if (history.length > 20) history = history.slice(0, 20); // कमाल २० कोट्स
+                localStorage.setItem('portal_quote_history', JSON.stringify(history));
+            } catch(e) {}
+        }
+
+        function openHistoryModal() {
+            const modal = document.getElementById('historyModal');
+            const container = document.getElementById('historyListContainer');
+            let history = JSON.parse(localStorage.getItem('portal_quote_history') || '[]');
+
+            if (history.length === 0) {
+                container.innerHTML = `<div style="text-align:center; padding:20px; color:#94a3b8;">कोणताही कोट इतिहास उपलब्ध नाही.</div>`;
+            } else {
+                container.innerHTML = history.map(h => `
+                    <div class="history-card">
+                        <div class="history-time">📅 ${h.time}</div>
+                        <div class="history-title">📱 ${h.model} (₹${Number(h.invoice).toLocaleString()})</div>
+                        <div class="history-details">${h.text}</div>
+                        <button onclick="clipboardCopy('${h.text.replace(/'/g, "\\'").replace(/\n/g, "\\n")}', 'इतिहास कोट कॉपी झाला! ✅')" style="background:#0284c7; color:white; border:none; padding:4px 8px; border-radius:3px; font-size:10px; font-weight:bold; margin-top:6px; cursor:pointer;">📋 COPY THIS</button>
+                    </div>
+                `).join('');
+            }
+            modal.style.display = 'flex';
+        }
+
+        function clearAllHistory() {
+            if (confirm("सर्व कोट इतिहास क्लिअर करायचा आहे का?")) {
+                localStorage.removeItem('portal_quote_history');
+                openHistoryModal();
+            }
+        }
+
+        function persistScenarioData() {
+            try {
+                let data = {
+                    type: document.getElementById('typeVal').value,
+                    approved: document.getElementById('approvedVal').value,
+                    maxLtv: document.getElementById('maxLtvVal').value,
+                    capping: document.getElementById('cappingVal').value
+                };
+                localStorage.setItem('portal_scenario_cache', JSON.stringify(data));
+            } catch(e) {}
+        }
+
+        function restoreScenarioData() {
+            try {
+                let data = JSON.parse(localStorage.getItem('portal_scenario_cache') || '{}');
+                if (data.type) document.getElementById('typeVal').value = data.type;
+                if (data.approved) document.getElementById('approvedVal').value = data.approved;
+                if (data.maxLtv) document.getElementById('maxLtvVal').value = data.maxLtv;
+                if (data.capping) document.getElementById('cappingVal').value = data.capping;
+            } catch(e) {}
+        }
+
+        /* ========================================================================= */
+        /* LOAD & EVENT LISTENERS                                                    */
+        /* ========================================================================= */
         window.addEventListener('pageshow', async function() {
-            resetAllInputsToBlank();
+            restoreScenarioData();
             await initDB();
             await fetchFromMasterStream(false);
             setTimeout(() => checkForRemoteExcelUpdate(), 1000);
@@ -688,6 +820,7 @@
             document.querySelectorAll('.form-input, .search-input').forEach(input => input.value = '');
             document.querySelectorAll('.form-select').forEach(select => select.selectedIndex = 0);
             selectedProductList = [];
+            localStorage.removeItem('portal_scenario_cache');
             renderAllProductPanels();
             const dropdown = document.getElementById('modelDropdown');
             if (dropdown) dropdown.style.display = 'none';
@@ -719,7 +852,6 @@
             } catch(e) {}
         }
 
-        /* एक्सेल Sheet 1 आणि Sheet 2 वाचणे व Sheet 2 मधील कॅटेगरीज काढणे */
         async function fetchFromMasterStream(forceSync = false) {
             const badge = document.getElementById('dataStatusBadge');
             const searchInput = document.getElementById('modelSearchInput');
@@ -765,11 +897,7 @@
                 if (!dataBuffer) throw new Error("Excel लोड अयशस्वी");
 
                 let wb = XLSX.read(new Uint8Array(dataBuffer), { type: 'array' });
-                
-                // SHEET 1: Models
                 let sheet1 = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { raw: false, defval: "" });
-                
-                // SHEET 2: Category Wise Open Schemes
                 let sheet2 = wb.SheetNames.length > 1 ? XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[1]], { raw: false, defval: "" }) : [];
 
                 masterDbRecords = sheet1.map(row => {
@@ -786,7 +914,6 @@
                     };
                 }).filter(r => r.model !== "" && r.model !== "NON TIEUP");
 
-                // ✅ Sheet 2 मधील कॅटेगरीनुसार अचूक स्कीम्स साठवणे
                 sheet2AllCategoryRecords = sheet2.map(row => {
                     let catName = String(findVal(row, ['CATEGORY', 'CAT', 'PRODUCTCATEGORY', 'PRODUCT']) || "GENERAL").toUpperCase().trim();
                     return {
@@ -832,7 +959,6 @@
             }
         }
 
-        /* Sheet 2 मधील युनिक कॅटेगरीज वेगळ्या काढणे */
         function extractSheet2Categories() {
             let catSet = new Set();
             sheet2AllCategoryRecords.forEach(r => {
@@ -854,7 +980,10 @@
         function handleModelSearch(query) {
             const dropdown = document.getElementById('modelDropdown');
             const q = query.trim().toUpperCase();
-            if (!q) { dropdown.style.display = 'none'; return; }
+            if (!q) {
+                showRecentSearchesIfEmpty();
+                return;
+            }
 
             let uniqueModels = [];
             let seen = new Set();
@@ -882,6 +1011,8 @@
             const searchInput = document.getElementById('modelSearchInput');
             searchInput.value = ''; dropdown.style.display = 'none';
 
+            saveToRecentSearches(modelName);
+
             let modelSchemes = masterDbRecords.filter(r => r.model === modelName);
             let defaultMrp = modelSchemes[0] && modelSchemes[0].mrp > 0 ? modelSchemes[0].mrp : "";
 
@@ -907,7 +1038,6 @@
             renderAllProductPanels();
         }
 
-        /* 📂 Sheet 2 कॅटेगरी निवडण्यासाठी पॉपअप उघडणे */
         function openCategorySelectionForSheet2() {
             const selectEl = document.getElementById('sheet2CategorySelect');
             if (sheet2CategoriesList.length === 0) extractSheet2Categories();
@@ -916,15 +1046,11 @@
             document.getElementById('categoryModal').style.display = 'flex';
         }
 
-        /* 📂 निवडलेल्या कॅटेगरीनुसार Sheet 2 च्या स्कीम्स बास्केटमध्ये लोड करणे */
         function confirmSheet2CategorySelection() {
             const selectedCat = document.getElementById('sheet2CategorySelect').value;
             document.getElementById('categoryModal').style.display = 'none';
 
-            // फक्त त्या निवडलेल्या कॅटेगरीच्या स्कीम्स फिल्टर करणे
             let catSchemes = sheet2AllCategoryRecords.filter(r => r.category === selectedCat);
-            
-            // जर नेमक्या त्या कॅटेगरीच्या नसतील तर जनरल स्कीम्स फॉलबॅक
             if (catSchemes.length === 0) {
                 catSchemes = [
                     { category: selectedCat, tenure: 10, advEmi: 2, dbd: 1.5, pf: 699, roi: 0 },
@@ -944,7 +1070,7 @@
                 margin: 0,
                 dealerContri: 0,
                 isCollapsed: false,
-                isSheet2: true, // Sheet 2 प्रॉडक्ट म्हणून मार्क
+                isSheet2: true,
                 schemes: catSchemes.map((s, idx) => ({ ...s, sId: 's2_' + idx, disabled: false }))
             };
 
@@ -952,7 +1078,6 @@
             renderAllProductPanels();
         }
 
-        /* कार्डवरूनच कॅटेगरी बदलल्यास स्कीम्स रिफ्रेश करणे */
         function changeCardCategory(pId, newCat) {
             let prod = selectedProductList.find(p => p.id === pId);
             if (!prod) return;
@@ -967,7 +1092,6 @@
             renderAllProductPanels();
         }
 
-        /* ➕ फील्ड ऑफिसरसाठी नवीन Manual Product जोडणे */
         function addNewManualProductPrompt() {
             let prodName = prompt("कृपया मॅन्युअल प्रॉडक्टचे नाव टाका:", "MANUAL PRODUCT");
             if (!prodName || prodName.trim() === "") return;
@@ -1084,9 +1208,10 @@
 
             let checkedBoxes = tableElement.querySelectorAll('.scheme-checkbox:checked');
             let price = prod.invoice || "0";
+            let textToCopy = "";
 
             if (checkedBoxes.length > 0) {
-                let textToCopy = `📱 *${prod.name}*\n` + `💵 *Invoice:* ₹${Number(price).toLocaleString()}\n\n`;
+                textToCopy = `📱 *${prod.name}*\n` + `💵 *Invoice:* ₹${Number(price).toLocaleString()}\n\n`;
                 let count = 1;
 
                 checkedBoxes.forEach(cb => {
@@ -1102,7 +1227,7 @@
 
                             textToCopy += `🔹 *Option ${count}:* ${sName}\n` +
                                           `💰 *DP:* ${sDp}\n` +
-                                          `🗓 *EMI:* ${sEmi} x ${sMonths} Months\n` +
+                                          `🗓️ *EMI:* ${sEmi} x ${sMonths} Months\n` +
                                           `✨ *Per Day:* ${sDay}\n\n`;
                             count++;
                         }
@@ -1110,14 +1235,17 @@
                 });
                 clipboardCopy(textToCopy, `टिकमार्क केलेल्या ${count - 1} स्कीम्स कॉपी झाल्या! ✅`);
             } else {
-                let textToCopy = `📱 *${prod.name}*\n` +
-                                 `💵 *Invoice:* ₹${Number(price).toLocaleString()}\n\n` +
-                                 `✅ *Scheme:* ${tenure}/${adv}\n` +
-                                 `💰 *DP:* ₹${Number(dp).toLocaleString()}\n` +
-                                 `🗓️ *EMI:* ₹${Number(emi).toLocaleString()} x ${months} Months\n` +
-                                 `✨ *Per Day:* ₹${Number(perDay).toLocaleString()}`;
+                textToCopy = `📱 *${prod.name}*\n` +
+                             `💵 *Invoice:* ₹${Number(price).toLocaleString()}\n\n` +
+                             `✅ *Scheme:* ${tenure}/${adv}\n` +
+                             `💰 *DP:* ₹${Number(dp).toLocaleString()}\n` +
+                             `🗓️ *EMI:* ₹${Number(emi).toLocaleString()} x ${months} Months\n` +
+                             `✨ *Per Day:* ₹${Number(perDay).toLocaleString()}`;
                 clipboardCopy(textToCopy, "स्कीम कॉपी झाली! ✅");
             }
+
+            // इतिहासामध्ये सुरक्षित सेव्ह करणे
+            saveQuoteToHistory(prod.name, price, textToCopy);
         }
 
         function clipboardCopy(text, successMsg) {
@@ -1139,7 +1267,6 @@
                 let bodyDisplay = isCol ? "none" : "block";
                 let arrowIcon = isCol ? "▶" : "▼";
 
-                // जर Sheet 2 प्रॉडक्ट असेल तर कार्डवरच कॅटेगरी बदलण्याची सोय
                 let categorySelectorHtml = prod.isSheet2 ? `
                     <div style="grid-column: span 2; background:#08193f; padding:6px; border-radius:4px; border:1px solid #1e3a68;">
                         <label style="color:#38bdf8;">📂 CATEGORY (SHEET 2):</label>
@@ -1422,6 +1549,9 @@
                 let imgData = canvas.toDataURL("image/png");
                 document.getElementById('generatedQuoteImg').src = imgData;
                 document.getElementById('imageViewerModal').style.display = 'flex';
+                
+                // इमेज जनरेट झाल्यावर हिस्ट्रीमध्ये सेव्ह
+                saveQuoteToHistory(prod.name, price, "📸 कोट इमेज जनरेट झाली");
             });
         }
 
