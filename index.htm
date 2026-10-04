@@ -3,10 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scenario & Master Data Search</title>
+    <title>Scenario & Multi-Model Portal</title>
 
-    <!-- SheetJS CDN for Excel Reading -->
+    <!-- SheetJS for Excel Reading -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- html2canvas for Quote Image Generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
         * {
@@ -26,13 +28,13 @@
 
         .main-wrapper {
             width: 100%;
-            max-width: 440px;
+            max-width: 460px;
             display: flex;
             flex-direction: column;
             gap: 16px;
         }
 
-        /* CARD STYLES */
+        /* 1. SCENARIO CARD */
         .scenario-card {
             background-color: #060e22;
             border: 2px solid #243b6b;
@@ -116,7 +118,7 @@
             color: #ffffff;
         }
 
-        /* SEARCH CARD */
+        /* 2. SEARCH CARD */
         .search-card {
             background: #060e22;
             border: 2px solid #243b6b;
@@ -196,57 +198,88 @@
             color: #60a5fa;
         }
 
-        /* RESULTS & CALCULATION */
-        .result-box {
-            display: none;
+        /* 3. DYNAMIC PRODUCT PANELS */
+        .product-panel {
             background: #060e22;
             border: 2px solid #243b6b;
             border-radius: 8px;
             padding: 12px;
+            margin-bottom: 14px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
 
-        .result-header {
+        .panel-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            border-bottom: 1px solid #1c2e4a;
+            padding-bottom: 8px;
             margin-bottom: 10px;
-            flex-wrap: wrap;
-            gap: 8px;
         }
 
-        .result-title {
-            font-size: 15px;
+        .panel-title {
+            font-size: 16px;
             font-weight: 900;
             color: #f97316;
         }
 
-        .tab-btn-group {
-            display: flex;
-            gap: 6px;
+        .btn-remove {
+            background: #dc2626;
+            color: white;
+            border: none;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
         }
 
-        .toggle-btn {
-            background: #1e3a68;
-            color: #cbd5e1;
+        .sub-config-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            background: #0b1736;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #1c2e4a;
+            margin-bottom: 10px;
+        }
+
+        .sub-config-grid label {
+            font-size: 10px;
+            font-weight: 800;
+            color: #94a3b8;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .sub-config-grid input, .sub-config-grid select {
+            width: 100%;
+            background: #060e22;
             border: 1px solid #243b6b;
+            color: #fff;
+            padding: 6px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            outline: none;
+        }
+
+        .btn-quote {
+            background: #0284c7;
+            color: white;
+            border: none;
             padding: 5px 10px;
             border-radius: 4px;
             font-size: 11px;
             font-weight: 800;
             cursor: pointer;
-            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
 
-        .toggle-btn.active {
-            background: #0284c7;
-            color: #ffffff;
-            border-color: #38bdf8;
-        }
-
-        .toggle-btn.btn-calc.active {
-            background: #059669;
-            border-color: #34d399;
-        }
+        .btn-quote:hover { background: #0369a1; }
 
         .table-responsive {
             width: 100%;
@@ -262,10 +295,10 @@
         }
 
         .scheme-table th {
-            background: #1e3a68;
+            background: #064e3b;
             color: #ffffff;
             padding: 8px 4px;
-            border: 1px solid #243b6b;
+            border: 1px solid #047857;
         }
 
         .scheme-table td {
@@ -274,9 +307,33 @@
             font-weight: 700;
         }
 
-        .calc-header th {
-            background: #064e3b;
-            border-color: #047857;
+        /* MODAL FOR IMAGE VIEWER */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.75);
+            z-index: 999;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+        }
+
+        .modal-content {
+            background: #060e22;
+            border: 2px solid #243b6b;
+            border-radius: 8px;
+            padding: 14px;
+            max-width: 480px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .modal-content img {
+            width: 100%;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
         }
     </style>
 </head>
@@ -292,131 +349,66 @@
                 <tr>
                     <td class="label-col">APPROVED</td>
                     <td class="input-col">
-                        <input type="number" class="form-input" id="approvedVal" placeholder="-" autocomplete="off" oninput="recalcIfActive()">
+                        <input type="number" class="form-input" id="approvedVal" placeholder="-" autocomplete="off" oninput="recalcAllProducts()">
                     </td>
                 </tr>
                 <!-- २. MAX LTV -->
                 <tr>
                     <td class="label-col">MAX LTV</td>
                     <td class="input-col">
-                        <input type="number" class="form-input" id="maxLtvVal" placeholder="-" autocomplete="off" oninput="recalcIfActive()">
+                        <input type="text" class="form-input" id="maxLtvVal" placeholder="-" autocomplete="off" oninput="recalcAllProducts()">
                     </td>
                 </tr>
                 <!-- ३. CUSTOMER TYPE -->
                 <tr>
                     <td class="label-col">CUSTOMER TYPE</td>
                     <td class="input-col">
-                        <select class="form-select" id="typeVal" autocomplete="off" onchange="recalcIfActive()">
+                        <select class="form-select" id="typeVal" autocomplete="off" onchange="recalcAllProducts()">
                             <option value="" selected>-</option>
                             <option value="NEW">NEW</option>
-                            <option value="OLD">OLD</option>
-                            <option value="EXISTING">EXISTING</option>
                             <option value="EMI CARD">EMI CARD</option>
+                            <option value="VIRTUAL CARD">VIRTUAL CARD</option>
                             <option value="W/O CARD">W/O CARD</option>
                         </select>
                     </td>
                 </tr>
                 <!-- ४. EMI CAPPING -->
                 <tr>
-                    <td class="label-col">EMI CAPPING</td>
+                    <td class="label-col">CAPPING</td>
                     <td class="input-col">
-                        <input type="number" class="form-input" id="cappingVal" placeholder="-" autocomplete="off" oninput="recalcIfActive()">
+                        <input type="number" class="form-input" id="cappingVal" placeholder="-" autocomplete="off" oninput="recalcAllProducts()">
                     </td>
                 </tr>
             </table>
         </div>
 
-        <!-- २. SEARCH BRAND / MODEL -->
+        <!-- २. SEARCH BRAND / MODEL (नवीन मॉडेल ॲड करण्यासाठी) -->
         <div class="search-card">
             <div class="search-header-area">
-                <span class="search-title">🔍 Search Brand / Model</span>
+                <span class="search-title">🔍 Add Product / Model</span>
                 <span id="dataStatusBadge" class="status-badge" title="क्लिक करून फोर्स रिफ्रेश करा" onclick="forceRefreshMasterData()">CHECKING...</span>
             </div>
-            <input type="text" id="modelSearchInput" class="search-input" placeholder="Type Model or Brand..." oninput="handleModelSearch(this.value)" autocomplete="off" disabled>
+            <input type="text" id="modelSearchInput" class="search-input" placeholder="Type Model or Brand to Add..." oninput="handleModelSearch(this.value)" autocomplete="off" disabled>
             <div id="modelDropdown" class="dropdown-list"></div>
         </div>
 
-        <!-- ३. SCENARIO मधील उर्वरित ऑप्शन्स -->
-        <div class="scenario-card">
-            <table class="scenario-table">
-                <!-- ५. GTL/RFC -->
-                <tr>
-                    <td class="label-col">GTL/RFC</td>
-                    <td class="input-col">
-                        <select class="form-select" id="gtlRfcVal" autocomplete="off" onchange="recalcIfActive()">
-                            <option value="" selected>-</option>
-                            <option value="120K">120K</option>
-                            <option value="100K">100K</option>
-                            <option value="80K">80K</option>
-                            <option value="50K">50K</option>
-                        </select>
-                    </td>
-                </tr>
-                <!-- ६. MARGIN -->
-                <tr>
-                    <td class="label-col">MARGIN</td>
-                    <td class="input-col">
-                        <input type="number" class="form-input" id="marginVal" placeholder="-" autocomplete="off" oninput="recalcIfActive()">
-                    </td>
-                </tr>
-                <!-- ७. PRODUCT -->
-                <tr class="highlight-row">
-                    <td class="label-col" style="border-right-color: #b34100;">PRODUCT</td>
-                    <td class="input-col">
-                        <select class="form-select" id="productVal" autocomplete="off">
-                            <option value="" selected>-</option>
-                            <option value="RDP">RDP</option>
-                            <option value="CD">CD</option>
-                            <option value="DIGITAL">DIGITAL</option>
-                        </select>
-                    </td>
-                </tr>
-                <!-- ८. DEALER CONTRIBUTION (कॅशबॅकच्या वरती) -->
-                <tr>
-                    <td class="label-col">DEALER CONTRI</td>
-                    <td class="input-col">
-                        <input type="number" class="form-input" id="dealerContriVal" placeholder="-" autocomplete="off" oninput="recalcIfActive()">
-                    </td>
-                </tr>
-                <!-- ९. CASHBACK -->
-                <tr>
-                    <td class="label-col">CASHBACK</td>
-                    <td class="input-col">
-                        <select class="form-select" id="cashbackVal" autocomplete="off">
-                            <option value="" selected>-</option>
-                            <option value="NO">NO</option>
-                            <option value="YES">YES</option>
-                        </select>
-                    </td>
-                </tr>
-            </table>
-        </div>
-
-        <!-- ४. निवडलेल्या मॉडेलच्या स्कीम्स आणि फायनल कॅल्क्युलेशन -->
-        <div id="modelResultArea" class="result-box">
-            <div class="result-header">
-                <div class="result-title" id="selectedModelName">📱 MODEL NAME</div>
-                
-                <div class="tab-btn-group">
-                    <button id="btnLiveSchemes" class="toggle-btn active" onclick="switchView('LIVE')">LIVE SCHEMES</button>
-                    <button id="btnFinalCalc" class="toggle-btn btn-calc" onclick="switchView('CALC')">FINAL CALCULATION</button>
-                </div>
-            </div>
-            
-            <div class="table-responsive">
-                <table class="scheme-table">
-                    <thead id="schemesTableHead"></thead>
-                    <tbody id="schemesTableBody"></tbody>
-                </table>
-            </div>
-        </div>
+        <!-- ३. सर्व सिलेक्ट केलेले प्रॉडक्ट्स येथे रेंडर होतील -->
+        <div id="selectedProductsContainer"></div>
 
     </div>
 
+    <!-- QUOTE IMAGE PREVIEW MODAL -->
+    <div id="imageViewerModal" class="modal-overlay">
+        <div class="modal-content">
+            <img id="generatedQuoteImg" src="" alt="Customer Quote">
+            <div style="display:flex; gap:8px;">
+                <a id="downloadImgBtn" href="#" download="Customer_Loan_Quote.png" style="flex:1; background:#059669; color:white; padding:8px; border-radius:4px; font-weight:bold; text-decoration:none;">💾 DOWNLOAD IMAGE</a>
+                <button onclick="document.getElementById('imageViewerModal').style.display='none'" style="flex:1; background:#dc2626; color:white; border:none; padding:8px; border-radius:4px; font-weight:bold; cursor:pointer;">CLOSE</button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        /* ========================================================================= */
-        /* INDEXEDDB + 12 HOURS CACHE + GITHUB REAL-TIME COMMIT DETECTOR             */
-        /* ========================================================================= */
         const PRIMARY_EXCEL_URL = "https://raw.githubusercontent.com/luckyjathar/testcalculator/main/master_data.xlsx";
         const SECONDARY_EXCEL_URL = "https://raw.githubusercontent.com/luckyjathar/CALCULATOR/main/master_data.xlsx";
         const LOCAL_EXCEL_URL = "./master_data.xlsx";
@@ -425,12 +417,11 @@
         const DB_NAME = "PersistentPortalDB";
         const DB_VERSION = 2;
         const STORE_NAME = "dataStore";
-        const CACHE_DURATION_MS = 12 * 60 * 60 * 1000; // १२ तास कॅश
+        const CACHE_DURATION_MS = 12 * 60 * 60 * 1000;
 
         let dbInstance = null;
         let masterDbRecords = [];
-        let currentSelectedModel = null;
-        let currentViewMode = "LIVE";
+        let selectedProductList = []; // मल्टिपल प्रॉडक्ट्स साठवण्यासाठी Array
 
         function initDB() {
             return new Promise((resolve, reject) => {
@@ -486,26 +477,19 @@
         window.addEventListener('pageshow', async function() {
             resetAllInputsToBlank();
             await initDB();
-            
-            // १. आधी कॅशमधून लोड करा
             await fetchFromMasterStream(false);
-
-            // २. GitHub वर १२ तासांच्या आत नवीन फाइल आली आहे का हे तपासा
             setTimeout(() => checkForRemoteExcelUpdate(), 1000);
         });
 
         function resetAllInputsToBlank() {
             document.querySelectorAll('.form-input, .search-input').forEach(input => input.value = '');
             document.querySelectorAll('.form-select').forEach(select => select.selectedIndex = 0);
-            
-            const resultArea = document.getElementById('modelResultArea');
-            if (resultArea) resultArea.style.display = 'none';
-
+            selectedProductList = [];
+            renderAllProductPanels();
             const dropdown = document.getElementById('modelDropdown');
             if (dropdown) dropdown.style.display = 'none';
         }
 
-        /* GitHub Commit Detector */
         async function checkForRemoteExcelUpdate() {
             const badge = document.getElementById('dataStatusBadge');
             try {
@@ -519,22 +503,19 @@
 
                     if (savedVersionTime > 0 && latestCommitTime > savedVersionTime) {
                         if (badge) {
-                            badge.innerText = "🔄 UPDATING NEW DATA...";
+                            badge.innerText = "🔄 UPDATING DATA...";
                             badge.style.background = "#f59e0b";
                             badge.style.color = "#000";
                         }
                         await saveToDB('master_data_version_time', latestCommitTime);
-                        await fetchFromMasterStream(true); // थेट नवीन फाइल डाऊनलोड
+                        await fetchFromMasterStream(true);
                     } else if (savedVersionTime === 0) {
                         await saveToDB('master_data_version_time', latestCommitTime);
                     }
                 }
-            } catch(e) {
-                console.log("GitHub Update check bypass:", e);
-            }
+            } catch(e) {}
         }
 
-        /* Master Data Stream Engine */
         async function fetchFromMasterStream(forceSync = false) {
             const badge = document.getElementById('dataStatusBadge');
             const searchInput = document.getElementById('modelSearchInput');
@@ -545,7 +526,6 @@
                     let cachedTime = await getFromDB('master_data_time');
                     let cachedDbRecords = await getFromDB('cached_db_records');
 
-                    // जर डेटा १२ तासांपेक्षा ताजा असेल तर थेट कॅशमधून लोड करा
                     if (cachedTime && cachedDbRecords && cachedDbRecords.length > 0 && (now - cachedTime < CACHE_DURATION_MS)) {
                         masterDbRecords = cachedDbRecords;
                         badge.innerText = `⚡ CACHED (${masterDbRecords.length})`;
@@ -578,7 +558,7 @@
                     } catch(e) {}
                 }
 
-                if (!dataBuffer) throw new Error("Excel लोड झाली नाही");
+                if (!dataBuffer) throw new Error("Excel लोड अयशस्वी");
 
                 let wb = XLSX.read(new Uint8Array(dataBuffer), { type: 'array' });
                 let sheet1 = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { raw: false, defval: "" });
@@ -662,7 +642,7 @@
             }
 
             dropdown.innerHTML = uniqueModels.slice(0, 30).map(m => `
-                <div class="dropdown-item" onclick="selectModel('${m.model.replace(/'/g, "\\'")}')">
+                <div class="dropdown-item" onclick="addNewProductToBasket('${m.model.replace(/'/g, "\\'")}')">
                     <span>📱 ${m.brand ? `[${m.brand}] ` : ''}${m.model}</span>
                     <span style="font-size:10px; color:#94a3b8; background:#1e293b; padding:2px 5px; border-radius:3px;">${m.category}</span>
                 </div>
@@ -671,141 +651,283 @@
             dropdown.style.display = 'block';
         }
 
-        function selectModel(modelName) {
+        /* नवीन मॉडेल बास्केटमध्ये ॲड करणे (प्रत्येकाचे स्वतःचे स्वतंत्र पॅरामीटर्स) */
+        function addNewProductToBasket(modelName) {
             const dropdown = document.getElementById('modelDropdown');
             const searchInput = document.getElementById('modelSearchInput');
-            const resultArea = document.getElementById('modelResultArea');
-            const title = document.getElementById('selectedModelName');
 
-            searchInput.value = modelName;
+            searchInput.value = '';
             dropdown.style.display = 'none';
 
-            currentSelectedModel = modelName;
-            title.innerText = "📱 " + modelName;
+            let rec = masterDbRecords.find(r => r.model === modelName);
+            let defaultMrp = rec && rec.mrp > 0 ? rec.mrp : "";
 
-            resultArea.style.display = 'block';
-            renderTable();
+            let newProduct = {
+                id: Date.now() + Math.random(),
+                name: modelName,
+                invoice: defaultMrp,
+                gtlRfc: "120K",
+                margin: 0,
+                dealerContri: 0
+            };
+
+            selectedProductList.push(newProduct);
+            renderAllProductPanels();
         }
 
-        function switchView(mode) {
-            currentViewMode = mode;
-            document.getElementById('btnLiveSchemes').classList.toggle('active', mode === 'LIVE');
-            document.getElementById('btnFinalCalc').classList.toggle('active', mode === 'CALC');
-            renderTable();
+        function removeProductFromBasket(pId) {
+            selectedProductList = selectedProductList.filter(p => p.id !== pId);
+            renderAllProductPanels();
         }
 
-        function recalcIfActive() {
-            if (currentSelectedModel && currentViewMode === 'CALC') {
-                renderTable();
+        function updateProductParam(pId, field, val) {
+            let prod = selectedProductList.find(p => p.id === pId);
+            if (prod) {
+                prod[field] = val;
+                renderProductTableOnly(pId);
             }
         }
 
-        function renderTable() {
-            if (!currentSelectedModel) return;
+        function recalcAllProducts() {
+            selectedProductList.forEach(p => renderProductTableOnly(p.id));
+        }
 
-            let modelSchemes = masterDbRecords.filter(r => r.model === currentSelectedModel);
-            const thead = document.getElementById('schemesTableHead');
-            const tbody = document.getElementById('schemesTableBody');
+        /* सर्व प्रॉडक्ट्सचे पॅनेल्स तयार करणे */
+        function renderAllProductPanels() {
+            const container = document.getElementById('selectedProductsContainer');
+            if (selectedProductList.length === 0) {
+                container.innerHTML = "";
+                return;
+            }
 
-            if (currentViewMode === "LIVE") {
-                thead.className = "";
-                thead.innerHTML = `
-                    <tr>
-                        <th>T/A</th>
-                        <th>ADV</th>
-                        <th>DBD%</th>
-                        <th>PF</th>
-                        <th>ROI%</th>
-                    </tr>
-                `;
+            container.innerHTML = selectedProductList.map((prod, idx) => `
+                <div class="product-panel" id="panel_${prod.id}">
+                    <div class="panel-header">
+                        <span class="panel-title">📱 #${idx+1} ${prod.name}</span>
+                        <div style="display:flex; gap:6px;">
+                            <button class="btn-quote" onclick="generateQuoteImage('${prod.id}')">📸 QUOTE IMAGE</button>
+                            <button class="btn-remove" onclick="removeProductFromBasket(${prod.id})">✖ REMOVE</button>
+                        </div>
+                    </div>
 
-                tbody.innerHTML = modelSchemes.map(s => `
+                    <!-- स्वतंत्र पॅरामीटर्स (GTL/RFC, INVOICE, MARGIN, DEALER CONTRI) -->
+                    <div class="sub-config-grid">
+                        <div>
+                            <label>INVOICE (₹)</label>
+                            <input type="number" value="${prod.invoice}" placeholder="0" oninput="updateProductParam(${prod.id}, 'invoice', this.value)">
+                        </div>
+                        <div>
+                            <label>GTL/RFC</label>
+                            <select onchange="updateProductParam(${prod.id}, 'gtlRfc', this.value)">
+                                <option value="120K" ${prod.gtlRfc === '120K' ? 'selected' : ''}>120K</option>
+                                <option value="100K" ${prod.gtlRfc === '100K' ? 'selected' : ''}>100K</option>
+                                <option value="80K" ${prod.gtlRfc === '80K' ? 'selected' : ''}>80K</option>
+                                <option value="50K" ${prod.gtlRfc === '50K' ? 'selected' : ''}>50K</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>MARGIN (₹)</label>
+                            <input type="number" value="${prod.margin}" placeholder="0" oninput="updateProductParam(${prod.id}, 'margin', this.value)">
+                        </div>
+                        <div>
+                            <label>DEALER CONTRI (₹)</label>
+                            <input type="number" value="${prod.dealerContri}" placeholder="0" oninput="updateProductParam(${prod.id}, 'dealerContri', this.value)">
+                        </div>
+                    </div>
+
+                    <!-- टेबल कंटेनर -->
+                    <div class="table-responsive" id="tableContainer_${prod.id}">
+                        <table class="scheme-table">
+                            <thead>
+                                <tr>
+                                    <th>SCHEME</th>
+                                    <th>LOAN</th>
+                                    <th>DP</th>
+                                    <th>EMI</th>
+                                    <th>MONTHS</th>
+                                    <th>PER DAY</th>
+                                    <th>EXTRA</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody_${prod.id}"></tbody>
+                        </table>
+                    </div>
+                </div>
+            `).join('');
+
+            selectedProductList.forEach(p => renderProductTableOnly(p.id));
+        }
+
+        /* टेबलमधील आकडेमोड अचूक भरणे */
+        function renderProductTableOnly(pId) {
+            let prod = selectedProductList.find(p => p.id === pId);
+            if (!prod) return;
+
+            const tbody = document.getElementById(`tbody_${pId}`);
+            if (!tbody) return;
+
+            let modelSchemes = masterDbRecords.filter(r => r.model === prod.name);
+
+            let approvedLimit = parseFloat(document.getElementById('approvedVal').value) || 0;
+            let rawMaxLtv = document.getElementById('maxLtvVal').value.replace('%', '').trim();
+            let maxLtv = parseFloat(rawMaxLtv) || 100;
+            let custType = document.getElementById('typeVal').value || "NEW";
+            let emiCap = parseFloat(document.getElementById('cappingVal').value) || 0;
+
+            let invoiceAmount = parseFloat(prod.invoice) || 0;
+            let margin = parseFloat(prod.margin) || 0;
+            let dealerContri = parseFloat(prod.dealerContri) || 0;
+
+            // कस्टमर टाईप चार्जेस
+            let baseFee = 850;
+            if (custType === 'EMI CARD' || custType === 'VIRTUAL CARD') baseFee = 270;
+            else if (custType === 'W/O CARD') baseFee = 320;
+
+            let totalFees = baseFee + margin + dealerContri;
+
+            // Max LTV फिल्टर
+            let eligibleSchemes = modelSchemes.filter(s => {
+                if (s.tenure <= 0) return false;
+                let schemeLtv = ((s.tenure - s.advEmi) / s.tenure) * 100;
+                return schemeLtv <= maxLtv;
+            });
+
+            if (eligibleSchemes.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="color:#f87171; padding:10px;">Max LTV (${maxLtv}%) च्या मर्यादेत एकही स्कीम नाही.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = eligibleSchemes.map(s => {
+                let price = invoiceAmount > 0 ? invoiceAmount : (s.mrp > 0 ? s.mrp : (approvedLimit > 0 ? approvedLimit : 30000));
+                let months = Math.max(1, s.tenure - s.advEmi);
+
+                let nbfcMaxL = approvedLimit > 0 ? (approvedLimit * s.tenure) / (months || 1) : price;
+                let loan = Math.min(price, nbfcMaxL);
+
+                let schemeLtv = ((s.tenure - s.advEmi) / s.tenure) * 100;
+                if (schemeLtv > maxLtv) loan = Math.floor(price * (maxLtv / 100));
+
+                let minAllowedLoan = price * 0.50;
+                if (loan < minAllowedLoan) loan = minAllowedLoan;
+
+                let dbdRate = (s.dbd * 1.18 / 100);
+                let roiRate = s.roi / 1200;
+                let roiRateDP = roiRate * s.advEmi;
+
+                let baseEmi = loan / s.tenure;
+                if (baseEmi > 0 && baseEmi < 900) baseEmi = 900;
+
+                let roiInEmi = loan * roiRate;
+                let emi = baseEmi + roiInEmi;
+
+                if (emiCap > 0 && emi > emiCap) {
+                    loan = Math.max(minAllowedLoan, (emiCap / ((1 / s.tenure) + roiRate)));
+                    baseEmi = loan / s.tenure;
+                    emi = baseEmi + (loan * roiRate);
+                }
+
+                let roiInDp = loan * roiRateDP;
+                let dbdAmt = loan * dbdRate;
+                let dpExact = price - loan + (baseEmi * s.advEmi) + dbdAmt + s.pf + totalFees + roiInDp;
+                let dp = Math.ceil(dpExact / 10) * 10;
+
+                let perDay = Math.round(emi / 30);
+                let extraCharges = Math.round((dp + (emi * months)) - price);
+
+                return `
                     <tr>
                         <td style="color:#60a5fa; font-weight:900;">${s.tenure}/${s.advEmi}</td>
-                        <td>${s.advEmi}</td>
-                        <td>${s.dbd}%</td>
-                        <td>₹${s.pf}</td>
-                        <td>${s.roi}%</td>
-                    </tr>
-                `).join('');
-            } else {
-                thead.className = "calc-header";
-                thead.innerHTML = `
-                    <tr>
-                        <th>SCHEME</th>
-                        <th>LOAN</th>
-                        <th>DP</th>
-                        <th>EMI</th>
-                        <th>MONTHS</th>
-                        <th>PER DAY</th>
-                        <th>EXTRA CHARGES</th>
+                        <td style="color:#34d399; font-weight:900;">₹${Math.floor(loan).toLocaleString()}</td>
+                        <td style="color:#f59e0b; font-weight:900;">₹${Math.round(dp).toLocaleString()}</td>
+                        <td style="color:#38bdf8; font-weight:900;">₹${Math.round(emi).toLocaleString()}</td>
+                        <td style="color:#e2e8f0;">${months}</td>
+                        <td style="color:#fb923c;">₹${perDay.toLocaleString()}</td>
+                        <td style="color:#f87171;">₹${Math.max(0, extraCharges).toLocaleString()}</td>
                     </tr>
                 `;
+            }).join('');
+        }
 
-                let approvedLimit = parseFloat(document.getElementById('approvedVal').value) || 0;
-                let maxLtv = parseFloat(document.getElementById('maxLtvVal').value) || 100;
-                let custType = document.getElementById('typeVal').value || "NEW";
-                let emiCap = parseFloat(document.getElementById('cappingVal').value) || 0;
-                let margin = parseFloat(document.getElementById('marginVal').value) || 0;
-                let dealerContri = parseFloat(document.getElementById('dealerContriVal').value) || 0;
+        /* 📸 प्रत्येक मॉडेलची स्वतंत्र Quote Image तयार करणे */
+        function generateQuoteImage(pId) {
+            let prod = selectedProductList.find(p => p.id == pId);
+            if (!prod) return;
 
-                let baseFee = (custType === 'EMI CARD') ? 270 : (custType === 'W/O CARD' ? 320 : 850);
-                let totalFees = baseFee + margin + dealerContri;
-
-                tbody.innerHTML = modelSchemes.map(s => {
-                    let price = s.mrp > 0 ? s.mrp : (approvedLimit > 0 ? approvedLimit : 30000);
-                    let months = Math.max(1, s.tenure - s.advEmi);
-
-                    let nbfcMaxL = approvedLimit > 0 ? (approvedLimit * s.tenure) / (months || 1) : price;
-                    let loan = Math.min(price, nbfcMaxL);
-
-                    let schemeLtv = s.tenure > 0 ? (months / s.tenure) * 100 : 100;
-                    if (schemeLtv > maxLtv && maxLtv > 0) {
-                        loan = Math.floor(price * (maxLtv / 100));
-                    }
-
-                    // किमान ५०% लोन नियम
-                    let minAllowedLoan = price * 0.50;
-                    if (loan < minAllowedLoan) loan = minAllowedLoan;
-
-                    let dbdRate = (s.dbd * 1.18 / 100);
-                    let roiRate = s.roi / 1200;
-                    let roiRateDP = roiRate * s.advEmi;
-
-                    let baseEmi = loan / s.tenure;
-                    if (baseEmi > 0 && baseEmi < 900) baseEmi = 900;
-
-                    let roiInEmi = loan * roiRate;
-                    let emi = baseEmi + roiInEmi;
-
-                    // Capping Validation
-                    if (emiCap > 0 && emi > emiCap) {
-                        loan = Math.max(minAllowedLoan, (emiCap / ((1 / s.tenure) + roiRate)));
-                        baseEmi = loan / s.tenure;
-                        emi = baseEmi + (loan * roiRate);
-                    }
-
-                    let roiInDp = loan * roiRateDP;
-                    let dbdAmt = loan * dbdRate;
-                    let dpExact = price - loan + (baseEmi * s.advEmi) + dbdAmt + s.pf + totalFees + roiInDp;
-                    let dp = Math.ceil(dpExact / 10) * 10;
-
-                    let perDay = Math.round(emi / 30);
-                    let extraCharges = Math.round((dp + (emi * months)) - price);
-
-                    return `
-                        <tr>
-                            <td style="color:#60a5fa; font-weight:900;">${s.tenure}/${s.advEmi}</td>
-                            <td style="color:#34d399; font-weight:900;">₹${Math.floor(loan).toLocaleString()}</td>
-                            <td style="color:#f59e0b; font-weight:900;">₹${Math.round(dp).toLocaleString()}</td>
-                            <td style="color:#38bdf8; font-weight:900;">₹${Math.round(emi).toLocaleString()}</td>
-                            <td style="color:#e2e8f0;">${months}</td>
-                            <td style="color:#fb923c;">₹${perDay.toLocaleString()}</td>
-                            <td style="color:#f87171;">₹${Math.max(0, extraCharges).toLocaleString()}</td>
-                        </tr>
-                    `;
-                }).join('');
+            let tableElement = document.getElementById(`tbody_${pId}`);
+            if (!tableElement || tableElement.querySelectorAll('tr').length === 0) {
+                alert("कोटेशनसाठी स्कीम्स उपलब्ध नाहीत!");
+                return;
             }
+
+            let approvedLimit = document.getElementById('approvedVal').value || "0";
+            let custType = document.getElementById('typeVal').value || "NEW";
+            let price = prod.invoice || "0";
+
+            // तात्पुरते कॅन्व्हास कंटेनर
+            let quoteDiv = document.createElement('div');
+            quoteDiv.style.width = "460px";
+            quoteDiv.style.padding = "16px";
+            quoteDiv.style.background = "#060e22";
+            quoteDiv.style.color = "#ffffff";
+            quoteDiv.style.borderRadius = "8px";
+            quoteDiv.style.border = "2px solid #243b6b";
+            quoteDiv.style.fontFamily = "sans-serif";
+            quoteDiv.style.position = "absolute";
+            quoteDiv.style.top = "-9999px";
+
+            quoteDiv.innerHTML = `
+                <div style="background: linear-gradient(180deg, #1e3a68 0%, #0c2044 100%); padding: 12px; border-radius: 6px; text-align: center; margin-bottom: 12px; border: 1px solid #38bdf8;">
+                    <h2 style="font-size: 20px; font-weight: 900; color: #ffffff; margin-bottom: 4px;">🎉 SPECIAL LOAN OFFER</h2>
+                    <div style="font-size: 13px; font-weight: 800; color: #94a3b8;">
+                        LIMIT: ₹${approvedLimit} | TYPE: ${custType}
+                    </div>
+                </div>
+
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px; border-bottom: 1px solid #1c2e4a; padding-bottom: 6px;">
+                    <h3 style="font-size: 16px; font-weight: 900; color: #f97316;">📱 ${prod.name}</h3>
+                    <span style="background: #0284c7; color: #fff; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: 900;">INV: ₹${price}</span>
+                </div>
+
+                <table style="width: 100%; border-collapse: collapse; font-size: 11px; text-align: center;">
+                    <thead>
+                        <tr style="background: #064e3b; color: #ffffff;">
+                            <th style="padding: 6px 3px; border: 1px solid #047857;">SCHEME</th>
+                            <th style="padding: 6px 3px; border: 1px solid #047857;">LOAN</th>
+                            <th style="padding: 6px 3px; border: 1px solid #047857;">DP</th>
+                            <th style="padding: 6px 3px; border: 1px solid #047857;">EMI</th>
+                            <th style="padding: 6px 3px; border: 1px solid #047857;">M</th>
+                            <th style="padding: 6px 3px; border: 1px solid #047857;">DAY</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${Array.from(tableElement.querySelectorAll('tr')).map(r => {
+                            let cols = r.querySelectorAll('td');
+                            if (cols.length < 6) return '';
+                            return `
+                                <tr style="border-bottom: 1px solid #1c2e4a; font-weight: bold;">
+                                    <td style="padding: 6px 3px; color: #60a5fa;">${cols[0].innerText}</td>
+                                    <td style="padding: 6px 3px; color: #34d399;">${cols[1].innerText}</td>
+                                    <td style="padding: 6px 3px; color: #f59e0b;">${cols[2].innerText}</td>
+                                    <td style="padding: 6px 3px; color: #38bdf8;">${cols[3].innerText}</td>
+                                    <td style="padding: 6px 3px; color: #e2e8f0;">${cols[4].innerText}</td>
+                                    <td style="padding: 6px 3px; color: #fb923c;">${cols[5].innerText}</td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            `;
+
+            document.body.appendChild(quoteDiv);
+
+            html2canvas(quoteDiv, { scale: 2, useCORS: true }).then(canvas => {
+                document.body.removeChild(quoteDiv);
+                let imgData = canvas.toDataURL("image/png");
+                document.getElementById('generatedQuoteImg').src = imgData;
+                document.getElementById('downloadImgBtn').href = imgData;
+                document.getElementById('downloadImgBtn').download = `${prod.name}_Quote.png`;
+                document.getElementById('imageViewerModal').style.display = 'flex';
+            });
         }
 
         document.addEventListener('click', function(e) {
