@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="mr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scenario & Master Data Search</title>
 
-    <!-- SheetJS for Excel Reading -->
+    <!-- SheetJS CDN for Excel Reading -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
     <style>
@@ -284,25 +284,25 @@
 
     <div class="main-wrapper">
         
-        <!-- 1. SCENARIO TOP (FIRST 4 FIELDS) -->
+        <!-- १. SCENARIO वरील ४ मुख्य ऑप्शन्स -->
         <div class="scenario-card">
             <div class="scenario-header">Scenario</div>
             <table class="scenario-table">
-                <!-- 1. APPROVED -->
+                <!-- १. APPROVED -->
                 <tr>
                     <td class="label-col">APPROVED</td>
                     <td class="input-col">
                         <input type="number" class="form-input" id="approvedVal" placeholder="-" autocomplete="off" oninput="recalcIfActive()">
                     </td>
                 </tr>
-                <!-- 2. MAX LTV -->
+                <!-- २. MAX LTV -->
                 <tr>
                     <td class="label-col">MAX LTV</td>
                     <td class="input-col">
                         <input type="number" class="form-input" id="maxLtvVal" placeholder="-" autocomplete="off" oninput="recalcIfActive()">
                     </td>
                 </tr>
-                <!-- 3. CUSTOMER TYPE -->
+                <!-- ३. CUSTOMER TYPE -->
                 <tr>
                     <td class="label-col">CUSTOMER TYPE</td>
                     <td class="input-col">
@@ -316,7 +316,7 @@
                         </select>
                     </td>
                 </tr>
-                <!-- 4. EMI CAPPING -->
+                <!-- ४. EMI CAPPING -->
                 <tr>
                     <td class="label-col">EMI CAPPING</td>
                     <td class="input-col">
@@ -326,20 +326,20 @@
             </table>
         </div>
 
-        <!-- 2. SEARCH BRAND / MODEL -->
+        <!-- २. SEARCH BRAND / MODEL -->
         <div class="search-card">
             <div class="search-header-area">
                 <span class="search-title">🔍 Search Brand / Model</span>
-                <span id="dataStatusBadge" class="status-badge" title="क्लिक करके फ़ोर्स रिफ्रेश कर सकते हैं" onclick="forceRefreshMasterData()">CHECKING...</span>
+                <span id="dataStatusBadge" class="status-badge" title="क्लिक करून फोर्स रिफ्रेश करा" onclick="forceRefreshMasterData()">CHECKING...</span>
             </div>
             <input type="text" id="modelSearchInput" class="search-input" placeholder="Type Model or Brand..." oninput="handleModelSearch(this.value)" autocomplete="off" disabled>
             <div id="modelDropdown" class="dropdown-list"></div>
         </div>
 
-        <!-- 3. REMAINING SCENARIO OPTIONS -->
+        <!-- ३. SCENARIO मधील उर्वरित ऑप्शन्स -->
         <div class="scenario-card">
             <table class="scenario-table">
-                <!-- 5. GTL/RFC -->
+                <!-- ५. GTL/RFC -->
                 <tr>
                     <td class="label-col">GTL/RFC</td>
                     <td class="input-col">
@@ -352,21 +352,14 @@
                         </select>
                     </td>
                 </tr>
-                <!-- 6. DEALER CONTRIBUTION -->
-                <tr>
-                    <td class="label-col">DEALER CONTRI</td>
-                    <td class="input-col">
-                        <input type="number" class="form-input" id="dealerContriVal" placeholder="-" autocomplete="off" oninput="recalcIfActive()">
-                    </td>
-                </tr>
-                <!-- 7. MARGIN -->
+                <!-- ६. MARGIN -->
                 <tr>
                     <td class="label-col">MARGIN</td>
                     <td class="input-col">
                         <input type="number" class="form-input" id="marginVal" placeholder="-" autocomplete="off" oninput="recalcIfActive()">
                     </td>
                 </tr>
-                <!-- 8. PRODUCT -->
+                <!-- ७. PRODUCT -->
                 <tr class="highlight-row">
                     <td class="label-col" style="border-right-color: #b34100;">PRODUCT</td>
                     <td class="input-col">
@@ -378,7 +371,14 @@
                         </select>
                     </td>
                 </tr>
-                <!-- 9. CASHBACK -->
+                <!-- ८. DEALER CONTRIBUTION (कॅशबॅकच्या वरती) -->
+                <tr>
+                    <td class="label-col">DEALER CONTRI</td>
+                    <td class="input-col">
+                        <input type="number" class="form-input" id="dealerContriVal" placeholder="-" autocomplete="off" oninput="recalcIfActive()">
+                    </td>
+                </tr>
+                <!-- ९. CASHBACK -->
                 <tr>
                     <td class="label-col">CASHBACK</td>
                     <td class="input-col">
@@ -392,7 +392,7 @@
             </table>
         </div>
 
-        <!-- 4. SELECTED MODEL SCHEMES & CALCULATION CONTAINER -->
+        <!-- ४. निवडलेल्या मॉडेलच्या स्कीम्स आणि फायनल कॅल्क्युलेशन -->
         <div id="modelResultArea" class="result-box">
             <div class="result-header">
                 <div class="result-title" id="selectedModelName">📱 MODEL NAME</div>
@@ -415,16 +415,17 @@
 
     <script>
         /* ========================================================================= */
-        /* ओरिजिनल कैशिंग इंजन (INDEXEDDB + 12 HOURS CACHE DURATION)                */
+        /* INDEXEDDB + 12 HOURS CACHE + GITHUB REAL-TIME COMMIT DETECTOR             */
         /* ========================================================================= */
         const PRIMARY_EXCEL_URL = "https://raw.githubusercontent.com/luckyjathar/testcalculator/main/master_data.xlsx";
         const SECONDARY_EXCEL_URL = "https://raw.githubusercontent.com/luckyjathar/CALCULATOR/main/master_data.xlsx";
         const LOCAL_EXCEL_URL = "./master_data.xlsx";
+        const GITHUB_COMMIT_API = "https://api.github.com/repos/luckyjathar/testcalculator/commits?path=master_data.xlsx&page=1&per_page=1";
 
         const DB_NAME = "PersistentPortalDB";
         const DB_VERSION = 2;
         const STORE_NAME = "dataStore";
-        const CACHE_DURATION_MS = 12 * 60 * 60 * 1000; // 12 घंटे (दिन में केवल 2 बार)
+        const CACHE_DURATION_MS = 12 * 60 * 60 * 1000; // १२ तास कॅश
 
         let dbInstance = null;
         let masterDbRecords = [];
@@ -485,7 +486,12 @@
         window.addEventListener('pageshow', async function() {
             resetAllInputsToBlank();
             await initDB();
+            
+            // १. आधी कॅशमधून लोड करा
             await fetchFromMasterStream(false);
+
+            // २. GitHub वर १२ तासांच्या आत नवीन फाइल आली आहे का हे तपासा
+            setTimeout(() => checkForRemoteExcelUpdate(), 1000);
         });
 
         function resetAllInputsToBlank() {
@@ -499,7 +505,36 @@
             if (dropdown) dropdown.style.display = 'none';
         }
 
-        /* स्मार्ट मास्टर डेटा लोडर: पहले IndexedDB चेक करेगा, अगर 12 घंटे पुराना न हो तो डाउनलोड नहीं करेगा */
+        /* GitHub Commit Detector */
+        async function checkForRemoteExcelUpdate() {
+            const badge = document.getElementById('dataStatusBadge');
+            try {
+                let res = await fetch(GITHUB_COMMIT_API + "&t=" + Date.now());
+                if (!res.ok) return;
+
+                let commits = await res.json();
+                if (commits && commits.length > 0) {
+                    let latestCommitTime = new Date(commits[0].commit.committer.date).getTime();
+                    let savedVersionTime = await getFromDB('master_data_version_time') || 0;
+
+                    if (savedVersionTime > 0 && latestCommitTime > savedVersionTime) {
+                        if (badge) {
+                            badge.innerText = "🔄 UPDATING NEW DATA...";
+                            badge.style.background = "#f59e0b";
+                            badge.style.color = "#000";
+                        }
+                        await saveToDB('master_data_version_time', latestCommitTime);
+                        await fetchFromMasterStream(true); // थेट नवीन फाइल डाऊनलोड
+                    } else if (savedVersionTime === 0) {
+                        await saveToDB('master_data_version_time', latestCommitTime);
+                    }
+                }
+            } catch(e) {
+                console.log("GitHub Update check bypass:", e);
+            }
+        }
+
+        /* Master Data Stream Engine */
         async function fetchFromMasterStream(forceSync = false) {
             const badge = document.getElementById('dataStatusBadge');
             const searchInput = document.getElementById('modelSearchInput');
@@ -510,7 +545,7 @@
                     let cachedTime = await getFromDB('master_data_time');
                     let cachedDbRecords = await getFromDB('cached_db_records');
 
-                    // अगर कैश मौजूद है और 12 घंटे से कम समय हुआ है, तो बिना डाउनलोड किए तुरंत लोड करें
+                    // जर डेटा १२ तासांपेक्षा ताजा असेल तर थेट कॅशमधून लोड करा
                     if (cachedTime && cachedDbRecords && cachedDbRecords.length > 0 && (now - cachedTime < CACHE_DURATION_MS)) {
                         masterDbRecords = cachedDbRecords;
                         badge.innerText = `⚡ CACHED (${masterDbRecords.length})`;
@@ -522,7 +557,6 @@
                     }
                 }
 
-                // अगर कैश नहीं है या 12 घंटे पूरे हो चुके हैं, तभी लाइव डाउनलोड होगा
                 badge.innerText = "DOWNLOADING...";
                 badge.style.background = "#f59e0b";
                 badge.style.color = "#000";
@@ -544,7 +578,7 @@
                     } catch(e) {}
                 }
 
-                if (!dataBuffer) throw new Error("एक्सेल डाउनलोड विफल रहा");
+                if (!dataBuffer) throw new Error("Excel लोड झाली नाही");
 
                 let wb = XLSX.read(new Uint8Array(dataBuffer), { type: 'array' });
                 let sheet1 = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { raw: false, defval: "" });
@@ -566,7 +600,6 @@
                     };
                 }).filter(r => r.model !== "" && r.model !== "NON TIEUP");
 
-                // IndexedDB में 12 घंटे के लिए सेव करें
                 await saveToDB('cached_db_records', masterDbRecords);
                 await saveToDB('master_data_time', now);
 
@@ -594,7 +627,6 @@
             }
         }
 
-        // जरूरत पड़ने पर बैज पर क्लिक करके फ़ोर्स रिफ्रेश करने की सुविधा
         async function forceRefreshMasterData() {
             await fetchFromMasterStream(true);
         }
@@ -624,7 +656,7 @@
             });
 
             if (uniqueModels.length === 0) {
-                dropdown.innerHTML = `<div style="padding:10px; color:#888; text-align:center;">कोई मॉडल नहीं मिला।</div>`;
+                dropdown.innerHTML = `<div style="padding:10px; color:#888; text-align:center;">कोणतेही मॉडेल सापडले नाही.</div>`;
                 dropdown.style.display = 'block';
                 return;
             }
@@ -732,6 +764,7 @@
                         loan = Math.floor(price * (maxLtv / 100));
                     }
 
+                    // किमान ५०% लोन नियम
                     let minAllowedLoan = price * 0.50;
                     if (loan < minAllowedLoan) loan = minAllowedLoan;
 
@@ -745,6 +778,7 @@
                     let roiInEmi = loan * roiRate;
                     let emi = baseEmi + roiInEmi;
 
+                    // Capping Validation
                     if (emiCap > 0 && emi > emiCap) {
                         loan = Math.max(minAllowedLoan, (emiCap / ((1 / s.tenure) + roiRate)));
                         baseEmi = loan / s.tenure;
