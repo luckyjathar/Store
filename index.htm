@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pro Financial Portal</title>
 
-    <!-- SheetJS CDN for Live Excel Reading -->
+    <!-- SheetJS CDN for Excel Reading -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
-    <!-- html2canvas CDN for High-Quality Quote Image Generation -->
+    <!-- html2canvas CDN for Quote Image Generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
@@ -36,7 +36,7 @@
             gap: 14px;
         }
 
-        /* 1. SCENARIO CARD STYLES */
+        /* 1. SCENARIO CARD */
         .scenario-card {
             background-color: #060e22;
             border: 2px solid #243b6b;
@@ -126,7 +126,7 @@
             color: #ffffff;
         }
 
-        /* 2. SEARCH CARD STYLES */
+        /* 2. SEARCH CARD & QUICK BUTTONS */
         .search-card {
             background: #060e22;
             border: 2px solid #243b6b;
@@ -159,6 +159,45 @@
             border-color: #3b82f6;
         }
 
+        .quick-action-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .quick-btn {
+            flex: 1;
+            padding: 8px 6px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 900;
+            cursor: pointer;
+            transition: 0.2s ease;
+            text-align: center;
+        }
+
+        .btn-sheet2 {
+            background: #1e3a68;
+            border: 1px solid #38bdf8;
+            color: #38bdf8;
+        }
+
+        .btn-sheet2:hover {
+            background: #2563eb;
+            color: #ffffff;
+        }
+
+        .btn-manual-prod {
+            background: #064e3b;
+            border: 1px solid #34d399;
+            color: #34d399;
+        }
+
+        .btn-manual-prod:hover {
+            background: #059669;
+            color: #ffffff;
+        }
+
         .dropdown-list {
             position: absolute;
             left: 12px;
@@ -188,7 +227,7 @@
             color: #60a5fa;
         }
 
-        /* 3. DYNAMIC PRODUCT PANELS */
+        /* 3. PRODUCT PANELS */
         .product-panel {
             background: #060e22;
             border: 2px solid #243b6b;
@@ -242,20 +281,9 @@
             cursor: pointer;
         }
 
-        .btn-add-scheme {
-            background: #10b981;
-            color: white;
-        }
-
-        .btn-quote {
-            background: #0284c7;
-            color: white;
-        }
-
-        .btn-remove {
-            background: #dc2626;
-            color: white;
-        }
+        .btn-add-scheme { background: #10b981; color: white; }
+        .btn-quote { background: #0284c7; color: white; }
+        .btn-remove { background: #dc2626; color: white; }
 
         .sub-config-grid {
             display: grid;
@@ -347,21 +375,9 @@
             cursor: pointer;
         }
 
-        .btn-dis {
-            background: #fee2e2;
-            color: #dc2626;
-        }
-
-        .btn-ena {
-            background: #d1fae5;
-            color: #059669;
-        }
-
-        .row-disabled {
-            opacity: 0.35;
-            text-decoration: line-through;
-            background: #111827;
-        }
+        .btn-dis { background: #fee2e2; color: #dc2626; }
+        .btn-ena { background: #d1fae5; color: #059669; }
+        .row-disabled { opacity: 0.35; text-decoration: line-through; background: #111827; }
 
         /* MODAL STYLES */
         .modal-overlay {
@@ -441,7 +457,7 @@
                 <span id="dataStatusBadge" class="status-badge" onclick="forceRefreshMasterData()">CHECKING...</span>
             </div>
             <table class="scenario-table">
-                <!-- १. CUSTOMER TYPE -->
+                <!-- १. CUSTOMER TYPE (सगळ्यात वरती) -->
                 <tr>
                     <td class="label-col">CUSTOMER TYPE</td>
                     <td class="input-col">
@@ -460,7 +476,7 @@
                         <input type="number" class="form-input" id="approvedVal" placeholder="-" autocomplete="off" oninput="recalcAllProducts()">
                     </td>
                 </tr>
-                <!-- ३. MAX LTV -->
+                <!-- ३. MAX LTV (कमाल १०० मर्यादा) -->
                 <tr>
                     <td class="label-col">MAX LTV (%)</td>
                     <td class="input-col">
@@ -477,11 +493,21 @@
             </table>
         </div>
 
-        <!-- २. SEARCH BRAND / MODEL -->
+        <!-- २. SEARCH BRAND / MODEL & QUICK BUTTONS -->
         <div class="search-card">
             <div class="search-title">🔍 Add Product / Model</div>
             <input type="text" id="modelSearchInput" class="search-input" placeholder="Type Model Name to Add..." oninput="handleModelSearch(this.value)" autocomplete="off" disabled>
             <div id="modelDropdown" class="dropdown-list"></div>
+
+            <!-- ⚡ शब्द लक्षात न राहिल्यास २ थेट क्विक बटणे -->
+            <div class="quick-action-row">
+                <button type="button" class="quick-btn btn-sheet2" onclick="loadSheet2OpenSchemes()">
+                    📂 OPEN / SHEET 2 SCHEMES
+                </button>
+                <button type="button" class="quick-btn btn-manual-prod" onclick="addNewManualProductPrompt()">
+                    ➕ MANUAL PRODUCT
+                </button>
+            </div>
         </div>
 
         <!-- ३. सिलेक्ट केलेले प्रॉडक्ट्स कंटेनर -->
@@ -551,9 +577,6 @@
     </div>
 
     <script>
-        /* ========================================================================= */
-        /* CONSTANTS & CONFIGURATION                                                */
-        /* ========================================================================= */
         const PRIMARY_EXCEL_URL = "https://raw.githubusercontent.com/luckyjathar/testcalculator/main/master_data.xlsx";
         const SECONDARY_EXCEL_URL = "https://raw.githubusercontent.com/luckyjathar/CALCULATOR/main/master_data.xlsx";
         const LOCAL_EXCEL_URL = "./master_data.xlsx";
@@ -562,15 +585,13 @@
         const DB_NAME = "PersistentPortalDB";
         const DB_VERSION = 2;
         const STORE_NAME = "dataStore";
-        const CACHE_DURATION_MS = 12 * 60 * 60 * 1000; // 12 तास कॅश
+        const CACHE_DURATION_MS = 12 * 60 * 60 * 1000;
 
         let dbInstance = null;
-        let masterDbRecords = [];
+        let masterDbRecords = [];      // Sheet 1 (Models)
+        let sheet2GenericRecords = [];  // Sheet 2 (Open Schemes)
         let selectedProductList = [];
 
-        /* ========================================================================= */
-        /* INDEXEDDB STORAGE ENGINE                                                 */
-        /* ========================================================================= */
         function initDB() {
             return new Promise((resolve, reject) => {
                 let request = indexedDB.open(DB_NAME, DB_VERSION);
@@ -592,9 +613,7 @@
 
         function saveToDB(key, data) {
             return new Promise((resolve, reject) => {
-                if (!dbInstance) {
-                    return reject("Database not initialized");
-                }
+                if (!dbInstance) return reject("Database not initialized");
                 try {
                     let tx = dbInstance.transaction(STORE_NAME, 'readwrite');
                     let store = tx.objectStore(STORE_NAME);
@@ -609,9 +628,7 @@
 
         function getFromDB(key) {
             return new Promise((resolve, reject) => {
-                if (!dbInstance) {
-                    return resolve(null);
-                }
+                if (!dbInstance) return resolve(null);
                 try {
                     let tx = dbInstance.transaction(STORE_NAME, 'readonly');
                     let store = tx.objectStore(STORE_NAME);
@@ -627,31 +644,19 @@
             });
         }
 
-        /* ========================================================================= */
-        /* INPUT VALIDATION & SLAB LOGIC                                             */
-        /* ========================================================================= */
         function validateMaxLtvInput(el) {
             let val = parseFloat(el.value);
-            if (val > 100) {
-                el.value = 100;
-            } else if (val < 0) {
-                el.value = 0;
-            }
+            if (val > 100) el.value = 100;
+            else if (val < 0) el.value = 0;
         }
 
         function getGtlSlabValue(inv) {
             let amount = parseFloat(inv) || 0;
-            if (amount > 100000) {
-                return 2398;
-            } else if (amount > 50000) {
-                return 1799;
-            } else if (amount > 30000) {
-                return 1499;
-            } else if (amount > 10000) {
-                return 1199;
-            } else if (amount > 0) {
-                return 699;
-            }
+            if (amount > 100000) return 2398;
+            if (amount > 50000) return 1799;
+            if (amount > 30000) return 1499;
+            if (amount > 10000) return 1199;
+            if (amount > 0) return 699;
             return 0;
         }
 
@@ -672,9 +677,6 @@
             return 0;
         }
 
-        /* ========================================================================= */
-        /* INITIAL LOAD & REAL-TIME COMMIT DETECTOR                                  */
-        /* ========================================================================= */
         window.addEventListener('pageshow', async function() {
             resetAllInputsToBlank();
             await initDB();
@@ -714,11 +716,10 @@
                         await saveToDB('master_data_version_time', latestCommitTime);
                     }
                 }
-            } catch(e) {
-                console.log("GitHub check bypass:", e);
-            }
+            } catch(e) {}
         }
 
+        /* एक्सेल मधील Sheet 1 आणि Sheet 2 दोन्ही वाचणे */
         async function fetchFromMasterStream(forceSync = false) {
             const badge = document.getElementById('dataStatusBadge');
             const searchInput = document.getElementById('modelSearchInput');
@@ -728,9 +729,11 @@
                 if (!forceSync) {
                     let cachedTime = await getFromDB('master_data_time');
                     let cachedDbRecords = await getFromDB('cached_db_records');
+                    let cachedSheet2 = await getFromDB('cached_sheet2_records');
 
                     if (cachedTime && cachedDbRecords && cachedDbRecords.length > 0 && (now - cachedTime < CACHE_DURATION_MS)) {
                         masterDbRecords = cachedDbRecords;
+                        sheet2GenericRecords = cachedSheet2 || [];
                         badge.innerText = `⚡ CACHED`;
                         badge.style.background = "#10b981";
                         badge.style.color = "#fff";
@@ -764,11 +767,14 @@
                 if (!dataBuffer) throw new Error("Excel लोड अयशस्वी");
 
                 let wb = XLSX.read(new Uint8Array(dataBuffer), { type: 'array' });
+                
+                // SHEET 1: Models
                 let sheet1 = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { raw: false, defval: "" });
+                
+                // SHEET 2: Generic / Non-Tieup Schemes
                 let sheet2 = wb.SheetNames.length > 1 ? XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[1]], { raw: false, defval: "" }) : [];
-                let allRows = [...sheet1, ...sheet2];
 
-                masterDbRecords = allRows.map(row => {
+                masterDbRecords = sheet1.map(row => {
                     return {
                         model: String(findVal(row, ['MODEL', 'BRANDMODEL', 'ASSET']) || "").toUpperCase().trim(),
                         brand: String(findVal(row, ['BRAND', 'MAKE']) || "").toUpperCase().trim(),
@@ -782,7 +788,19 @@
                     };
                 }).filter(r => r.model !== "" && r.model !== "NON TIEUP");
 
+                sheet2GenericRecords = sheet2.map(row => {
+                    return {
+                        model: "OPEN SCHEME",
+                        tenure: parseInt(findVal(row, ['TOTALTENURE', 'TENURE', 'TA'])) || 0,
+                        advEmi: parseInt(findVal(row, ['ADVANCEEMI', 'ADV'])) || 0,
+                        dbd: parseFloat(findVal(row, ['DBD', 'DBD%'])) || 0,
+                        pf: parseInt(findVal(row, ['PF', 'PROCESSINGFEE'])) || 0,
+                        roi: parseFloat(findVal(row, ['ROI', 'ROI%'])) || 0
+                    };
+                }).filter(r => r.tenure > 0);
+
                 await saveToDB('cached_db_records', masterDbRecords);
+                await saveToDB('cached_sheet2_records', sheet2GenericRecords);
                 await saveToDB('master_data_time', now);
 
                 badge.innerText = `READY`;
@@ -790,11 +808,14 @@
                 badge.style.color = "#fff";
                 searchInput.disabled = false;
                 searchInput.placeholder = "Type Model Name to Add...";
+
             } catch (err) {
                 console.error("Master Data Load Error:", err);
                 let fallbackDb = await getFromDB('cached_db_records');
+                let fallbackSheet2 = await getFromDB('cached_sheet2_records');
                 if (fallbackDb && fallbackDb.length > 0) {
                     masterDbRecords = fallbackDb;
+                    sheet2GenericRecords = fallbackSheet2 || [];
                     badge.innerText = `OFFLINE`;
                     badge.style.background = "#10b981";
                     badge.style.color = "#fff";
@@ -817,12 +838,10 @@
             return foundKey ? row[foundKey] : null;
         }
 
-        /* ========================================================================= */
-        /* MODEL SEARCH & BASKET MANAGEMENT                                          */
-        /* ========================================================================= */
         function handleModelSearch(query) {
             const dropdown = document.getElementById('modelDropdown');
             const q = query.trim().toUpperCase();
+
             if (!q) {
                 dropdown.style.display = 'none';
                 return;
@@ -830,6 +849,7 @@
 
             let uniqueModels = [];
             let seen = new Set();
+
             masterDbRecords.forEach(r => {
                 if ((r.model.includes(q) || r.brand.includes(q)) && !seen.has(r.model)) {
                     seen.add(r.model);
@@ -848,12 +868,14 @@
                     <span>📱 ${m.brand ? `[${m.brand}] ` : ''}${m.model}</span>
                 </div>
             `).join('');
+
             dropdown.style.display = 'block';
         }
 
         function addNewProductToBasket(modelName) {
             const dropdown = document.getElementById('modelDropdown');
             const searchInput = document.getElementById('modelSearchInput');
+
             searchInput.value = '';
             dropdown.style.display = 'none';
 
@@ -878,6 +900,54 @@
 
             selectedProductList.push(newProduct);
             renderAllProductPanels();
+        }
+
+        /* 📂 Sheet 2 मधील Open / Non-Tieup स्कीम्स थेट लोड करणे */
+        function loadSheet2OpenSchemes() {
+            let schemesToUse = sheet2GenericRecords.length > 0 ? sheet2GenericRecords : [
+                { model: "OPEN", tenure: 10, advEmi: 2, dbd: 1.5, pf: 699, roi: 0 },
+                { model: "OPEN", tenure: 12, advEmi: 4, dbd: 2.0, pf: 799, roi: 0 },
+                { model: "OPEN", tenure: 8, advEmi: 0, dbd: 0.0, pf: 599, roi: 0 }
+            ];
+
+            let newProduct = {
+                id: 'prod_' + Date.now(),
+                name: "OPEN / NON-TIEUP SCHEMES",
+                invoice: 30000,
+                gtl: 1499,
+                rfc: 0,
+                rfcSlab: 0,
+                margin: 0,
+                dealerContri: 0,
+                isCollapsed: false,
+                schemes: schemesToUse.map((s, idx) => ({ ...s, sId: 's2_' + idx, disabled: false }))
+            };
+
+            selectedProductList.push(newProduct);
+            renderAllProductPanels();
+        }
+
+        /* ➕ फील्ड ऑफिसरसाठी नवीन Manual Product जोडणे */
+        function addNewManualProductPrompt() {
+            let prodName = prompt("कृपया मॅन्युअल प्रॉडक्ट / मॉडेलचे नाव टाका:", "MANUAL PRODUCT");
+            if (!prodName || prodName.trim() === "") return;
+
+            let newProduct = {
+                id: 'prod_' + Date.now(),
+                name: prodName.trim().toUpperCase(),
+                invoice: 25000,
+                gtl: 1199,
+                rfc: 0,
+                rfcSlab: 0,
+                margin: 0,
+                dealerContri: 0,
+                isCollapsed: false,
+                schemes: []
+            };
+
+            selectedProductList.push(newProduct);
+            renderAllProductPanels();
+            openAddSchemeModal(newProduct.id, newProduct.name);
         }
 
         function removeProductFromBasket(pId) {
@@ -921,9 +991,6 @@
             selectedProductList.forEach(p => renderProductTableOnly(p.id));
         }
 
-        /* ========================================================================= */
-        /* FIELD OFFICER CUSTOM SCHEME & TOGGLE                                      */
-        /* ========================================================================= */
         function openAddSchemeModal(pId, pName) {
             document.getElementById('modalTargetProdId').value = pId;
             document.getElementById('addSchemeModalTitle').innerText = `➕ ${pName} मध्ये नवीन स्कीम जोडा`;
@@ -965,6 +1032,7 @@
                     disabled: false,
                     isCustom: true
                 };
+
                 prod.schemes.unshift(newCustomScheme);
                 closeAddSchemeModal();
                 renderProductTableOnly(pId);
@@ -982,9 +1050,6 @@
             }
         }
 
-        /* ========================================================================= */
-        /* SMART LINE-BY-LINE COPY LOGIC                                             */
-        /* ========================================================================= */
         function copySmartScheme(pId, currentRowEl, tenure, adv, dp, emi, months, perDay) {
             let prod = selectedProductList.find(p => p.id === pId);
             if (!prod) return;
@@ -1012,12 +1077,13 @@
 
                             textToCopy += `🔹 *Option ${count}:* ${sName}\n` +
                                           `💰 *DP:* ${sDp}\n` +
-                                          `🗓️️ *EMI:* ${sEmi} x ${sMonths} Months\n` +
+                                          `🗓️ *EMI:* ${sEmi} x ${sMonths} Months\n` +
                                           `✨ *Per Day:* ${sDay}\n\n`;
                             count++;
                         }
                     }
                 });
+
                 clipboardCopy(textToCopy, `टिकमार्क केलेल्या ${count - 1} स्कीम्स कॉपी झाल्या! ✅`);
             } else {
                 let textToCopy = `📱 *${prod.name}*\n` +
@@ -1026,6 +1092,7 @@
                                  `💰 *DP:* ₹${Number(dp).toLocaleString()}\n` +
                                  `🗓️ *EMI:* ₹${Number(emi).toLocaleString()} x ${months} Months\n` +
                                  `✨ *Per Day:* ₹${Number(perDay).toLocaleString()}`;
+
                 clipboardCopy(textToCopy, "स्कीम कॉपी झाली! ✅");
             }
         }
@@ -1044,9 +1111,6 @@
             }
         }
 
-        /* ========================================================================= */
-        /* PANEL & TABLE RENDERING ENGINE                                            */
-        /* ========================================================================= */
         function renderAllProductPanels() {
             const container = document.getElementById('selectedProductsContainer');
             if (selectedProductList.length === 0) {
@@ -1134,9 +1198,6 @@
             selectedProductList.forEach(p => renderProductTableOnly(p.id));
         }
 
-        /* ========================================================================= */
-        /* EXACT ORIGINAL CALCULATION & MULTI-TIER SORTING ENGINE                    */
-        /* ========================================================================= */
         function renderProductTableOnly(pId) {
             let prod = selectedProductList.find(p => p.id === pId);
             if (!prod) return;
@@ -1156,11 +1217,9 @@
             let gtlVal = parseFloat(prod.gtl) || 0;
             let rfcVal = parseFloat(prod.rfc) || 0;
 
-            // ओरिजिनल कोड प्रमाणे अचूक फी संरचना
             let baseFee = (custType === 'EMI CARD') ? 270 : (custType === 'W/O CARD' ? 320 : 850);
             let totalFees = baseFee + margin + dealerContri;
 
-            // Max LTV फिल्टर
             let eligibleSchemes = prod.schemes.filter(s => {
                 if (s.tenure <= 0) return false;
                 let schemeLtv = ((s.tenure - s.advEmi) / s.tenure) * 100;
@@ -1177,7 +1236,6 @@
                 let inst = s.tenure - s.advEmi;
                 if (inst < 1) inst = 1;
 
-                // NBFC मर्यादा व किमान ५०% लोन नियम
                 let nbfcMaxL = approvedLimit > 0 ? (approvedLimit * s.tenure) / (inst || 1) : price;
                 let loan = Math.min(price, nbfcMaxL);
 
@@ -1198,7 +1256,6 @@
                 let roiInEmi = loan * roiRate;
                 let emi = (loan / s.tenure) + (insTotal / inst) + roiInEmi;
 
-                // Capping मर्यादा लागू करणे
                 if (emiCap > 0 && emi > emiCap) {
                     loan = (emiCap - (insTotal / inst)) / ((1 / s.tenure) + roiRate);
                     if (loan < minAllowedLoan) loan = minAllowedLoan;
@@ -1206,7 +1263,6 @@
                     emi = (loan / s.tenure) + (insTotal / inst) + roiInEmi;
                 }
 
-                // DP चे ओरिजिनल सूत्र (इन्शुरन्स DP मध्ये जोडला जात नाही)
                 let roiInDp = loan * roiRateDP;
                 let dpExact = price - loan + ((loan / s.tenure) * s.advEmi) + (loan * dbdRate) + s.pf + totalFees + roiInDp;
                 let dp = Math.ceil(dpExact / 10) * 10;
@@ -1228,7 +1284,6 @@
                 };
             });
 
-            // बहुस्तरीय सॉर्टिंग (DP चढता -> EMI चढता -> महिने उतरता)
             calculatedRows.sort((a, b) => {
                 if (a.dp !== b.dp) return a.dp - b.dp;
                 if (a.emi !== b.emi) return a.emi - b.emi;
@@ -1262,9 +1317,6 @@
             }).join('');
         }
 
-        /* ========================================================================= */
-        /* 📸 LARGE-FONT QUOTE IMAGE GENERATOR                                       */
-        /* ========================================================================= */
         function generateQuoteImage(pId) {
             let prod = selectedProductList.find(p => p.id === pId);
             if (!prod) return;
@@ -1346,9 +1398,6 @@
             });
         }
 
-        /* ========================================================================= */
-        /* EVENT LISTENERS                                                           */
-        /* ========================================================================= */
         document.addEventListener('click', function(e) {
             const dropdown = document.getElementById('modelDropdown');
             const searchInput = document.getElementById('modelSearchInput');
