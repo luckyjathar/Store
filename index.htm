@@ -285,9 +285,10 @@
         .btn-quote { background: #0284c7; color: white; }
         .btn-remove { background: #dc2626; color: white; }
 
+        /* 3 Columns Sub-Config Grid to Fit GTL, RFC, EXW cleanly */
         .sub-config-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1fr 1fr 1fr;
             gap: 8px;
             background: #0b1736;
             padding: 10px;
@@ -333,59 +334,44 @@
         .scheme-table th {
             background: #064e3b;
             color: #ffffff;
-            padding: 8px 4px;
+            padding: 8px 3px;
             border: 1px solid #047857;
         }
 
         .scheme-table td {
-            padding: 8px 4px;
+            padding: 7px 3px;
             border: 1px solid #1c2e4a;
             font-weight: 700;
         }
 
         .scheme-checkbox {
-            width: 16px;
-            height: 16px;
+            width: 15px;
+            height: 15px;
             cursor: pointer;
             accent-color: #38bdf8;
         }
 
-        .btn-copy-scheme {
-            background: #3b82f6;
-            color: white;
-            border: none;
-            padding: 4px 6px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: 900;
-            cursor: pointer;
-            transition: 0.2s ease;
+        /* Compact Action Buttons in a single column */
+        .action-btn-group {
+            display: inline-flex;
+            gap: 3px;
+            justify-content: center;
+            align-items: center;
         }
 
-        .btn-copy-scheme:hover {
-            background: #2563eb;
-        }
-
-        .btn-edit-scheme {
-            background: #f59e0b;
-            color: #000;
+        .action-icon-btn {
             border: none;
-            padding: 4px 6px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: 900;
-            cursor: pointer;
-        }
-
-        .btn-toggle-row {
-            padding: 3px 6px;
-            border-radius: 4px;
-            border: none;
+            padding: 3px 5px;
+            border-radius: 3px;
             font-size: 10px;
             font-weight: 900;
             cursor: pointer;
+            line-height: 1;
         }
 
+        .btn-copy-mini { background: #3b82f6; color: white; }
+        .btn-edit-mini { background: #f59e0b; color: #000; }
+        .btn-toggle-mini { padding: 3px 5px; }
         .btn-dis { background: #fee2e2; color: #dc2626; }
         .btn-ena { background: #d1fae5; color: #059669; }
         .row-disabled { opacity: 0.35; text-decoration: line-through; background: #111827; }
@@ -456,7 +442,7 @@
             color: #38bdf8;
         }
 
-        /* HISTORY & EXPORT CARD */
+        /* HISTORY CARD */
         .history-card {
             background: #0b1736;
             border: 1px solid #243b6b;
@@ -547,7 +533,7 @@
             </div>
         </div>
 
-        <!-- 3. SELECTED PRODUCTS CONTAINER (BY DEFAULT BLANK) -->
+        <!-- 3. SELECTED PRODUCTS CONTAINER (CLEAN SLATE ON REFRESH) -->
         <div id="selectedProductsContainer"></div>
 
     </div>
@@ -568,7 +554,7 @@
                 <button onclick="copyMasterExportText()" style="flex:1; background:#0284c7; color:white; padding:9px; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">
                     📋 COPY FOR EXCEL
                 </button>
-                <button onclick="markManualDataAsSynced()" style="flex:1; background:#10b981; color:white; padding:9px; border:none; border-radius:4px; font-weight:bold; cursor:pointer;" title="Removes items once added to Excel to avoid duplication">
+                <button onclick="markManualDataAsSynced()" style="flex:1; background:#10b981; color:white; padding:9px; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">
                     ✅ MARK SYNCED / REMOVE
                 </button>
             </div>
@@ -578,11 +564,11 @@
         </div>
     </div>
 
-    <!-- ✏️ EDIT / VIEW SCHEME COMPONENTS MODAL -->
+    <!-- ✏️ EDIT SCHEME COMPONENTS & LOAN OVERRIDE MODAL -->
     <div id="editSchemeModal" class="modal-overlay">
         <div class="modal-content">
             <div style="font-size:16px; font-weight:900; color:#f59e0b; margin-bottom:6px; text-align:center;">
-                ✏️ SCHEME COMPONENTS (INSPECT & EDIT)
+                ✏️ EDIT SCHEME & LOAN AMOUNT
             </div>
             <div id="editSchemeSubTitle" style="font-size:11px; color:#94a3b8; text-align:center; margin-bottom:12px;"></div>
             
@@ -590,8 +576,16 @@
             <input type="hidden" id="editTargetSchemeId">
 
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;">
+                <!-- Loan Amount Override input -->
+                <div style="grid-column: span 2; background:#0b1736; padding:8px; border-radius:6px; border:1px solid #38bdf8;">
+                    <label style="font-size:11px; color:#38bdf8; font-weight:bold; display:block; margin-bottom:3px;">
+                        💰 CUSTOM LOAN AMOUNT (₹) [Leave 0 for Auto-Calculate]:
+                    </label>
+                    <input type="number" id="editCustomLoan" placeholder="0" style="width:100%; background:#060e22; border:1px solid #38bdf8; color:#34d399; padding:8px; border-radius:4px; font-weight:bold; font-size:14px;">
+                </div>
+
                 <div>
-                    <label style="font-size:11px; color:#94a3b8; font-weight:bold; display:block; margin-bottom:3px;">TENURE (TOTAL MONTHS)</label>
+                    <label style="font-size:11px; color:#94a3b8; font-weight:bold; display:block; margin-bottom:3px;">TENURE (MONTHS)</label>
                     <input type="number" id="editTen" style="width:100%; background:#0b1736; border:1px solid #243b6b; color:#fff; padding:8px; border-radius:4px; font-weight:bold;">
                 </div>
                 <div>
@@ -599,15 +593,15 @@
                     <input type="number" id="editAdv" style="width:100%; background:#0b1736; border:1px solid #243b6b; color:#fff; padding:8px; border-radius:4px; font-weight:bold;">
                 </div>
                 <div>
-                    <label style="font-size:11px; color:#94a3b8; font-weight:bold; display:block; margin-bottom:3px;">DBD % (SUBVENTION)</label>
+                    <label style="font-size:11px; color:#94a3b8; font-weight:bold; display:block; margin-bottom:3px;">DBD %</label>
                     <input type="number" step="0.01" id="editDbd" style="width:100%; background:#0b1736; border:1px solid #243b6b; color:#fff; padding:8px; border-radius:4px; font-weight:bold;">
                 </div>
                 <div>
-                    <label style="font-size:11px; color:#94a3b8; font-weight:bold; display:block; margin-bottom:3px;">PF (₹) [PROCESSING FEE]</label>
+                    <label style="font-size:11px; color:#94a3b8; font-weight:bold; display:block; margin-bottom:3px;">PF (₹)</label>
                     <input type="number" id="editPf" style="width:100%; background:#0b1736; border:1px solid #243b6b; color:#fff; padding:8px; border-radius:4px; font-weight:bold;">
                 </div>
                 <div style="grid-column: span 2;">
-                    <label style="font-size:11px; color:#94a3b8; font-weight:bold; display:block; margin-bottom:3px;">ROI % (ANNUAL RATE)</label>
+                    <label style="font-size:11px; color:#94a3b8; font-weight:bold; display:block; margin-bottom:3px;">ROI %</label>
                     <input type="number" step="0.01" id="editRoi" style="width:100%; background:#0b1736; border:1px solid #243b6b; color:#fff; padding:8px; border-radius:4px; font-weight:bold;">
                 </div>
             </div>
@@ -807,7 +801,6 @@
         /* 💾 PERSISTENT CUSTOM PRODUCTS STORAGE */
         async function loadPersistentCustomProducts() {
             persistentCustomProducts = await getFromDB('persistent_custom_products') || [];
-            // Remove any items that already exist in newly downloaded master data to avoid duplication
             cleanDuplicateManualProducts();
         }
 
@@ -821,7 +814,6 @@
             await saveToDB('persistent_custom_products', persistentCustomProducts);
         }
 
-        /* 🧹 ऑटो-क्लीन: मास्टर डेटामध्ये आधीच असलेले मॅन्युअल प्रॉडक्ट्स आपोआप काढून टाकणे */
         async function cleanDuplicateManualProducts() {
             if (!masterDbRecords || masterDbRecords.length === 0 || persistentCustomProducts.length === 0) return;
             let masterNames = new Set(masterDbRecords.map(m => m.model.toUpperCase().trim()));
@@ -832,9 +824,7 @@
             }
         }
 
-        /* ========================================================================= */
-        /* 📋 MASTER DATA EXPORT ENGINE (EXACT EXCEL SEQUENCE)                       */
-        /* ========================================================================= */
+        /* 📋 MASTER DATA EXPORT ENGINE */
         function openMasterExportModal() {
             const modal = document.getElementById('exportModal');
             const textarea = document.getElementById('masterExportText');
@@ -845,7 +835,6 @@
                 return;
             }
 
-            // मास्टर डेटाची अचूक पहिली ओळ (Header Row)
             let rows = ["MODEL\tBRAND\tCATEGORY\tMRP\tTOTAL TENURE\tADVANCE EMI\tDBD%\tPF\tROI%"];
 
             persistentCustomProducts.forEach(prod => {
@@ -1005,6 +994,7 @@
                             <span class="history-tag">CAP: ${sc.capping||'NONE'}</span>
                             <span class="history-tag">GTL: ₹${p.gtl||0}</span>
                             <span class="history-tag">RFC: ₹${p.rfc||0}</span>
+                            <span class="history-tag">EXW: ₹${p.exw||0}</span>
                             <span class="history-tag">MGN: ₹${p.margin||0}</span>
                         </div>
 
@@ -1030,7 +1020,7 @@
             }
         }
 
-        /* 🧹 रिफ्रेश केल्यावर स्क्रीन १००% ब्लँक ठेवणे */
+        /* 🧹 रिफ्रेश केल्यावर १००% ब्लँक स्क्रीन */
         window.addEventListener('pageshow', async function() {
             resetAllInputsToBlank();
             await initDB();
@@ -1225,7 +1215,6 @@
             return foundKey ? row[foundKey] : null;
         }
 
-        /* 🔍 SEARCH: ब्रँडचे नाव गाळून फक्त मॉडेल नाव */
         function handleModelSearch(query) {
             const dropdown = document.getElementById('modelDropdown');
             const q = query.trim().toUpperCase();
@@ -1276,6 +1265,7 @@
                 let restored = JSON.parse(JSON.stringify(customProd));
                 restored.id = 'prod_' + Date.now() + '_' + Math.floor(Math.random()*1000);
                 restored.isCollapsed = false;
+                if (!restored.exw) restored.exw = 0; // EXW default
                 selectedProductList.push(restored);
                 renderAllProductPanels();
                 return;
@@ -1295,11 +1285,12 @@
                 gtl: autoGtl,
                 rfc: 0,
                 rfcSlab: autoRfcSlab,
+                exw: 0, // EXW (Extended Warranty) default 0
                 margin: 0,
                 dealerContri: 0,
                 isCollapsed: false,
                 isSheet2: false,
-                schemes: modelSchemes.map((s, idx) => ({ ...s, sId: 's_' + idx, disabled: false }))
+                schemes: modelSchemes.map((s, idx) => ({ ...s, sId: 's_' + idx, disabled: false, customLoan: 0 }))
             };
 
             selectedProductList.push(newProduct);
@@ -1335,11 +1326,12 @@
                 gtl: 1499,
                 rfc: 0,
                 rfcSlab: 0,
+                exw: 0,
                 margin: 0,
                 dealerContri: 0,
                 isCollapsed: false,
                 isSheet2: true,
-                schemes: catSchemes.map((s, idx) => ({ ...s, sId: 's2_' + idx, disabled: false }))
+                schemes: catSchemes.map((s, idx) => ({ ...s, sId: 's2_' + idx, disabled: false, customLoan: 0 }))
             };
 
             selectedProductList.push(newProduct);
@@ -1355,7 +1347,7 @@
 
             let catSchemes = sheet2AllCategoryRecords.filter(r => r.category.trim() === newCat.trim());
             if (catSchemes.length > 0) {
-                prod.schemes = catSchemes.map((s, idx) => ({ ...s, sId: 's2_' + idx, disabled: false }));
+                prod.schemes = catSchemes.map((s, idx) => ({ ...s, sId: 's2_' + idx, disabled: false, customLoan: 0 }));
             }
             renderAllProductPanels();
         }
@@ -1373,6 +1365,7 @@
                 newProduct = JSON.parse(JSON.stringify(existing));
                 newProduct.id = 'prod_' + Date.now();
                 newProduct.isCollapsed = false;
+                if (!newProduct.exw) newProduct.exw = 0;
             } else {
                 newProduct = {
                     id: 'prod_' + Date.now(),
@@ -1382,6 +1375,7 @@
                     gtl: 1199,
                     rfc: 0,
                     rfcSlab: 0,
+                    exw: 0,
                     margin: 0,
                     dealerContri: 0,
                     isCollapsed: false,
@@ -1465,7 +1459,8 @@
                     roi: roi,
                     sId: 'custom_' + Date.now(),
                     disabled: false,
-                    isCustom: true
+                    isCustom: true,
+                    customLoan: 0
                 };
                 prod.schemes.unshift(newCustomScheme);
                 
@@ -1484,6 +1479,7 @@
             }
         }
 
+        /* ✏️ EDIT SCHEME & CUSTOM LOAN OVERRIDE */
         function openEditSchemeModal(pId, sId) {
             let prod = selectedProductList.find(p => p.id === pId);
             if (!prod) return;
@@ -1494,6 +1490,7 @@
             document.getElementById('editTargetSchemeId').value = sId;
             document.getElementById('editSchemeSubTitle').innerText = `${prod.name} (Scheme: ${s.tenure}/${s.advEmi})`;
 
+            document.getElementById('editCustomLoan').value = s.customLoan || "";
             document.getElementById('editTen').value = s.tenure;
             document.getElementById('editAdv').value = s.advEmi;
             document.getElementById('editDbd').value = s.dbd;
@@ -1512,6 +1509,7 @@
             let s = prod.schemes.find(x => x.sId === sId);
             if (!s) return;
 
+            s.customLoan = parseFloat(document.getElementById('editCustomLoan').value) || 0;
             s.tenure = parseInt(document.getElementById('editTen').value) || s.tenure;
             s.advEmi = parseInt(document.getElementById('editAdv').value) || 0;
             s.dbd = parseFloat(document.getElementById('editDbd').value) || 0;
@@ -1522,6 +1520,23 @@
 
             document.getElementById('editSchemeModal').style.display = 'none';
             renderProductTableOnly(pId);
+        }
+
+        /* लोन रकमेवर थेट क्लिक करून जागेवरच एडिट करण्याची सोय */
+        function promptDirectLoanEdit(pId, sId, currentLoan) {
+            let newLoanStr = prompt(`Enter custom Loan Amount for this scheme (Current: ₹${Math.round(currentLoan)}):`, Math.round(currentLoan));
+            if (newLoanStr === null) return;
+            let newLoan = parseFloat(newLoanStr) || 0;
+            
+            let prod = selectedProductList.find(p => p.id === pId);
+            if (prod) {
+                let s = prod.schemes.find(x => x.sId === sId);
+                if (s) {
+                    s.customLoan = newLoan;
+                    savePersistentCustomProduct(prod);
+                    renderProductTableOnly(pId);
+                }
+            }
         }
 
         function copySmartScheme(pId, currentRowEl, tenure, adv, dp, emi, months, perDay) {
@@ -1545,13 +1560,14 @@
                         let cols = tr.querySelectorAll('td');
                         if (cols.length >= 7) {
                             let sName = cols[1].innerText.replace('(FIELD)', '').trim();
-                            let sDp = cols[2].innerText.trim();
-                            let sEmi = cols[3].innerText.trim();
-                            let sMonths = cols[4].innerText.trim();
-                            let sDay = cols[5].innerText.trim();
+                            let sLoan = cols[2].innerText.trim();
+                            let sDp = cols[3].innerText.trim();
+                            let sEmi = cols[4].innerText.trim();
+                            let sMonths = cols[5].innerText.trim();
+                            let sDay = cols[6].innerText.trim();
 
                             textToCopy += `🔹 *Option ${count}:* ${sName}\n` +
-                                          `💰 *DP:* ${sDp}\n` +
+                                          `💰 *DP:* ${sDp} (Loan: ${sLoan})\n` +
                                           `🗓️ *EMI:* ${sEmi} x ${sMonths} Months\n` +
                                           `✨ *Per Day:* ${sDay}\n\n`;
                             count++;
@@ -1592,7 +1608,7 @@
                 let arrowIcon = isCol ? "▶" : "▼";
 
                 let categorySelectorHtml = prod.isSheet2 ? `
-                    <div style="grid-column: span 2; background:#08193f; padding:6px; border-radius:4px; border:1px solid #1e3a68;">
+                    <div style="grid-column: span 3; background:#08193f; padding:6px; border-radius:4px; border:1px solid #1e3a68;">
                         <label style="color:#38bdf8;">📂 CATEGORY (SHEET 2):</label>
                         <select onchange="changeCardCategory('${prod.id}', this.value)" style="color:#38bdf8; font-weight:bold;">
                             ${sheet2CategoriesList.map(c => `<option value="${c}" ${c === prod.category ? 'selected' : ''}>${c}</option>`).join('')}
@@ -1616,6 +1632,7 @@
                     </div>
 
                     <div id="panel_body_${prod.id}" style="display:${bodyDisplay};">
+                        <!-- 3-Column Clean Grid: GTL, RFC, EXW arranged sequentially -->
                         <div class="sub-config-grid">
                             ${categorySelectorHtml}
                             <div>
@@ -1641,10 +1658,14 @@
                                 </select>
                             </div>
                             <div>
+                                <label>EXW (₹) [EXT. WARRANTY]</label>
+                                <input type="number" value="${prod.exw || 0}" placeholder="0" oninput="updateProductParam('${prod.id}', 'exw', this.value)">
+                            </div>
+                            <div>
                                 <label>MARGIN (₹)</label>
                                 <input type="number" value="${prod.margin}" placeholder="0" oninput="updateProductParam('${prod.id}', 'margin', this.value)">
                             </div>
-                            <div style="grid-column: span 2;">
+                            <div>
                                 <label>DEALER CONTRI (₹)</label>
                                 <input type="number" value="${prod.dealerContri}" placeholder="0" oninput="updateProductParam('${prod.id}', 'dealerContri', this.value)">
                             </div>
@@ -1656,14 +1677,12 @@
                                     <tr>
                                         <th>☑</th>
                                         <th>SCHEME</th>
+                                        <th title="Click any Loan to adjust/override">LOAN ✎</th>
                                         <th>DP</th>
                                         <th>EMI</th>
                                         <th>M</th>
                                         <th>DAY</th>
-                                        <th>EXW</th>
-                                        <th>COPY</th>
-                                        <th>EDIT</th>
-                                        <th>ACT</th>
+                                        <th>ACTION</th>
                                     </tr>
                                 </thead>
                                 <tbody id="tbody_${prod.id}"></tbody>
@@ -1677,7 +1696,7 @@
             selectedProductList.forEach(p => renderProductTableOnly(p.id));
         }
 
-        /* 🎯 अचूक कॅल्क्युलेशन व EXW (Extra Charges) कॉलम */
+        /* 🎯 कॅल्क्युलेशन: EXW विभागणी + कॉम्पॅक्ट सिंगल ॲक्शन कॉलम */
         function renderProductTableOnly(pId) {
             let prod = selectedProductList.find(p => p.id === pId);
             if (!prod) return;
@@ -1696,6 +1715,7 @@
             let dealerContri = parseFloat(prod.dealerContri) || 0;
             let gtlVal = parseFloat(prod.gtl) || 0;
             let rfcVal = parseFloat(prod.rfc) || 0;
+            let exwVal = parseFloat(prod.exw) || 0; // Extended warranty input
 
             let baseFee = 850;
             if (custType === 'EMI CARD' || custType === 'VIRTUAL CARD') {
@@ -1713,7 +1733,7 @@
             });
 
             if (eligibleSchemes.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="10" style="color:#f87171; padding:10px;">No schemes found under Max LTV (${maxLtv}%).</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="8" style="color:#f87171; padding:10px;">No schemes found under Max LTV (${maxLtv}%).</td></tr>`;
                 return;
             }
 
@@ -1722,28 +1742,35 @@
                 let inst = s.tenure - s.advEmi;
                 if (inst < 1) inst = 1;
 
-                let nbfcMaxL = approvedLimit > 0 ? (approvedLimit * s.tenure) / (inst || 1) : price;
-                let loan = Math.min(price, nbfcMaxL);
-
-                let schemeLtv = (inst / s.tenure) * 100;
-                if (schemeLtv > maxLtv) loan = Math.floor(price * (maxLtv / 100));
-
-                let minAllowedLoan = price * 0.50;
-                if (loan < minAllowedLoan) loan = minAllowedLoan;
+                // लोन अमाऊंट मॅन्युअली ॲडजस्ट केली असल्यास ती प्राधान्याने वापरणे
+                let loan = 0;
+                if (s.customLoan && s.customLoan > 0) {
+                    loan = s.customLoan;
+                } else {
+                    let nbfcMaxL = approvedLimit > 0 ? (approvedLimit * s.tenure) / (inst || 1) : price;
+                    loan = Math.min(price, nbfcMaxL);
+                    let schemeLtv = (inst / s.tenure) * 100;
+                    if (schemeLtv > maxLtv) loan = Math.floor(price * (maxLtv / 100));
+                    let minAllowedLoan = price * 0.50;
+                    if (loan < minAllowedLoan) loan = minAllowedLoan;
+                }
 
                 let dbdRate = (s.dbd * 1.18 / 100);
                 let roiRate = s.roi / 1200;
                 let roiRateDP = roiRate * s.advEmi;
 
-                let insTotal = gtlVal + rfcVal;
+                // GTL + RFC + EXW तिन्ही एकत्र करून EMI मध्ये समान विभागले जातील
+                let insTotal = gtlVal + rfcVal + exwVal;
                 let baseEmi = loan / s.tenure;
                 if (baseEmi > 0 && baseEmi < 900) baseEmi = 900;
 
                 let roiInEmi = loan * roiRate;
                 let emi = (loan / s.tenure) + (insTotal / inst) + roiInEmi;
 
-                if (emiCap > 0 && emi > emiCap) {
+                // Capping मर्यादा (फक्त ऑटो लोन असेल तर लागू)
+                if ((!s.customLoan || s.customLoan <= 0) && emiCap > 0 && emi > emiCap) {
                     loan = (emiCap - (insTotal / inst)) / ((1 / s.tenure) + roiRate);
+                    let minAllowedLoan = price * 0.50;
                     if (loan < minAllowedLoan) loan = minAllowedLoan;
                     roiInEmi = loan * roiRate;
                     emi = (loan / s.tenure) + (insTotal / inst) + roiInEmi;
@@ -1754,8 +1781,6 @@
                 let dp = Math.ceil(dpExact / 10) * 10;
 
                 let perDay = emi / 30;
-                // EXW (Extra Withheld / Total Extra Repayment over MRP)
-                let extraCharges = ((emi * inst) + dp) - price;
 
                 return {
                     scheme: s,
@@ -1764,13 +1789,14 @@
                     emi: emi,
                     months: inst,
                     perDay: perDay,
-                    extraCharges: extraCharges,
                     disabled: s.disabled,
                     sId: s.sId,
-                    isCustom: s.isCustom
+                    isCustom: s.isCustom,
+                    hasCustomLoan: (s.customLoan && s.customLoan > 0)
                 };
             });
 
+            // मल्टी-लेव्हल सॉर्टिंग (DP चढता -> EMI चढता -> महिने उतरता)
             calculatedRows.sort((a, b) => {
                 if (a.dp !== b.dp) return a.dp - b.dp;
                 if (a.emi !== b.emi) return a.emi - b.emi;
@@ -1780,28 +1806,32 @@
             tbody.innerHTML = calculatedRows.map(row => {
                 let s = row.scheme;
                 let rowClass = row.disabled ? "row-disabled" : "";
-                let actionBtn = row.disabled 
-                    ? `<button class="btn-toggle-row btn-ena" onclick="toggleSchemeStatus('${prod.id}', '${row.sId}')">ENABLE</button>`
-                    : `<button class="btn-toggle-row btn-dis" onclick="toggleSchemeStatus('${prod.id}', '${row.sId}')">DISABLE</button>`;
-
                 let customBadge = row.isCustom ? `<span style="font-size:9px; color:#10b981;">(FIELD)</span>` : '';
+                let loanCustomStyle = row.hasCustomLoan ? 'color:#facc15; text-decoration:underline;' : 'color:#34d399;';
+
+                let toggleBtn = row.disabled 
+                    ? `<button class="action-icon-btn btn-toggle-mini btn-ena" title="Enable" onclick="toggleSchemeStatus('${prod.id}', '${row.sId}')">✅</button>`
+                    : `<button class="action-icon-btn btn-toggle-mini btn-dis" title="Disable" onclick="toggleSchemeStatus('${prod.id}', '${row.sId}')">🚫</button>`;
 
                 return `
                     <tr class="${rowClass}">
                         <td><input type="checkbox" class="scheme-checkbox" ${row.disabled ? 'disabled' : ''}></td>
                         <td style="color:#60a5fa; font-weight:900;">${s.tenure}/${s.advEmi} ${customBadge}</td>
+                        <td style="${loanCustomStyle} cursor:pointer;" title="Click to edit loan amount" onclick="promptDirectLoanEdit('${prod.id}', '${row.sId}', ${row.loan})">
+                            ₹${Math.round(row.loan).toLocaleString()}
+                        </td>
                         <td style="color:#f59e0b; font-weight:900;">₹${Math.round(row.dp).toLocaleString()}</td>
                         <td style="color:#38bdf8; font-weight:900;">₹${Math.round(row.emi).toLocaleString()}</td>
                         <td style="color:#e2e8f0;">${row.months}</td>
                         <td style="color:#fb923c;">₹${Math.round(row.perDay).toLocaleString()}</td>
-                        <td style="color:#f87171; font-weight:900;">₹${Math.max(0, Math.round(row.extraCharges)).toLocaleString()}</td>
                         <td>
-                            <button class="btn-copy-scheme" title="Copy selected or this single scheme" onclick="copySmartScheme('${prod.id}', this, '${s.tenure}', '${s.advEmi}', '${Math.round(row.dp)}', '${Math.round(row.emi)}', '${row.months}', '${Math.round(row.perDay)}')">📋</button>
+                            <!-- Compact Single Action Column -->
+                            <div class="action-btn-group">
+                                <button class="action-icon-btn btn-copy-mini" title="Copy Scheme" onclick="copySmartScheme('${prod.id}', this, '${s.tenure}', '${s.advEmi}', '${Math.round(row.dp)}', '${Math.round(row.emi)}', '${row.months}', '${Math.round(row.perDay)}')">📋</button>
+                                <button class="action-icon-btn btn-edit-mini" title="Edit Components / Loan" onclick="openEditSchemeModal('${prod.id}', '${row.sId}')">✏️</button>
+                                ${toggleBtn}
+                            </div>
                         </td>
-                        <td>
-                            <button class="btn-edit-scheme" title="Inspect & Edit Scheme Components" onclick="openEditSchemeModal('${prod.id}', '${row.sId}')">✏️</button>
-                        </td>
-                        <td>${actionBtn}</td>
                     </tr>
                 `;
             }).join('');
@@ -1863,14 +1893,14 @@
                     <tbody>
                         ${Array.from(tableElement.querySelectorAll('tr:not(.row-disabled)')).map(r => {
                             let cols = r.querySelectorAll('td');
-                            if (cols.length < 8) return '';
+                            if (cols.length < 7) return '';
                             return `
                                 <tr style="border-bottom: 1px solid #1c2e4a; font-weight: 900; font-size: 17px;">
                                     <td style="padding: 12px 6px; color: #60a5fa;">${cols[1].innerText.replace('(FIELD)', '').trim()}</td>
-                                    <td style="padding: 12px 6px; color: #f59e0b;">${cols[2].innerText}</td>
-                                    <td style="padding: 12px 6px; color: #38bdf8;">${cols[3].innerText}</td>
-                                    <td style="padding: 12px 6px; color: #e2e8f0;">${cols[4].innerText}</td>
-                                    <td style="padding: 12px 6px; color: #fb923c;">${cols[5].innerText}</td>
+                                    <td style="padding: 12px 6px; color: #f59e0b;">${cols[3].innerText}</td>
+                                    <td style="padding: 12px 6px; color: #38bdf8;">${cols[4].innerText}</td>
+                                    <td style="padding: 12px 6px; color: #e2e8f0;">${cols[5].innerText}</td>
+                                    <td style="padding: 12px 6px; color: #fb923c;">${cols[6].innerText}</td>
                                 </tr>
                             `;
                         }).join('')}
