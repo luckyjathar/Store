@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="mr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,7 +8,7 @@
     <!-- SheetJS CDN for Live Excel Reading -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
-    <!-- html2canvas CDN for High-Quality Quote Image Generation -->
+    <!-- html2canvas CDN for Quote Image Generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
@@ -23,7 +23,7 @@
             background-color: #0b1329;
             color: #ffffff;
             padding: 12px;
-            padding-bottom: 90px;
+            padding-bottom: 85px;
             display: flex;
             justify-content: center;
         }
@@ -285,10 +285,9 @@
         .btn-quote { background: #0284c7; color: white; }
         .btn-remove { background: #dc2626; color: white; }
 
-        /* 3 Columns Sub-Config Grid to Fit INVOICE, TARGET DP, GTL, RFC, EXW, MARGIN */
         .sub-config-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-columns: 1fr 1fr;
             gap: 8px;
             background: #0b1736;
             padding: 10px;
@@ -334,44 +333,59 @@
         .scheme-table th {
             background: #064e3b;
             color: #ffffff;
-            padding: 8px 3px;
+            padding: 8px 4px;
             border: 1px solid #047857;
         }
 
         .scheme-table td {
-            padding: 7px 3px;
+            padding: 8px 4px;
             border: 1px solid #1c2e4a;
             font-weight: 700;
         }
 
         .scheme-checkbox {
-            width: 15px;
-            height: 15px;
+            width: 16px;
+            height: 16px;
             cursor: pointer;
             accent-color: #38bdf8;
         }
 
-        /* Compact Action Buttons */
-        .action-btn-group {
-            display: inline-flex;
-            gap: 3px;
-            justify-content: center;
-            align-items: center;
+        .btn-copy-scheme {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 4px 6px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 900;
+            cursor: pointer;
+            transition: 0.2s ease;
         }
 
-        .action-icon-btn {
+        .btn-copy-scheme:hover {
+            background: #2563eb;
+        }
+
+        .btn-edit-scheme {
+            background: #f59e0b;
+            color: #000;
             border: none;
-            padding: 3px 5px;
-            border-radius: 3px;
+            padding: 4px 6px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 900;
+            cursor: pointer;
+        }
+
+        .btn-toggle-row {
+            padding: 3px 6px;
+            border-radius: 4px;
+            border: none;
             font-size: 10px;
             font-weight: 900;
             cursor: pointer;
-            line-height: 1;
         }
 
-        .btn-copy-mini { background: #3b82f6; color: white; }
-        .btn-edit-mini { background: #f59e0b; color: #000; }
-        .btn-toggle-mini { padding: 3px 5px; }
         .btn-dis { background: #fee2e2; color: #dc2626; }
         .btn-ena { background: #d1fae5; color: #059669; }
         .row-disabled { opacity: 0.35; text-decoration: line-through; background: #111827; }
@@ -418,7 +432,7 @@
             right: 0;
             background: #060e22;
             border-top: 2px solid #1e3a68;
-            padding: 8px 12px;
+            padding: 8px 16px;
             display: flex;
             justify-content: space-around;
             align-items: center;
@@ -429,7 +443,7 @@
             background: transparent;
             border: none;
             color: #94a3b8;
-            font-size: 10px;
+            font-size: 11px;
             font-weight: 800;
             display: flex;
             flex-direction: column;
@@ -442,7 +456,7 @@
             color: #38bdf8;
         }
 
-        /* HISTORY & EXPORT CARD */
+        /* HISTORY CARD */
         .history-card {
             background: #0b1736;
             border: 1px solid #243b6b;
@@ -456,28 +470,13 @@
         .history-tags { display: flex; flex-wrap: wrap; gap: 5px; margin: 6px 0; }
         .history-tag { font-size: 10px; font-weight: bold; background: #1e293b; color: #38bdf8; padding: 2px 6px; border-radius: 3px; }
         .history-actions { display: flex; gap: 8px; margin-top: 8px; }
-
-        .export-textarea {
-            width: 100%;
-            height: 160px;
-            background: #0b1736;
-            border: 1px solid #243b6b;
-            color: #34d399;
-            font-family: monospace;
-            font-size: 11px;
-            padding: 8px;
-            border-radius: 6px;
-            outline: none;
-            white-space: pre;
-            overflow-x: auto;
-        }
     </style>
 </head>
 <body>
 
     <div class="main-wrapper">
         
-        <!-- 1. SCENARIO CARD -->
+        <!-- १. SCENARIO CARD -->
         <div class="scenario-card">
             <div class="scenario-header">
                 <span class="scenario-title">Scenario</span>
@@ -487,11 +486,10 @@
                 <tr>
                     <td class="label-col">CUSTOMER TYPE</td>
                     <td class="input-col">
-                        <select class="form-select" id="typeVal" autocomplete="off" onchange="recalcAllProducts()">
+                        <select class="form-select" id="typeVal" autocomplete="off" onchange="persistScenarioData(); recalcAllProducts()">
                             <option value="" selected>-</option>
                             <option value="NEW">NEW</option>
                             <option value="EMI CARD">EMI CARD</option>
-                            <option value="VIRTUAL CARD">VIRTUAL CARD</option>
                             <option value="W/O CARD">W/O CARD</option>
                         </select>
                     </td>
@@ -499,25 +497,25 @@
                 <tr>
                     <td class="label-col">APPROVED</td>
                     <td class="input-col">
-                        <input type="number" class="form-input" id="approvedVal" placeholder="-" autocomplete="off" oninput="recalcAllProducts()">
+                        <input type="number" class="form-input" id="approvedVal" placeholder="-" autocomplete="off" oninput="persistScenarioData(); recalcAllProducts()">
                     </td>
                 </tr>
                 <tr>
                     <td class="label-col">MAX LTV (%)</td>
                     <td class="input-col">
-                        <input type="number" min="0" max="100" class="form-input" id="maxLtvVal" placeholder="100" autocomplete="off" oninput="validateMaxLtvInput(this); recalcAllProducts()">
+                        <input type="number" min="0" max="100" class="form-input" id="maxLtvVal" placeholder="100" autocomplete="off" oninput="validateMaxLtvInput(this); persistScenarioData(); recalcAllProducts()">
                     </td>
                 </tr>
                 <tr>
                     <td class="label-col">CAPPING</td>
                     <td class="input-col">
-                        <input type="number" class="form-input" id="cappingVal" placeholder="-" autocomplete="off" oninput="recalcAllProducts()">
+                        <input type="number" class="form-input" id="cappingVal" placeholder="-" autocomplete="off" oninput="persistScenarioData(); recalcAllProducts()">
                     </td>
                 </tr>
             </table>
         </div>
 
-        <!-- 2. SEARCH & QUICK BUTTONS -->
+        <!-- २. SEARCH BRAND / MODEL & QUICK BUTTONS -->
         <div class="search-card">
             <div class="search-title">🔍 Add Product / Model</div>
             <input type="text" id="modelSearchInput" class="search-input" placeholder="Type Model Name to Add..." onfocus="showRecentSearchesIfEmpty()" oninput="handleModelSearch(this.value)" autocomplete="off" disabled>
@@ -533,42 +531,16 @@
             </div>
         </div>
 
-        <!-- 3. SELECTED PRODUCTS CONTAINER -->
+        <!-- ३. सिलेक्ट केलेले प्रॉडक्ट्स कंटेनर -->
         <div id="selectedProductsContainer"></div>
 
     </div>
 
-    <!-- 📋 EXPORT FOR MASTER DATA MODAL -->
-    <div id="exportModal" class="modal-overlay">
-        <div class="modal-content">
-            <div style="font-size:16px; font-weight:900; color:#34d399; margin-bottom:6px; text-align:center;">
-                📋 EXPORT MANUAL DATA FOR MASTER EXCEL
-            </div>
-            <div style="font-size:11px; color:#94a3b8; text-align:center; margin-bottom:12px;">
-                Matches Master Data Columns: <b>MODEL | BRAND | CATEGORY | MRP | TOTAL TENURE | ADVANCE EMI | DBD% | PF | ROI%</b>
-            </div>
-
-            <textarea id="masterExportText" class="export-textarea" readonly placeholder="No unsynced manual models or schemes found."></textarea>
-
-            <div style="display:flex; gap:8px; margin-top:12px;">
-                <button onclick="copyMasterExportText()" style="flex:1; background:#0284c7; color:white; padding:9px; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">
-                    📋 COPY FOR EXCEL
-                </button>
-                <button onclick="markManualDataAsSynced()" style="flex:1; background:#10b981; color:white; padding:9px; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">
-                    ✅ MARK SYNCED / REMOVE
-                </button>
-            </div>
-            <button onclick="document.getElementById('exportModal').style.display='none'" style="width:100%; background:#243b6b; color:white; border:none; padding:8px; border-radius:4px; font-weight:bold; margin-top:8px; cursor:pointer;">
-                CLOSE
-            </button>
-        </div>
-    </div>
-
-    <!-- ✏️ EDIT SCHEME COMPONENTS & LOAN OVERRIDE MODAL -->
+    <!-- ✏️ EDIT / VIEW SCHEME COMPONENTS MODAL -->
     <div id="editSchemeModal" class="modal-overlay">
         <div class="modal-content">
             <div style="font-size:16px; font-weight:900; color:#f59e0b; margin-bottom:6px; text-align:center;">
-                ✏️ EDIT SCHEME & LOAN AMOUNT
+                ✏️ स्कीम कंपोनंट्स (Inspect & Edit)
             </div>
             <div id="editSchemeSubTitle" style="font-size:11px; color:#94a3b8; text-align:center; margin-bottom:12px;"></div>
             
@@ -576,38 +548,31 @@
             <input type="hidden" id="editTargetSchemeId">
 
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;">
-                <div style="grid-column: span 2; background:#0b1736; padding:8px; border-radius:6px; border:1px solid #38bdf8;">
-                    <label style="font-size:11px; color:#38bdf8; font-weight:bold; display:block; margin-bottom:3px;">
-                        💰 CUSTOM LOAN AMOUNT (₹) [Leave 0 for Auto-Calculate]:
-                    </label>
-                    <input type="number" id="editCustomLoan" placeholder="0" style="width:100%; background:#060e22; border:1px solid #38bdf8; color:#34d399; padding:8px; border-radius:4px; font-weight:bold; font-size:14px;">
-                </div>
-
                 <div>
-                    <label style="font-size:11px; color:#94a3b8; font-weight:bold; display:block; margin-bottom:3px;">TENURE (MONTHS)</label>
+                    <label style="font-size:11px; color:#94a3b8; font-weight:bold; display:block; margin-bottom:3px;">TENURE (एकूण महिने)</label>
                     <input type="number" id="editTen" style="width:100%; background:#0b1736; border:1px solid #243b6b; color:#fff; padding:8px; border-radius:4px; font-weight:bold;">
                 </div>
                 <div>
-                    <label style="font-size:11px; color:#94a3b8; font-weight:bold; display:block; margin-bottom:3px;">ADVANCE EMI</label>
+                    <label style="font-size:11px; color:#94a3b8; font-weight:bold; display:block; margin-bottom:3px;">ADVANCE EMI (हप्ते)</label>
                     <input type="number" id="editAdv" style="width:100%; background:#0b1736; border:1px solid #243b6b; color:#fff; padding:8px; border-radius:4px; font-weight:bold;">
                 </div>
                 <div>
-                    <label style="font-size:11px; color:#94a3b8; font-weight:bold; display:block; margin-bottom:3px;">DBD %</label>
+                    <label style="font-size:11px; color:#94a3b8; font-weight:bold; display:block; margin-bottom:3px;">DBD % (डीलर सबव्हेन्शन)</label>
                     <input type="number" step="0.01" id="editDbd" style="width:100%; background:#0b1736; border:1px solid #243b6b; color:#fff; padding:8px; border-radius:4px; font-weight:bold;">
                 </div>
                 <div>
-                    <label style="font-size:11px; color:#94a3b8; font-weight:bold; display:block; margin-bottom:3px;">PF (₹)</label>
+                    <label style="font-size:11px; color:#94a3b8; font-weight:bold; display:block; margin-bottom:3px;">PF (₹) [प्रोसेसिंग फी]</label>
                     <input type="number" id="editPf" style="width:100%; background:#0b1736; border:1px solid #243b6b; color:#fff; padding:8px; border-radius:4px; font-weight:bold;">
                 </div>
                 <div style="grid-column: span 2;">
-                    <label style="font-size:11px; color:#94a3b8; font-weight:bold; display:block; margin-bottom:3px;">ROI %</label>
+                    <label style="font-size:11px; color:#94a3b8; font-weight:bold; display:block; margin-bottom:3px;">ROI % (वार्षिक व्याजदर)</label>
                     <input type="number" step="0.01" id="editRoi" style="width:100%; background:#0b1736; border:1px solid #243b6b; color:#fff; padding:8px; border-radius:4px; font-weight:bold;">
                 </div>
             </div>
 
             <div style="display:flex; gap:8px;">
-                <button onclick="saveEditedSchemeValues()" style="flex:1; background:#10b981; color:white; padding:9px; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">UPDATE & RECALCULATE ✅</button>
-                <button onclick="document.getElementById('editSchemeModal').style.display='none'" style="flex:1; background:#dc2626; color:white; border:none; padding:9px; border-radius:4px; font-weight:bold; cursor:pointer;">CANCEL</button>
+                <button onclick="saveEditedSchemeValues()" style="flex:1; background:#10b981; color:white; padding:9px; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">अपडेट करा (Recalculate) ✅</button>
+                <button onclick="document.getElementById('editSchemeModal').style.display='none'" style="flex:1; background:#dc2626; color:white; border:none; padding:9px; border-radius:4px; font-weight:bold; cursor:pointer;">रद्द करा</button>
             </div>
         </div>
     </div>
@@ -624,53 +589,53 @@
         </div>
     </div>
 
-    <!-- 📂 SHEET 2 CATEGORY MODAL -->
+    <!-- 📂 SHEET 2 कॅटेगरी निवडण्याचा पॉपअप -->
     <div id="categoryModal" class="modal-overlay">
         <div class="modal-content" style="max-width: 400px;">
             <div style="font-size:16px; font-weight:900; color:#38bdf8; margin-bottom:12px; text-align:center;">
-                📂 SELECT CATEGORY (SHEET 2)
+                📂 कॅटेगरी निवडा (Sheet 2)
             </div>
             <div style="margin-bottom:14px;">
-                <label style="font-size:11px; color:#94a3b8; font-weight:bold; display:block; margin-bottom:5px;">AVAILABLE CATEGORIES:</label>
+                <label style="font-size:11px; color:#94a3b8; font-weight:bold; display:block; margin-bottom:5px;">उपलब्ध कॅटेगरीज:</label>
                 <select id="sheet2CategorySelect" style="width:100%; background:#0b1736; border:1px solid #243b6b; color:#fff; padding:10px; border-radius:6px; font-weight:bold; font-size:14px; outline:none;"></select>
             </div>
             <div style="display:flex; gap:8px;">
-                <button onclick="confirmSheet2CategorySelection()" style="flex:1; background:#0284c7; color:white; padding:9px; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">LOAD SCHEMES ✅</button>
-                <button onclick="document.getElementById('categoryModal').style.display='none'" style="flex:1; background:#dc2626; color:white; border:none; padding:9px; border-radius:4px; font-weight:bold; cursor:pointer;">CANCEL</button>
+                <button onclick="confirmSheet2CategorySelection()" style="flex:1; background:#0284c7; color:white; padding:9px; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">स्कीम्स लोड करा ✅</button>
+                <button onclick="document.getElementById('categoryModal').style.display='none'" style="flex:1; background:#dc2626; color:white; border:none; padding:9px; border-radius:4px; font-weight:bold; cursor:pointer;">रद्द करा</button>
             </div>
         </div>
     </div>
 
-    <!-- ➕ ADD SCHEME MODAL -->
+    <!-- ➕ नवीन स्कीम मॅन्युअली ॲड करण्याचा पॉपअप -->
     <div id="addSchemeModal" class="modal-overlay">
         <div class="modal-content">
-            <div style="font-size:16px; font-weight:900; color:#60a5fa; margin-bottom:12px; text-align:center;" id="addSchemeModalTitle">➕ ADD NEW SCHEME</div>
+            <div style="font-size:16px; font-weight:900; color:#60a5fa; margin-bottom:12px; text-align:center;" id="addSchemeModalTitle">➕ नवीन स्कीम जोडा</div>
             <input type="hidden" id="modalTargetProdId">
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;">
                 <div>
-                    <label style="font-size:11px; color:#94a3b8; font-weight:bold; display:block; margin-bottom:3px;">TENURE (MONTHS)</label>
-                    <input type="number" id="mTen" placeholder="e.g. 10" style="width:100%; background:#0b1736; border:1px solid #243b6b; color:#fff; padding:8px; border-radius:4px; font-weight:bold;">
+                    <label style="font-size:11px; color:#94a3b8; font-weight:bold; display:block; margin-bottom:3px;">TENURE (महिने)</label>
+                    <input type="number" id="mTen" placeholder="उदा. 10" style="width:100%; background:#0b1736; border:1px solid #243b6b; color:#fff; padding:8px; border-radius:4px; font-weight:bold;">
                 </div>
                 <div>
                     <label style="font-size:11px; color:#94a3b8; font-weight:bold; display:block; margin-bottom:3px;">ADVANCE EMI</label>
-                    <input type="number" id="mAdv" placeholder="e.g. 2" value="0" style="width:100%; background:#0b1736; border:1px solid #243b6b; color:#fff; padding:8px; border-radius:4px; font-weight:bold;">
+                    <input type="number" id="mAdv" placeholder="उदा. 2" value="0" style="width:100%; background:#0b1736; border:1px solid #243b6b; color:#fff; padding:8px; border-radius:4px; font-weight:bold;">
                 </div>
                 <div>
                     <label style="font-size:11px; color:#94a3b8; font-weight:bold; display:block; margin-bottom:3px;">DBD %</label>
-                    <input type="number" step="0.01" id="mDbd" placeholder="e.g. 1.5" value="0" style="width:100%; background:#0b1736; border:1px solid #243b6b; color:#fff; padding:8px; border-radius:4px; font-weight:bold;">
+                    <input type="number" step="0.01" id="mDbd" placeholder="उदा. 1.5" value="0" style="width:100%; background:#0b1736; border:1px solid #243b6b; color:#fff; padding:8px; border-radius:4px; font-weight:bold;">
                 </div>
                 <div>
                     <label style="font-size:11px; color:#94a3b8; font-weight:bold; display:block; margin-bottom:3px;">PF (₹)</label>
-                    <input type="number" id="mPf" placeholder="e.g. 699" value="0" style="width:100%; background:#0b1736; border:1px solid #243b6b; color:#fff; padding:8px; border-radius:4px; font-weight:bold;">
+                    <input type="number" id="mPf" placeholder="उदा. 699" value="0" style="width:100%; background:#0b1736; border:1px solid #243b6b; color:#fff; padding:8px; border-radius:4px; font-weight:bold;">
                 </div>
                 <div style="grid-column: span 2;">
                     <label style="font-size:11px; color:#94a3b8; font-weight:bold; display:block; margin-bottom:3px;">ROI %</label>
-                    <input type="number" step="0.01" id="mRoi" placeholder="e.g. 0" value="0" style="width:100%; background:#0b1736; border:1px solid #243b6b; color:#fff; padding:8px; border-radius:4px; font-weight:bold;">
+                    <input type="number" step="0.01" id="mRoi" placeholder="उदा. 0" value="0" style="width:100%; background:#0b1736; border:1px solid #243b6b; color:#fff; padding:8px; border-radius:4px; font-weight:bold;">
                 </div>
             </div>
             <div style="display:flex; gap:8px;">
-                <button onclick="saveCustomSchemeFromField()" style="flex:1; background:#10b981; color:white; padding:8px; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">SAVE SCHEME ✅</button>
-                <button onclick="closeAddSchemeModal()" style="flex:1; background:#dc2626; color:white; border:none; padding:8px; border-radius:4px; font-weight:bold; cursor:pointer;">CANCEL</button>
+                <button onclick="saveCustomSchemeFromField()" style="flex:1; background:#10b981; color:white; padding:8px; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">सेव्ह करा ✅</button>
+                <button onclick="closeAddSchemeModal()" style="flex:1; background:#dc2626; color:white; border:none; padding:8px; border-radius:4px; font-weight:bold; cursor:pointer;">रद्द करा</button>
             </div>
         </div>
     </div>
@@ -679,7 +644,7 @@
     <div id="imageViewerModal" class="modal-overlay">
         <div class="modal-content">
             <div class="copy-hint-box">
-                👉 Long Press (Tap & Hold) on the image to directly Copy or Share!
+                👉 इमेजवर Long Press (दाबून धरून) करून थेट Copy किंवा Share करा!
             </div>
             <img id="generatedQuoteImg" src="" alt="Customer Quote" style="width:100%; border-radius:6px; margin-bottom:10px; display:block;">
             <button onclick="document.getElementById('imageViewerModal').style.display='none'" style="width:100%; background:#dc2626; color:white; border:none; padding:10px; border-radius:4px; font-weight:bold; font-size:14px; cursor:pointer;">CLOSE ✖</button>
@@ -690,9 +655,6 @@
     <div class="app-footer">
         <button class="footer-btn active" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
             <span>⚡</span><span>CALCULATOR</span>
-        </button>
-        <button class="footer-btn" onclick="openMasterExportModal()">
-            <span>📤</span><span>MASTER SYNC</span>
         </button>
         <button class="footer-btn" onclick="openHistoryModal()">
             <span>📜</span><span>HISTORY</span>
@@ -712,7 +674,7 @@
         const GITHUB_COMMIT_API = "https://api.github.com/repos/luckyjathar/testcalculator/commits?path=master_data.xlsx&page=1&per_page=1";
 
         const DB_NAME = "PersistentPortalDB";
-        const DB_VERSION = 3;
+        const DB_VERSION = 2;
         const STORE_NAME = "dataStore";
         const CACHE_DURATION_MS = 12 * 60 * 60 * 1000;
 
@@ -720,7 +682,6 @@
         let masterDbRecords = [];         
         let sheet2AllCategoryRecords = []; 
         let sheet2CategoriesList = [];    
-        let persistentCustomProducts = []; 
         let selectedProductList = [];
 
         function initDB() {
@@ -797,81 +758,6 @@
             return 0;
         }
 
-        async function loadPersistentCustomProducts() {
-            persistentCustomProducts = await getFromDB('persistent_custom_products') || [];
-            cleanDuplicateManualProducts();
-        }
-
-        async function savePersistentCustomProduct(prod) {
-            let existingIdx = persistentCustomProducts.findIndex(p => p.name === prod.name);
-            if (existingIdx >= 0) {
-                persistentCustomProducts[existingIdx] = JSON.parse(JSON.stringify(prod));
-            } else {
-                persistentCustomProducts.unshift(JSON.parse(JSON.stringify(prod)));
-            }
-            await saveToDB('persistent_custom_products', persistentCustomProducts);
-        }
-
-        async function cleanDuplicateManualProducts() {
-            if (!masterDbRecords || masterDbRecords.length === 0 || persistentCustomProducts.length === 0) return;
-            let masterNames = new Set(masterDbRecords.map(m => m.model.toUpperCase().trim()));
-            let initialCount = persistentCustomProducts.length;
-            persistentCustomProducts = persistentCustomProducts.filter(p => !masterNames.has(p.name.toUpperCase().trim()));
-            if (persistentCustomProducts.length !== initialCount) {
-                await saveToDB('persistent_custom_products', persistentCustomProducts);
-            }
-        }
-
-        function openMasterExportModal() {
-            const modal = document.getElementById('exportModal');
-            const textarea = document.getElementById('masterExportText');
-
-            if (persistentCustomProducts.length === 0) {
-                textarea.value = "No unsynced manual models or schemes found.\nAll custom products are already updated or none created.";
-                modal.style.display = 'flex';
-                return;
-            }
-
-            let rows = ["MODEL\tBRAND\tCATEGORY\tMRP\tTOTAL TENURE\tADVANCE EMI\tDBD%\tPF\tROI%"];
-
-            persistentCustomProducts.forEach(prod => {
-                let mName = prod.name || "UNKNOWN";
-                let brand = prod.brand || "GENERAL";
-                let cat = prod.category || "MOBILE";
-                let mrp = prod.invoice || 0;
-
-                if (prod.schemes && prod.schemes.length > 0) {
-                    prod.schemes.forEach(s => {
-                        let rowStr = `${mName}\t${brand}\t${cat}\t${mrp}\t${s.tenure}\t${s.advEmi}\t${s.dbd}\t${s.pf}\t${s.roi}`;
-                        rows.push(rowStr);
-                    });
-                } else {
-                    rows.push(`${mName}\t${brand}\t${cat}\t${mrp}\t10\t2\t1.5\t699\t0`);
-                }
-            });
-
-            textarea.value = rows.join("\n");
-            modal.style.display = 'flex';
-        }
-
-        function copyMasterExportText() {
-            const textarea = document.getElementById('masterExportText');
-            if (!textarea.value || textarea.value.startsWith("No unsynced")) {
-                alert("No data available to copy.");
-                return;
-            }
-            clipboardCopy(textarea.value, "Master Data copied in exact Excel tab-separated format! ✅\nNow paste directly into your master_data.xlsx");
-        }
-
-        async function markManualDataAsSynced() {
-            if (confirm("Have you added this data to your master_data.xlsx?\nClicking OK will clear this list so it won't appear as duplicate.")) {
-                persistentCustomProducts = [];
-                await saveToDB('persistent_custom_products', []);
-                document.getElementById('exportModal').style.display = 'none';
-                alert("Manual sync list cleared successfully! ✅");
-            }
-        }
-
         function saveToRecentSearches(modelName) {
             try {
                 let recents = JSON.parse(localStorage.getItem('portal_recent_searches') || '[]');
@@ -910,7 +796,7 @@
 
                 let history = JSON.parse(localStorage.getItem('portal_quote_history') || '[]');
                 let now = new Date();
-                let timeStr = now.toLocaleDateString('en-GB') + ' ' + now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                let timeStr = now.toLocaleDateString('mr-IN') + ' ' + now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
                 let snapshot = {
                     id: Date.now(),
@@ -938,7 +824,7 @@
                 let history = JSON.parse(localStorage.getItem('portal_quote_history') || '[]');
                 let item = history.find(h => h.id === snapshotId);
                 if (!item) {
-                    alert("Profile not found in history!");
+                    alert("प्रोफाइल सापडली नाही!");
                     return;
                 }
 
@@ -947,23 +833,23 @@
                     document.getElementById('approvedVal').value = item.scenario.approved || "";
                     document.getElementById('maxLtvVal').value = item.scenario.maxLtv || "100";
                     document.getElementById('cappingVal').value = item.scenario.capping || "";
+                    persistScenarioData();
                 }
 
                 let restoredProd = JSON.parse(JSON.stringify(item.product));
                 restoredProd.id = 'prod_' + Date.now() + '_' + Math.floor(Math.random()*1000);
                 restoredProd.isCollapsed = false;
-                if (!restoredProd.targetDp) restoredProd.targetDp = 0;
 
                 selectedProductList.unshift(restoredProd);
                 renderAllProductPanels();
 
                 document.getElementById('historyModal').style.display = 'none';
                 window.scrollTo({ top: 0, behavior: 'smooth' });
-                alert(`✅ Full profile for ${restoredProd.name} restored successfully!`);
+                alert(`✅ ${restoredProd.name} ची पूर्ण प्रोफाइल यशस्वीरित्या लोड झाली!`);
 
             } catch(e) {
                 console.error("Profile restore error:", e);
-                alert("Error occurred while restoring profile.");
+                alert("प्रोफाइल रिस्टोअर करताना त्रुटी आली.");
             }
         }
 
@@ -973,7 +859,7 @@
             let history = JSON.parse(localStorage.getItem('portal_quote_history') || '[]');
 
             if (history.length === 0) {
-                container.innerHTML = `<div style="text-align:center; padding:20px; color:#94a3b8;">No quote history available.</div>`;
+                container.innerHTML = `<div style="text-align:center; padding:20px; color:#94a3b8;">कोणताही कोट इतिहास उपलब्ध नाही.</div>`;
             } else {
                 container.innerHTML = history.map(h => {
                     let sc = h.scenario || {};
@@ -985,14 +871,12 @@
                         
                         <div class="history-tags">
                             <span class="history-tag">INV: ₹${Number(p.invoice||0).toLocaleString()}</span>
-                            <span class="history-tag">T.DP: ₹${p.targetDp||0}</span>
                             <span class="history-tag">TYPE: ${sc.type||'-'}</span>
                             <span class="history-tag">APP: ₹${Number(sc.approved||0).toLocaleString()}</span>
                             <span class="history-tag">LTV: ${sc.maxLtv||100}%</span>
                             <span class="history-tag">CAP: ${sc.capping||'NONE'}</span>
                             <span class="history-tag">GTL: ₹${p.gtl||0}</span>
                             <span class="history-tag">RFC: ₹${p.rfc||0}</span>
-                            <span class="history-tag">EXW: ₹${p.exw||0}</span>
                             <span class="history-tag">MGN: ₹${p.margin||0}</span>
                         </div>
 
@@ -1000,7 +884,7 @@
                             <button onclick="restoreProfileFromHistory(${h.id})" style="flex:1; background:#10b981; color:white; border:none; padding:7px 10px; border-radius:4px; font-size:11px; font-weight:900; cursor:pointer;">
                                 🔄 RESTORE FULL PROFILE
                             </button>
-                            <button onclick="clipboardCopy('${(h.summary||'').replace(/'/g, "\\'").replace(/\n/g, "\\n")}', 'Text copied to clipboard! ✅')" style="background:#0284c7; color:white; border:none; padding:7px 10px; border-radius:4px; font-size:11px; font-weight:bold; cursor:pointer;">
+                            <button onclick="clipboardCopy('${(h.summary||'').replace(/'/g, "\\'").replace(/\n/g, "\\n")}', 'मजकूर कॉपी झाला! ✅')" style="background:#0284c7; color:white; border:none; padding:7px 10px; border-radius:4px; font-size:11px; font-weight:bold; cursor:pointer;">
                                 📋 COPY TEXT
                             </button>
                         </div>
@@ -1012,17 +896,77 @@
         }
 
         function clearAllHistory() {
-            if (confirm("Are you sure you want to clear all quote history?")) {
+            if (confirm("सर्व कोट इतिहास पूर्णपणे क्लिअर करायचा आहे का?")) {
                 localStorage.removeItem('portal_quote_history');
                 openHistoryModal();
             }
         }
 
+        function persistScenarioData() {
+            try {
+                let data = {
+                    type: document.getElementById('typeVal').value,
+                    approved: document.getElementById('approvedVal').value,
+                    maxLtv: document.getElementById('maxLtvVal').value,
+                    capping: document.getElementById('cappingVal').value
+                };
+                localStorage.setItem('portal_scenario_cache', JSON.stringify(data));
+            } catch(e) {}
+        }
+
+        function restoreScenarioData() {
+            try {
+                let data = JSON.parse(localStorage.getItem('portal_scenario_cache') || '{}');
+                if (data.type) document.getElementById('typeVal').value = data.type;
+                if (data.approved) document.getElementById('approvedVal').value = data.approved;
+                if (data.maxLtv) document.getElementById('maxLtvVal').value = data.maxLtv;
+                if (data.capping) document.getElementById('cappingVal').value = data.capping;
+            } catch(e) {}
+        }
+
+        /* ✏️ स्कीम कंपोनंट्स पाहणे व एडिट करणे */
+        function openEditSchemeModal(pId, sId) {
+            let prod = selectedProductList.find(p => p.id === pId);
+            if (!prod) return;
+            let s = prod.schemes.find(x => x.sId === sId);
+            if (!s) return;
+
+            document.getElementById('editTargetProdId').value = pId;
+            document.getElementById('editTargetSchemeId').value = sId;
+            document.getElementById('editSchemeSubTitle').innerText = `${prod.name} (Scheme: ${s.tenure}/${s.advEmi})`;
+
+            document.getElementById('editTen').value = s.tenure;
+            document.getElementById('editAdv').value = s.advEmi;
+            document.getElementById('editDbd').value = s.dbd;
+            document.getElementById('editPf').value = s.pf;
+            document.getElementById('editRoi').value = s.roi;
+
+            document.getElementById('editSchemeModal').style.display = 'flex';
+        }
+
+        function saveEditedSchemeValues() {
+            let pId = document.getElementById('editTargetProdId').value;
+            let sId = document.getElementById('editTargetSchemeId').value;
+
+            let prod = selectedProductList.find(p => p.id === pId);
+            if (!prod) return;
+            let s = prod.schemes.find(x => x.sId === sId);
+            if (!s) return;
+
+            s.tenure = parseInt(document.getElementById('editTen').value) || s.tenure;
+            s.advEmi = parseInt(document.getElementById('editAdv').value) || 0;
+            s.dbd = parseFloat(document.getElementById('editDbd').value) || 0;
+            s.pf = parseInt(document.getElementById('editPf').value) || 0;
+            s.roi = parseFloat(document.getElementById('editRoi').value) || 0;
+
+            document.getElementById('editSchemeModal').style.display = 'none';
+            renderProductTableOnly(pId);
+        }
+
         window.addEventListener('pageshow', async function() {
-            resetAllInputsToBlank();
+            restoreScenarioData();
             await initDB();
             await fetchFromMasterStream(false);
-            await loadPersistentCustomProducts();
             setTimeout(() => checkForRemoteExcelUpdate(), 1000);
         });
 
@@ -1030,6 +974,7 @@
             document.querySelectorAll('.form-input, .search-input').forEach(input => input.value = '');
             document.querySelectorAll('.form-select').forEach(select => select.selectedIndex = 0);
             selectedProductList = [];
+            localStorage.removeItem('portal_scenario_cache');
             renderAllProductPanels();
             const dropdown = document.getElementById('modelDropdown');
             if (dropdown) dropdown.style.display = 'none';
@@ -1054,7 +999,6 @@
                         }
                         await saveToDB('master_data_version_time', latestCommitTime);
                         await fetchFromMasterStream(true);
-                        cleanDuplicateManualProducts();
                     } else if (savedVersionTime === 0) {
                         await saveToDB('master_data_version_time', latestCommitTime);
                     }
@@ -1097,7 +1041,6 @@
                         badge.style.color = "#fff";
                         searchInput.disabled = false;
                         searchInput.placeholder = "Type Model Name to Add...";
-                        cleanDuplicateManualProducts();
                         return;
                     }
                 }
@@ -1120,9 +1063,10 @@
                     } catch(e) {}
                 }
 
-                if (!dataBuffer) throw new Error("Excel load failed");
+                if (!dataBuffer) throw new Error("Excel लोड अयशस्वी");
 
                 let wb = XLSX.read(new Uint8Array(dataBuffer), { type: 'array' });
+                
                 let sheet1 = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { raw: false, defval: "" });
                 let sheet2 = wb.SheetNames.length > 1 ? XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[1]], { raw: false, defval: "" }) : [];
 
@@ -1165,8 +1109,6 @@
                 badge.style.color = "#fff";
                 searchInput.disabled = false;
                 searchInput.placeholder = "Type Model Name to Add...";
-
-                cleanDuplicateManualProducts();
 
             } catch (err) {
                 console.error("Master Data Load Error:", err);
@@ -1222,29 +1164,20 @@
 
             let uniqueModels = [];
             let seen = new Set();
-
-            persistentCustomProducts.forEach(p => {
-                if (p.name.includes(q) && !seen.has(p.name)) {
-                    seen.add(p.name);
-                    uniqueModels.push({ model: p.name, isCustom: true });
-                }
-            });
-
             masterDbRecords.forEach(r => {
-                if (r.model.includes(q) && !seen.has(r.model)) {
-                    seen.add(r.model);
-                    uniqueModels.push({ model: r.model, isCustom: false });
+                if ((r.model.includes(q) || r.brand.includes(q)) && !seen.has(r.model)) {
+                    seen.add(r.model); uniqueModels.push(r);
                 }
             });
 
             if (uniqueModels.length === 0) {
-                dropdown.innerHTML = `<div style="padding:10px; color:#888; text-align:center;">No matching models found.</div>`;
+                dropdown.innerHTML = `<div style="padding:10px; color:#888; text-align:center;">कोणतेही मॉडेल सापडले नाही.</div>`;
                 dropdown.style.display = 'block'; return;
             }
 
             dropdown.innerHTML = uniqueModels.slice(0, 30).map(m => `
                 <div class="dropdown-item" onclick="addNewProductToBasket('${m.model.replace(/'/g, "\\'")}')">
-                    <span>📱 ${m.model} ${m.isCustom ? '<span style="color:#10b981; font-size:10px;">[SAVED]</span>' : ''}</span>
+                    <span>📱 ${m.brand ? `[${m.brand}] ` : ''}${m.model}</span>
                 </div>
             `).join('');
             dropdown.style.display = 'block';
@@ -1257,18 +1190,6 @@
 
             saveToRecentSearches(modelName);
 
-            let customProd = persistentCustomProducts.find(p => p.name === modelName);
-            if (customProd) {
-                let restored = JSON.parse(JSON.stringify(customProd));
-                restored.id = 'prod_' + Date.now() + '_' + Math.floor(Math.random()*1000);
-                restored.isCollapsed = false;
-                if (!restored.exw) restored.exw = 0;
-                if (!restored.targetDp) restored.targetDp = 0;
-                selectedProductList.push(restored);
-                renderAllProductPanels();
-                return;
-            }
-
             let modelSchemes = masterDbRecords.filter(r => r.model === modelName);
             let defaultMrp = modelSchemes[0] && modelSchemes[0].mrp > 0 ? modelSchemes[0].mrp : "";
 
@@ -1280,16 +1201,14 @@
                 name: modelName,
                 category: modelSchemes[0]?.category || "MODEL",
                 invoice: defaultMrp,
-                targetDp: 0, // Target DP default 0
                 gtl: autoGtl,
                 rfc: 0,
                 rfcSlab: autoRfcSlab,
-                exw: 0,
                 margin: 0,
                 dealerContri: 0,
                 isCollapsed: false,
                 isSheet2: false,
-                schemes: modelSchemes.map((s, idx) => ({ ...s, sId: 's_' + idx, disabled: false, customLoan: 0 }))
+                schemes: modelSchemes.map((s, idx) => ({ ...s, sId: 's_' + idx, disabled: false }))
             };
 
             selectedProductList.push(newProduct);
@@ -1322,16 +1241,14 @@
                 name: `[${selectedCat}] NON-TIEUP`,
                 category: selectedCat,
                 invoice: 30000,
-                targetDp: 0,
                 gtl: 1499,
                 rfc: 0,
                 rfcSlab: 0,
-                exw: 0,
                 margin: 0,
                 dealerContri: 0,
                 isCollapsed: false,
                 isSheet2: true,
-                schemes: catSchemes.map((s, idx) => ({ ...s, sId: 's2_' + idx, disabled: false, customLoan: 0 }))
+                schemes: catSchemes.map((s, idx) => ({ ...s, sId: 's2_' + idx, disabled: false }))
             };
 
             selectedProductList.push(newProduct);
@@ -1347,45 +1264,29 @@
 
             let catSchemes = sheet2AllCategoryRecords.filter(r => r.category.trim() === newCat.trim());
             if (catSchemes.length > 0) {
-                prod.schemes = catSchemes.map((s, idx) => ({ ...s, sId: 's2_' + idx, disabled: false, customLoan: 0 }));
+                prod.schemes = catSchemes.map((s, idx) => ({ ...s, sId: 's2_' + idx, disabled: false }));
             }
             renderAllProductPanels();
         }
 
-        async function addNewManualProductPrompt() {
-            let prodName = prompt("Enter Manual Product / Model Name:", "MANUAL PRODUCT");
+        function addNewManualProductPrompt() {
+            let prodName = prompt("कृपया मॅन्युअल प्रॉडक्टचे नाव टाका:", "MANUAL PRODUCT");
             if (!prodName || prodName.trim() === "") return;
 
-            prodName = prodName.trim().toUpperCase();
-
-            let existing = persistentCustomProducts.find(p => p.name === prodName);
-            let newProduct;
-
-            if (existing) {
-                newProduct = JSON.parse(JSON.stringify(existing));
-                newProduct.id = 'prod_' + Date.now();
-                newProduct.isCollapsed = false;
-                if (!newProduct.exw) newProduct.exw = 0;
-                if (!newProduct.targetDp) newProduct.targetDp = 0;
-            } else {
-                newProduct = {
-                    id: 'prod_' + Date.now(),
-                    name: prodName,
-                    category: "CUSTOM",
-                    invoice: 25000,
-                    targetDp: 0,
-                    gtl: 1199,
-                    rfc: 0,
-                    rfcSlab: 0,
-                    exw: 0,
-                    margin: 0,
-                    dealerContri: 0,
-                    isCollapsed: false,
-                    isSheet2: false,
-                    schemes: []
-                };
-                await savePersistentCustomProduct(newProduct);
-            }
+            let newProduct = {
+                id: 'prod_' + Date.now(),
+                name: prodName.trim().toUpperCase(),
+                category: "CUSTOM",
+                invoice: 25000,
+                gtl: 1199,
+                rfc: 0,
+                rfcSlab: 0,
+                margin: 0,
+                dealerContri: 0,
+                isCollapsed: false,
+                isSheet2: false,
+                schemes: []
+            };
 
             selectedProductList.push(newProduct);
             renderAllProductPanels();
@@ -1402,7 +1303,7 @@
             if (prod) { prod.isCollapsed = !prod.isCollapsed; renderAllProductPanels(); }
         }
 
-        async function updateProductParam(pId, field, val) {
+        function updateProductParam(pId, field, val) {
             let prod = selectedProductList.find(p => p.id === pId);
             if (prod) {
                 prod[field] = val;
@@ -1419,8 +1320,6 @@
                         if (opt) { opt.value = prod.rfcSlab; opt.innerText = prod.rfcSlab; }
                     }
                 }
-                
-                await savePersistentCustomProduct(prod);
                 renderProductTableOnly(pId);
             }
         }
@@ -1429,7 +1328,7 @@
 
         function openAddSchemeModal(pId, pName) {
             document.getElementById('modalTargetProdId').value = pId;
-            document.getElementById('addSchemeModalTitle').innerText = `➕ ADD SCHEME TO ${pName}`;
+            document.getElementById('addSchemeModalTitle').innerText = `➕ ${pName} मध्ये नवीन स्कीम जोडा`;
             document.getElementById('mTen').value = '';
             document.getElementById('mAdv').value = '0';
             document.getElementById('mDbd').value = '0';
@@ -1440,7 +1339,7 @@
 
         function closeAddSchemeModal() { document.getElementById('addSchemeModal').style.display = 'none'; }
 
-        async function saveCustomSchemeFromField() {
+        function saveCustomSchemeFromField() {
             let pId = document.getElementById('modalTargetProdId').value;
             let ten = parseInt(document.getElementById('mTen').value) || 0;
             let adv = parseInt(document.getElementById('mAdv').value) || 0;
@@ -1448,7 +1347,7 @@
             let pf = parseInt(document.getElementById('mPf').value) || 0;
             let roi = parseFloat(document.getElementById('mRoi').value) || 0;
 
-            if (ten <= 0) { alert("Please enter a valid Tenure!"); return; }
+            if (ten <= 0) { alert("कृपया वैध Tenure टाका!"); return; }
 
             let prod = selectedProductList.find(p => p.id === pId);
             if (prod) {
@@ -1461,13 +1360,9 @@
                     roi: roi,
                     sId: 'custom_' + Date.now(),
                     disabled: false,
-                    isCustom: true,
-                    customLoan: 0
+                    isCustom: true
                 };
                 prod.schemes.unshift(newCustomScheme);
-                
-                await savePersistentCustomProduct(prod);
-
                 closeAddSchemeModal();
                 renderProductTableOnly(pId);
             }
@@ -1478,64 +1373,6 @@
             if (prod) {
                 let s = prod.schemes.find(x => x.sId === sId);
                 if (s) { s.disabled = !s.disabled; renderProductTableOnly(pId); }
-            }
-        }
-
-        function openEditSchemeModal(pId, sId) {
-            let prod = selectedProductList.find(p => p.id === pId);
-            if (!prod) return;
-            let s = prod.schemes.find(x => x.sId === sId);
-            if (!s) return;
-
-            document.getElementById('editTargetProdId').value = pId;
-            document.getElementById('editTargetSchemeId').value = sId;
-            document.getElementById('editSchemeSubTitle').innerText = `${prod.name} (Scheme: ${s.tenure}/${s.advEmi})`;
-
-            document.getElementById('editCustomLoan').value = s.customLoan || "";
-            document.getElementById('editTen').value = s.tenure;
-            document.getElementById('editAdv').value = s.advEmi;
-            document.getElementById('editDbd').value = s.dbd;
-            document.getElementById('editPf').value = s.pf;
-            document.getElementById('editRoi').value = s.roi;
-
-            document.getElementById('editSchemeModal').style.display = 'flex';
-        }
-
-        async function saveEditedSchemeValues() {
-            let pId = document.getElementById('editTargetProdId').value;
-            let sId = document.getElementById('editTargetSchemeId').value;
-
-            let prod = selectedProductList.find(p => p.id === pId);
-            if (!prod) return;
-            let s = prod.schemes.find(x => x.sId === sId);
-            if (!s) return;
-
-            s.customLoan = parseFloat(document.getElementById('editCustomLoan').value) || 0;
-            s.tenure = parseInt(document.getElementById('editTen').value) || s.tenure;
-            s.advEmi = parseInt(document.getElementById('editAdv').value) || 0;
-            s.dbd = parseFloat(document.getElementById('editDbd').value) || 0;
-            s.pf = parseInt(document.getElementById('editPf').value) || 0;
-            s.roi = parseFloat(document.getElementById('editRoi').value) || 0;
-
-            await savePersistentCustomProduct(prod);
-
-            document.getElementById('editSchemeModal').style.display = 'none';
-            renderProductTableOnly(pId);
-        }
-
-        function promptDirectLoanEdit(pId, sId, currentLoan) {
-            let newLoanStr = prompt(`Enter custom Loan Amount for this scheme (Current: ₹${Math.round(currentLoan)}):`, Math.round(currentLoan));
-            if (newLoanStr === null) return;
-            let newLoan = parseFloat(newLoanStr) || 0;
-            
-            let prod = selectedProductList.find(p => p.id === pId);
-            if (prod) {
-                let s = prod.schemes.find(x => x.sId === sId);
-                if (s) {
-                    s.customLoan = newLoan;
-                    savePersistentCustomProduct(prod);
-                    renderProductTableOnly(pId);
-                }
             }
         }
 
@@ -1560,21 +1397,20 @@
                         let cols = tr.querySelectorAll('td');
                         if (cols.length >= 7) {
                             let sName = cols[1].innerText.replace('(FIELD)', '').trim();
-                            let sLoan = cols[2].innerText.trim();
-                            let sDp = cols[3].innerText.trim();
-                            let sEmi = cols[4].innerText.trim();
-                            let sMonths = cols[5].innerText.trim();
-                            let sDay = cols[6].innerText.trim();
+                            let sDp = cols[2].innerText.trim();
+                            let sEmi = cols[3].innerText.trim();
+                            let sMonths = cols[4].innerText.trim();
+                            let sDay = cols[5].innerText.trim();
 
                             textToCopy += `🔹 *Option ${count}:* ${sName}\n` +
-                                          `💰 *DP:* ${sDp} (Loan: ${sLoan})\n` +
+                                          `💰 *DP:* ${sDp}\n` +
                                           `🗓️ *EMI:* ${sEmi} x ${sMonths} Months\n` +
                                           `✨ *Per Day:* ${sDay}\n\n`;
                             count++;
                         }
                     }
                 });
-                clipboardCopy(textToCopy, `${count - 1} Selected scheme(s) copied successfully! ✅`);
+                clipboardCopy(textToCopy, `टिकमार्क केलेल्या ${count - 1} स्कीम्स कॉपी झाल्या! ✅`);
             } else {
                 textToCopy = `📱 *${prod.name}*\n` +
                              `💵 *Invoice:* ₹${Number(price).toLocaleString()}\n\n` +
@@ -1582,7 +1418,7 @@
                              `💰 *DP:* ₹${Number(dp).toLocaleString()}\n` +
                              `🗓️ *EMI:* ₹${Number(emi).toLocaleString()} x ${months} Months\n` +
                              `✨ *Per Day:* ₹${Number(perDay).toLocaleString()}`;
-                clipboardCopy(textToCopy, "Scheme copied successfully! ✅");
+                clipboardCopy(textToCopy, "स्कीम कॉपी झाली! ✅");
             }
 
             saveFullProfileSnapshot(prod.id, textToCopy);
@@ -1608,7 +1444,7 @@
                 let arrowIcon = isCol ? "▶" : "▼";
 
                 let categorySelectorHtml = prod.isSheet2 ? `
-                    <div style="grid-column: span 3; background:#08193f; padding:6px; border-radius:4px; border:1px solid #1e3a68;">
+                    <div style="grid-column: span 2; background:#08193f; padding:6px; border-radius:4px; border:1px solid #1e3a68;">
                         <label style="color:#38bdf8;">📂 CATEGORY (SHEET 2):</label>
                         <select onchange="changeCardCategory('${prod.id}', this.value)" style="color:#38bdf8; font-weight:bold;">
                             ${sheet2CategoriesList.map(c => `<option value="${c}" ${c === prod.category ? 'selected' : ''}>${c}</option>`).join('')}
@@ -1632,16 +1468,11 @@
                     </div>
 
                     <div id="panel_body_${prod.id}" style="display:${bodyDisplay};">
-                        <!-- Grid with Target DP added seamlessly -->
                         <div class="sub-config-grid">
                             ${categorySelectorHtml}
                             <div>
                                 <label>INVOICE (₹)</label>
                                 <input type="number" value="${prod.invoice}" placeholder="0" oninput="updateProductParam('${prod.id}', 'invoice', this.value)">
-                            </div>
-                            <div>
-                                <label style="color:#34d399;">🎯 TARGET DP (₹)</label>
-                                <input type="number" value="${prod.targetDp || 0}" placeholder="0" oninput="updateProductParam('${prod.id}', 'targetDp', this.value)" style="border-color:#34d399; color:#34d399;">
                             </div>
                             <div>
                                 <label>GTL (₹) [SLAB]</label>
@@ -1662,14 +1493,10 @@
                                 </select>
                             </div>
                             <div>
-                                <label>EXW (₹) [EXT. WARRANTY]</label>
-                                <input type="number" value="${prod.exw || 0}" placeholder="0" oninput="updateProductParam('${prod.id}', 'exw', this.value)">
-                            </div>
-                            <div>
                                 <label>MARGIN (₹)</label>
                                 <input type="number" value="${prod.margin}" placeholder="0" oninput="updateProductParam('${prod.id}', 'margin', this.value)">
                             </div>
-                            <div style="grid-column: span 3;">
+                            <div style="grid-column: span 2;">
                                 <label>DEALER CONTRI (₹)</label>
                                 <input type="number" value="${prod.dealerContri}" placeholder="0" oninput="updateProductParam('${prod.id}', 'dealerContri', this.value)">
                             </div>
@@ -1681,12 +1508,14 @@
                                     <tr>
                                         <th>☑</th>
                                         <th>SCHEME</th>
-                                        <th title="Click any Loan to adjust/override">LOAN ✎</th>
                                         <th>DP</th>
                                         <th>EMI</th>
                                         <th>M</th>
                                         <th>DAY</th>
-                                        <th>ACTION</th>
+                                        <th>EXTRA</th>
+                                        <th>COPY</th>
+                                        <th>EDIT</th>
+                                        <th>ACT</th>
                                     </tr>
                                 </thead>
                                 <tbody id="tbody_${prod.id}"></tbody>
@@ -1700,7 +1529,6 @@
             selectedProductList.forEach(p => renderProductTableOnly(p.id));
         }
 
-        /* 🎯 कॅल्क्युलेशन: Target DP सपोर्ट */
         function renderProductTableOnly(pId) {
             let prod = selectedProductList.find(p => p.id === pId);
             if (!prod) return;
@@ -1715,20 +1543,12 @@
             let emiCap = parseFloat(document.getElementById('cappingVal').value) || 0;
 
             let invoiceAmount = parseFloat(prod.invoice) || 0;
-            let targetDpAmount = parseFloat(prod.targetDp) || 0; // Target DP
             let margin = parseFloat(prod.margin) || 0;
             let dealerContri = parseFloat(prod.dealerContri) || 0;
             let gtlVal = parseFloat(prod.gtl) || 0;
             let rfcVal = parseFloat(prod.rfc) || 0;
-            let exwVal = parseFloat(prod.exw) || 0;
 
-            let baseFee = 850;
-            if (custType === 'EMI CARD' || custType === 'VIRTUAL CARD') {
-                baseFee = 270;
-            } else if (custType === 'W/O CARD') {
-                baseFee = 320;
-            }
-
+            let baseFee = (custType === 'EMI CARD') ? 270 : (custType === 'W/O CARD' ? 320 : 850);
             let totalFees = baseFee + margin + dealerContri;
 
             let eligibleSchemes = prod.schemes.filter(s => {
@@ -1738,7 +1558,7 @@
             });
 
             if (eligibleSchemes.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" style="color:#f87171; padding:10px;">No schemes found under Max LTV (${maxLtv}%).</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="10" style="color:#f87171; padding:10px;">Max LTV (${maxLtv}%) च्या मर्यादेत एकही स्कीम नाही.</td></tr>`;
                 return;
             }
 
@@ -1747,35 +1567,28 @@
                 let inst = s.tenure - s.advEmi;
                 if (inst < 1) inst = 1;
 
-                let loan = 0;
-                if (s.customLoan && s.customLoan > 0) {
-                    loan = s.customLoan;
-                } else if (targetDpAmount > 0) {
-                    // जर Target DP दिला असेल, तर त्यानुसार लोन काढणे
-                    loan = Math.max(0, price - targetDpAmount);
-                } else {
-                    let nbfcMaxL = approvedLimit > 0 ? (approvedLimit * s.tenure) / (inst || 1) : price;
-                    loan = Math.min(price, nbfcMaxL);
-                    let schemeLtv = (inst / s.tenure) * 100;
-                    if (schemeLtv > maxLtv) loan = Math.floor(price * (maxLtv / 100));
-                    let minAllowedLoan = price * 0.50;
-                    if (loan < minAllowedLoan) loan = minAllowedLoan;
-                }
+                let nbfcMaxL = approvedLimit > 0 ? (approvedLimit * s.tenure) / (inst || 1) : price;
+                let loan = Math.min(price, nbfcMaxL);
+
+                let schemeLtv = (inst / s.tenure) * 100;
+                if (schemeLtv > maxLtv) loan = Math.floor(price * (maxLtv / 100));
+
+                let minAllowedLoan = price * 0.50;
+                if (loan < minAllowedLoan) loan = minAllowedLoan;
 
                 let dbdRate = (s.dbd * 1.18 / 100);
                 let roiRate = s.roi / 1200;
                 let roiRateDP = roiRate * s.advEmi;
 
-                let insTotal = gtlVal + rfcVal + exwVal;
+                let insTotal = gtlVal + rfcVal;
                 let baseEmi = loan / s.tenure;
                 if (baseEmi > 0 && baseEmi < 900) baseEmi = 900;
 
                 let roiInEmi = loan * roiRate;
                 let emi = (loan / s.tenure) + (insTotal / inst) + roiInEmi;
 
-                if ((!s.customLoan || s.customLoan <= 0) && targetDpAmount <= 0 && emiCap > 0 && emi > emiCap) {
+                if (emiCap > 0 && emi > emiCap) {
                     loan = (emiCap - (insTotal / inst)) / ((1 / s.tenure) + roiRate);
-                    let minAllowedLoan = price * 0.50;
                     if (loan < minAllowedLoan) loan = minAllowedLoan;
                     roiInEmi = loan * roiRate;
                     emi = (loan / s.tenure) + (insTotal / inst) + roiInEmi;
@@ -1786,6 +1599,7 @@
                 let dp = Math.ceil(dpExact / 10) * 10;
 
                 let perDay = emi / 30;
+                let extraCharges = ((emi * inst) + dp) - price;
 
                 return {
                     scheme: s,
@@ -1794,10 +1608,10 @@
                     emi: emi,
                     months: inst,
                     perDay: perDay,
+                    extraCharges: extraCharges,
                     disabled: s.disabled,
                     sId: s.sId,
-                    isCustom: s.isCustom,
-                    hasCustomLoan: (s.customLoan && s.customLoan > 0)
+                    isCustom: s.isCustom
                 };
             });
 
@@ -1810,31 +1624,28 @@
             tbody.innerHTML = calculatedRows.map(row => {
                 let s = row.scheme;
                 let rowClass = row.disabled ? "row-disabled" : "";
-                let customBadge = row.isCustom ? `<span style="font-size:9px; color:#10b981;">(FIELD)</span>` : '';
-                let loanCustomStyle = row.hasCustomLoan ? 'color:#facc15; text-decoration:underline;' : 'color:#34d399;';
+                let actionBtn = row.disabled 
+                    ? `<button class="btn-toggle-row btn-ena" onclick="toggleSchemeStatus('${prod.id}', '${row.sId}')">✅</button>`
+                    : `<button class="btn-toggle-row btn-dis" onclick="toggleSchemeStatus('${prod.id}', '${row.sId}')">🚫</button>`;
 
-                let toggleBtn = row.disabled 
-                    ? `<button class="action-icon-btn btn-toggle-mini btn-ena" title="Enable" onclick="toggleSchemeStatus('${prod.id}', '${row.sId}')">✅</button>`
-                    : `<button class="action-icon-btn btn-toggle-mini btn-dis" title="Disable" onclick="toggleSchemeStatus('${prod.id}', '${row.sId}')">🚫</button>`;
+                let customBadge = row.isCustom ? `<span style="font-size:9px; color:#10b981;">(FIELD)</span>` : '';
 
                 return `
                     <tr class="${rowClass}">
                         <td><input type="checkbox" class="scheme-checkbox" ${row.disabled ? 'disabled' : ''}></td>
                         <td style="color:#60a5fa; font-weight:900;">${s.tenure}/${s.advEmi} ${customBadge}</td>
-                        <td style="${loanCustomStyle} cursor:pointer;" title="Click to edit loan amount" onclick="promptDirectLoanEdit('${prod.id}', '${row.sId}', ${row.loan})">
-                            ₹${Math.round(row.loan).toLocaleString()}
-                        </td>
                         <td style="color:#f59e0b; font-weight:900;">₹${Math.round(row.dp).toLocaleString()}</td>
                         <td style="color:#38bdf8; font-weight:900;">₹${Math.round(row.emi).toLocaleString()}</td>
                         <td style="color:#e2e8f0;">${row.months}</td>
                         <td style="color:#fb923c;">₹${Math.round(row.perDay).toLocaleString()}</td>
+                        <td style="color:#f87171;">₹${Math.max(0, Math.round(row.extraCharges)).toLocaleString()}</td>
                         <td>
-                            <div class="action-btn-group">
-                                <button class="action-icon-btn btn-copy-mini" title="Copy Scheme" onclick="copySmartScheme('${prod.id}', this, '${s.tenure}', '${s.advEmi}', '${Math.round(row.dp)}', '${Math.round(row.emi)}', '${row.months}', '${Math.round(row.perDay)}')">📋</button>
-                                <button class="action-icon-btn btn-edit-mini" title="Edit Components / Loan" onclick="openEditSchemeModal('${prod.id}', '${row.sId}')">✏️</button>
-                                ${toggleBtn}
-                            </div>
+                            <button class="btn-copy-scheme" title="टिक केलेल्या सर्व किंवा ही एक स्कीम कॉपी करा" onclick="copySmartScheme('${prod.id}', this, '${s.tenure}', '${s.advEmi}', '${Math.round(row.dp)}', '${Math.round(row.emi)}', '${row.months}', '${Math.round(row.perDay)}')">📋</button>
                         </td>
+                        <td>
+                            <button class="btn-edit-scheme" title="स्कीम कंपोनंट्स बघा व एडिट करा" onclick="openEditSchemeModal('${prod.id}', '${row.sId}')">✏️</button>
+                        </td>
+                        <td>${actionBtn}</td>
                     </tr>
                 `;
             }).join('');
@@ -1846,7 +1657,7 @@
 
             let tableElement = document.getElementById(`tbody_${pId}`);
             if (!tableElement || tableElement.querySelectorAll('tr:not(.row-disabled)').length === 0) {
-                alert("At least one active scheme is required for generating quotation!");
+                alert("कोटेशनसाठी किमान एक ॲक्टिव्ह स्कीम आवश्यक आहे!");
                 return;
             }
 
@@ -1896,14 +1707,14 @@
                     <tbody>
                         ${Array.from(tableElement.querySelectorAll('tr:not(.row-disabled)')).map(r => {
                             let cols = r.querySelectorAll('td');
-                            if (cols.length < 7) return '';
+                            if (cols.length < 8) return '';
                             return `
                                 <tr style="border-bottom: 1px solid #1c2e4a; font-weight: 900; font-size: 17px;">
                                     <td style="padding: 12px 6px; color: #60a5fa;">${cols[1].innerText.replace('(FIELD)', '').trim()}</td>
-                                    <td style="padding: 12px 6px; color: #f59e0b;">${cols[3].innerText}</td>
-                                    <td style="padding: 12px 6px; color: #38bdf8;">${cols[4].innerText}</td>
-                                    <td style="padding: 12px 6px; color: #e2e8f0;">${cols[5].innerText}</td>
-                                    <td style="padding: 12px 6px; color: #fb923c;">${cols[6].innerText}</td>
+                                    <td style="padding: 12px 6px; color: #f59e0b;">${cols[2].innerText}</td>
+                                    <td style="padding: 12px 6px; color: #38bdf8;">${cols[3].innerText}</td>
+                                    <td style="padding: 12px 6px; color: #e2e8f0;">${cols[4].innerText}</td>
+                                    <td style="padding: 12px 6px; color: #fb923c;">${cols[5].innerText}</td>
                                 </tr>
                             `;
                         }).join('')}
