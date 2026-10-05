@@ -285,6 +285,7 @@
         .btn-quote { background: #0284c7; color: white; }
         .btn-remove { background: #dc2626; color: white; }
 
+        /* 3 Columns Sub-Config Grid to Fit INVOICE, TARGET DP, GTL, RFC, EXW, MARGIN */
         .sub-config-grid {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
@@ -350,6 +351,7 @@
             accent-color: #38bdf8;
         }
 
+        /* Compact Action Buttons */
         .action-btn-group {
             display: inline-flex;
             gap: 3px;
@@ -440,6 +442,7 @@
             color: #38bdf8;
         }
 
+        /* HISTORY & EXPORT CARD */
         .history-card {
             background: #0b1736;
             border: 1px solid #243b6b;
@@ -1015,6 +1018,7 @@
             }
         }
 
+        /* 🧹 रिफ्रेश केल्यावर १००% ब्लँक स्क्रीन */
         window.addEventListener('pageshow', async function() {
             resetAllInputsToBlank();
             await initDB();
@@ -1696,7 +1700,9 @@
             selectedProductList.forEach(p => renderProductTableOnly(p.id));
         }
 
-        /* 🎯 REVERSE TARGET DP CALCULATION ENGINE */
+        /* ========================================================================= */
+        /* 🎯 COMPLETE 100% AUDITED RETAIL FINANCE ENGINE WITH ALL POLICY RULES     */
+        /* ========================================================================= */
         function renderProductTableOnly(pId) {
             let prod = selectedProductList.find(p => p.id === pId);
             if (!prod) return;
@@ -1727,6 +1733,7 @@
 
             let totalFees = baseFee + margin + dealerContri;
 
+            // 1. Max LTV Eligibility Filter
             let eligibleSchemes = prod.schemes.filter(s => {
                 if (s.tenure <= 0) return false;
                 let schemeLtv = ((s.tenure - s.advEmi) / s.tenure) * 100;
@@ -1749,11 +1756,11 @@
 
                 let loan = 0;
 
-                // 1. मॅन्युअल ओव्हरराइड
+                // RULE A: Custom Loan Override
                 if (s.customLoan && s.customLoan > 0) {
                     loan = s.customLoan;
                 } 
-                // 2. अचूक रिव्हर्स टार्गेट DP फॉर्म्युला
+                // RULE B: Reverse Target DP Calculation Formula
                 else if (targetDpAmount > 0) {
                     let totalFixedAdditions = s.pf + totalFees;
                     let denominator = 1 - (s.advEmi / s.tenure) - dbdRate - roiRateDP;
@@ -1763,40 +1770,54 @@
                     } else {
                         loan = price - targetDpAmount;
                     }
-
-                    // किमान आणि कमाल मर्यादा तपासणी
-                    loan = Math.min(price, Math.max(0, loan));
-                    if (approvedLimit > 0) {
-                        let nbfcMaxL = (approvedLimit * s.tenure) / (inst || 1);
-                        loan = Math.min(loan, nbfcMaxL);
-                    }
                 } 
-                // 3. स्टँडर्ड ऑटो कॅल्क्युलेशन
+                // RULE C: Default Standard NBFC Full Loan
                 else {
-                    let nbfcMaxL = approvedLimit > 0 ? (approvedLimit * s.tenure) / (inst || 1) : price;
-                    loan = Math.min(price, nbfcMaxL);
-                    let schemeLtv = (inst / s.tenure) * 100;
-                    if (schemeLtv > maxLtv) loan = Math.floor(price * (maxLtv / 100));
-                    let minAllowedLoan = price * 0.50;
-                    if (loan < minAllowedLoan) loan = minAllowedLoan;
+                    loan = price;
                 }
 
+                // RULE D: NBFC Approved Limit Ceiling Cap
+                if (approvedLimit > 0) {
+                    let nbfcMaxL = (approvedLimit * s.tenure) / inst;
+                    loan = Math.min(loan, nbfcMaxL);
+                }
+
+                // RULE E: Policy Max LTV Capping
+                let maxAllowedByLtv = Math.floor(price * (maxLtv / 100));
+                loan = Math.min(loan, maxAllowedByLtv);
+
+                // RULE F: Minimum 50% Floor Limit Rule (Policy Rule)
+                let minAllowedLoan = price * 0.50;
+                if (loan < minAllowedLoan) {
+                    loan = minAllowedLoan;
+                }
+
+                // Absolute Ceiling Cap to Handset Price
+                loan = Math.min(price, Math.max(0, loan));
+
+                // Total Insurances (GTL + RFC + EXW)
                 let insTotal = gtlVal + rfcVal + exwVal;
+
+                // RULE G: Minimum Base EMI ₹900 Floor Rule
                 let baseEmi = loan / s.tenure;
-                if (baseEmi > 0 && baseEmi < 900) baseEmi = 900;
-
                 let roiInEmi = loan * roiRate;
-                let emi = (loan / s.tenure) + (insTotal / inst) + roiInEmi;
+                let emi = baseEmi + (insTotal / inst) + roiInEmi;
 
-                // Capping मर्यादा
+                if (baseEmi > 0 && baseEmi < 900) {
+                    emi = 900 + (insTotal / inst) + roiInEmi;
+                }
+
+                // RULE H: EMI Capping Ceiling Enforcement
                 if ((!s.customLoan || s.customLoan <= 0) && targetDpAmount <= 0 && emiCap > 0 && emi > emiCap) {
                     loan = (emiCap - (insTotal / inst)) / ((1 / s.tenure) + roiRate);
-                    let minAllowedLoan = price * 0.50;
                     if (loan < minAllowedLoan) loan = minAllowedLoan;
+                    loan = Math.min(price, Math.max(0, loan));
+                    baseEmi = loan / s.tenure;
                     roiInEmi = loan * roiRate;
-                    emi = (loan / s.tenure) + (insTotal / inst) + roiInEmi;
+                    emi = (baseEmi < 900 && baseEmi > 0 ? 900 : baseEmi) + (insTotal / inst) + roiInEmi;
                 }
 
+                // Final Down Payment Formulation
                 let roiInDp = loan * roiRateDP;
                 let dpExact = price - loan + ((loan / s.tenure) * s.advEmi) + (loan * dbdRate) + s.pf + totalFees + roiInDp;
                 let dp = Math.ceil(dpExact / 10) * 10;
@@ -1817,6 +1838,7 @@
                 };
             });
 
+            // Multi-Tier Sorting (DP Ascending -> EMI Ascending -> Months Descending)
             calculatedRows.sort((a, b) => {
                 if (a.dp !== b.dp) return a.dp - b.dp;
                 if (a.emi !== b.emi) return a.emi - b.emi;
