@@ -285,7 +285,7 @@
         .btn-quote { background: #0284c7; color: white; }
         .btn-remove { background: #dc2626; color: white; }
 
-        /* 3 Columns Sub-Config Grid to Fit GTL, RFC, EXW cleanly */
+        /* 3 Columns Sub-Config Grid to Fit INVOICE, TARGET DP, GTL, RFC, EXW, MARGIN */
         .sub-config-grid {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
@@ -351,7 +351,7 @@
             accent-color: #38bdf8;
         }
 
-        /* Compact Action Buttons in a single column */
+        /* Compact Action Buttons */
         .action-btn-group {
             display: inline-flex;
             gap: 3px;
@@ -442,7 +442,7 @@
             color: #38bdf8;
         }
 
-        /* HISTORY CARD */
+        /* HISTORY & EXPORT CARD */
         .history-card {
             background: #0b1736;
             border: 1px solid #243b6b;
@@ -533,7 +533,7 @@
             </div>
         </div>
 
-        <!-- 3. SELECTED PRODUCTS CONTAINER (CLEAN SLATE ON REFRESH) -->
+        <!-- 3. SELECTED PRODUCTS CONTAINER -->
         <div id="selectedProductsContainer"></div>
 
     </div>
@@ -576,7 +576,6 @@
             <input type="hidden" id="editTargetSchemeId">
 
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;">
-                <!-- Loan Amount Override input -->
                 <div style="grid-column: span 2; background:#0b1736; padding:8px; border-radius:6px; border:1px solid #38bdf8;">
                     <label style="font-size:11px; color:#38bdf8; font-weight:bold; display:block; margin-bottom:3px;">
                         💰 CUSTOM LOAN AMOUNT (₹) [Leave 0 for Auto-Calculate]:
@@ -798,7 +797,6 @@
             return 0;
         }
 
-        /* 💾 PERSISTENT CUSTOM PRODUCTS STORAGE */
         async function loadPersistentCustomProducts() {
             persistentCustomProducts = await getFromDB('persistent_custom_products') || [];
             cleanDuplicateManualProducts();
@@ -824,7 +822,6 @@
             }
         }
 
-        /* 📋 MASTER DATA EXPORT ENGINE */
         function openMasterExportModal() {
             const modal = document.getElementById('exportModal');
             const textarea = document.getElementById('masterExportText');
@@ -875,7 +872,6 @@
             }
         }
 
-        /* 🕒 RECENT SEARCHES */
         function saveToRecentSearches(modelName) {
             try {
                 let recents = JSON.parse(localStorage.getItem('portal_recent_searches') || '[]');
@@ -956,6 +952,7 @@
                 let restoredProd = JSON.parse(JSON.stringify(item.product));
                 restoredProd.id = 'prod_' + Date.now() + '_' + Math.floor(Math.random()*1000);
                 restoredProd.isCollapsed = false;
+                if (!restoredProd.targetDp) restoredProd.targetDp = 0;
 
                 selectedProductList.unshift(restoredProd);
                 renderAllProductPanels();
@@ -988,6 +985,7 @@
                         
                         <div class="history-tags">
                             <span class="history-tag">INV: ₹${Number(p.invoice||0).toLocaleString()}</span>
+                            <span class="history-tag">T.DP: ₹${p.targetDp||0}</span>
                             <span class="history-tag">TYPE: ${sc.type||'-'}</span>
                             <span class="history-tag">APP: ₹${Number(sc.approved||0).toLocaleString()}</span>
                             <span class="history-tag">LTV: ${sc.maxLtv||100}%</span>
@@ -1020,7 +1018,6 @@
             }
         }
 
-        /* 🧹 रिफ्रेश केल्यावर १००% ब्लँक स्क्रीन */
         window.addEventListener('pageshow', async function() {
             resetAllInputsToBlank();
             await initDB();
@@ -1265,7 +1262,8 @@
                 let restored = JSON.parse(JSON.stringify(customProd));
                 restored.id = 'prod_' + Date.now() + '_' + Math.floor(Math.random()*1000);
                 restored.isCollapsed = false;
-                if (!restored.exw) restored.exw = 0; // EXW default
+                if (!restored.exw) restored.exw = 0;
+                if (!restored.targetDp) restored.targetDp = 0;
                 selectedProductList.push(restored);
                 renderAllProductPanels();
                 return;
@@ -1282,10 +1280,11 @@
                 name: modelName,
                 category: modelSchemes[0]?.category || "MODEL",
                 invoice: defaultMrp,
+                targetDp: 0, // Target DP default 0
                 gtl: autoGtl,
                 rfc: 0,
                 rfcSlab: autoRfcSlab,
-                exw: 0, // EXW (Extended Warranty) default 0
+                exw: 0,
                 margin: 0,
                 dealerContri: 0,
                 isCollapsed: false,
@@ -1323,6 +1322,7 @@
                 name: `[${selectedCat}] NON-TIEUP`,
                 category: selectedCat,
                 invoice: 30000,
+                targetDp: 0,
                 gtl: 1499,
                 rfc: 0,
                 rfcSlab: 0,
@@ -1366,12 +1366,14 @@
                 newProduct.id = 'prod_' + Date.now();
                 newProduct.isCollapsed = false;
                 if (!newProduct.exw) newProduct.exw = 0;
+                if (!newProduct.targetDp) newProduct.targetDp = 0;
             } else {
                 newProduct = {
                     id: 'prod_' + Date.now(),
                     name: prodName,
                     category: "CUSTOM",
                     invoice: 25000,
+                    targetDp: 0,
                     gtl: 1199,
                     rfc: 0,
                     rfcSlab: 0,
@@ -1479,7 +1481,6 @@
             }
         }
 
-        /* ✏️ EDIT SCHEME & CUSTOM LOAN OVERRIDE */
         function openEditSchemeModal(pId, sId) {
             let prod = selectedProductList.find(p => p.id === pId);
             if (!prod) return;
@@ -1522,7 +1523,6 @@
             renderProductTableOnly(pId);
         }
 
-        /* लोन रकमेवर थेट क्लिक करून जागेवरच एडिट करण्याची सोय */
         function promptDirectLoanEdit(pId, sId, currentLoan) {
             let newLoanStr = prompt(`Enter custom Loan Amount for this scheme (Current: ₹${Math.round(currentLoan)}):`, Math.round(currentLoan));
             if (newLoanStr === null) return;
@@ -1632,12 +1632,16 @@
                     </div>
 
                     <div id="panel_body_${prod.id}" style="display:${bodyDisplay};">
-                        <!-- 3-Column Clean Grid: GTL, RFC, EXW arranged sequentially -->
+                        <!-- Grid with Target DP added seamlessly -->
                         <div class="sub-config-grid">
                             ${categorySelectorHtml}
                             <div>
                                 <label>INVOICE (₹)</label>
                                 <input type="number" value="${prod.invoice}" placeholder="0" oninput="updateProductParam('${prod.id}', 'invoice', this.value)">
+                            </div>
+                            <div>
+                                <label style="color:#34d399;">🎯 TARGET DP (₹)</label>
+                                <input type="number" value="${prod.targetDp || 0}" placeholder="0" oninput="updateProductParam('${prod.id}', 'targetDp', this.value)" style="border-color:#34d399; color:#34d399;">
                             </div>
                             <div>
                                 <label>GTL (₹) [SLAB]</label>
@@ -1665,7 +1669,7 @@
                                 <label>MARGIN (₹)</label>
                                 <input type="number" value="${prod.margin}" placeholder="0" oninput="updateProductParam('${prod.id}', 'margin', this.value)">
                             </div>
-                            <div>
+                            <div style="grid-column: span 3;">
                                 <label>DEALER CONTRI (₹)</label>
                                 <input type="number" value="${prod.dealerContri}" placeholder="0" oninput="updateProductParam('${prod.id}', 'dealerContri', this.value)">
                             </div>
@@ -1696,7 +1700,7 @@
             selectedProductList.forEach(p => renderProductTableOnly(p.id));
         }
 
-        /* 🎯 कॅल्क्युलेशन: EXW विभागणी + कॉम्पॅक्ट सिंगल ॲक्शन कॉलम */
+        /* 🎯 कॅल्क्युलेशन: Target DP सपोर्ट */
         function renderProductTableOnly(pId) {
             let prod = selectedProductList.find(p => p.id === pId);
             if (!prod) return;
@@ -1711,11 +1715,12 @@
             let emiCap = parseFloat(document.getElementById('cappingVal').value) || 0;
 
             let invoiceAmount = parseFloat(prod.invoice) || 0;
+            let targetDpAmount = parseFloat(prod.targetDp) || 0; // Target DP
             let margin = parseFloat(prod.margin) || 0;
             let dealerContri = parseFloat(prod.dealerContri) || 0;
             let gtlVal = parseFloat(prod.gtl) || 0;
             let rfcVal = parseFloat(prod.rfc) || 0;
-            let exwVal = parseFloat(prod.exw) || 0; // Extended warranty input
+            let exwVal = parseFloat(prod.exw) || 0;
 
             let baseFee = 850;
             if (custType === 'EMI CARD' || custType === 'VIRTUAL CARD') {
@@ -1742,10 +1747,12 @@
                 let inst = s.tenure - s.advEmi;
                 if (inst < 1) inst = 1;
 
-                // लोन अमाऊंट मॅन्युअली ॲडजस्ट केली असल्यास ती प्राधान्याने वापरणे
                 let loan = 0;
                 if (s.customLoan && s.customLoan > 0) {
                     loan = s.customLoan;
+                } else if (targetDpAmount > 0) {
+                    // जर Target DP दिला असेल, तर त्यानुसार लोन काढणे
+                    loan = Math.max(0, price - targetDpAmount);
                 } else {
                     let nbfcMaxL = approvedLimit > 0 ? (approvedLimit * s.tenure) / (inst || 1) : price;
                     loan = Math.min(price, nbfcMaxL);
@@ -1759,7 +1766,6 @@
                 let roiRate = s.roi / 1200;
                 let roiRateDP = roiRate * s.advEmi;
 
-                // GTL + RFC + EXW तिन्ही एकत्र करून EMI मध्ये समान विभागले जातील
                 let insTotal = gtlVal + rfcVal + exwVal;
                 let baseEmi = loan / s.tenure;
                 if (baseEmi > 0 && baseEmi < 900) baseEmi = 900;
@@ -1767,8 +1773,7 @@
                 let roiInEmi = loan * roiRate;
                 let emi = (loan / s.tenure) + (insTotal / inst) + roiInEmi;
 
-                // Capping मर्यादा (फक्त ऑटो लोन असेल तर लागू)
-                if ((!s.customLoan || s.customLoan <= 0) && emiCap > 0 && emi > emiCap) {
+                if ((!s.customLoan || s.customLoan <= 0) && targetDpAmount <= 0 && emiCap > 0 && emi > emiCap) {
                     loan = (emiCap - (insTotal / inst)) / ((1 / s.tenure) + roiRate);
                     let minAllowedLoan = price * 0.50;
                     if (loan < minAllowedLoan) loan = minAllowedLoan;
@@ -1796,7 +1801,6 @@
                 };
             });
 
-            // मल्टी-लेव्हल सॉर्टिंग (DP चढता -> EMI चढता -> महिने उतरता)
             calculatedRows.sort((a, b) => {
                 if (a.dp !== b.dp) return a.dp - b.dp;
                 if (a.emi !== b.emi) return a.emi - b.emi;
@@ -1825,7 +1829,6 @@
                         <td style="color:#e2e8f0;">${row.months}</td>
                         <td style="color:#fb923c;">₹${Math.round(row.perDay).toLocaleString()}</td>
                         <td>
-                            <!-- Compact Single Action Column -->
                             <div class="action-btn-group">
                                 <button class="action-icon-btn btn-copy-mini" title="Copy Scheme" onclick="copySmartScheme('${prod.id}', this, '${s.tenure}', '${s.advEmi}', '${Math.round(row.dp)}', '${Math.round(row.emi)}', '${row.months}', '${Math.round(row.perDay)}')">📋</button>
                                 <button class="action-icon-btn btn-edit-mini" title="Edit Components / Loan" onclick="openEditSchemeModal('${prod.id}', '${row.sId}')">✏️</button>
