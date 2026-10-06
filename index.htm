@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pro Financial Portal - Bajaj Edition</title>
 
+    <!-- Google Handwriting Fonts (असली हाथ से लिखा हुआ फील लाने के लिए) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
+
     <!-- SheetJS CDN for Live Excel Reading -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
@@ -1089,7 +1094,7 @@
             return { tenure, advEmi };
         }
 
-        /* ⚡ ULTRA-FAST STREAM FETCHING (Instant Offline Cache First + Fast Direct Fetch) */
+        /* ⚡ ULTRA-FAST STREAM FETCHING */
         async function fetchFromMasterStream(forceSync = false) {
             const badge = document.getElementById('dataStatusBadge');
             const searchInput = document.getElementById('modelSearchInput');
@@ -1727,7 +1732,7 @@
             selectedProductList.forEach(p => renderProductTableOnly(p.id));
         }
 
-        /* 🎯 REFINED ENGINE (CORRECT LTV, INHERENT FIT, ZERO DOUBLE DEDUCTION) */
+        /* 🎯 REFINED ENGINE */
         function renderProductTableOnly(pId) {
             let prod = selectedProductList.find(p => p.id === pId);
             if (!prod) return;
@@ -1781,12 +1786,9 @@
 
                 let loan = 0;
 
-                // 1. Custom Loan Override
                 if (s.customLoan && s.customLoan > 0) {
                     loan = s.customLoan;
-                } 
-                // 2. Reverse Target DP Engine
-                else if (targetDpAmount > 0) {
+                } else if (targetDpAmount > 0) {
                     let totalFixedAdditions = s.pf + totalFees;
                     let denominator = 1 - (s.advEmi / s.tenure) - dbdRate - roiRateDP;
                     
@@ -1795,9 +1797,7 @@
                     } else {
                         loan = price - targetDpAmount;
                     }
-                } 
-                // 3. Natural LTV Fit
-                else {
+                } else {
                     if (inherentSchemeLtv <= maxLtv) {
                         loan = price;
                     } else {
@@ -1806,16 +1806,13 @@
                     }
                 }
 
-                // 4. NBFC Approved Limit Enforcement
                 if (approvedLimit > 0) {
                     let nbfcMaxL = (approvedLimit * s.tenure) / inst;
                     loan = Math.min(loan, nbfcMaxL);
                 }
 
-                // 5. Hard Max Cap to Handset Price
                 loan = Math.min(price, Math.max(0, loan));
 
-                // 6. Minimum 50% Floor Limit Rule
                 let minAllowedLoan = price * 0.50;
                 if (loan < minAllowedLoan) {
                     loan = minAllowedLoan;
@@ -1823,7 +1820,6 @@
 
                 let insTotal = gtlVal + rfcVal + exwVal;
 
-                // 7. Base EMI & Minimum ₹900 Rule
                 let baseEmi = loan / s.tenure;
                 let roiInEmi = loan * roiRate;
                 let emi = baseEmi + (insTotal / inst) + roiInEmi;
@@ -1832,7 +1828,6 @@
                     emi = 900 + (insTotal / inst) + roiInEmi;
                 }
 
-                // 8. EMI Capping Constraint
                 if ((!s.customLoan || s.customLoan <= 0) && targetDpAmount <= 0 && emiCap > 0 && emi > emiCap) {
                     loan = (emiCap - (insTotal / inst)) / ((1 / s.tenure) + roiRate);
                     if (loan < minAllowedLoan) loan = minAllowedLoan;
@@ -1862,7 +1857,6 @@
                 };
             });
 
-            // Multi-Tier Sorting
             calculatedRows.sort((a, b) => {
                 if (a.dp !== b.dp) return a.dp - b.dp;
                 if (a.emi !== b.emi) return a.emi - b.emi;
@@ -1902,7 +1896,7 @@
             }).join('');
         }
 
-        /* 📸 EXACT PHOTO-STYLE WHITE PAPER & BLUE PEN QUOTE GENERATOR */
+        /* ✍️ असली हैंडराइटिंग (BALL-PEN INK ON WHITE PAPER) QUOTE GENERATOR */
         function generateQuoteImage(pId) {
             let prod = selectedProductList.find(p => p.id === pId);
             if (!prod) return;
@@ -1920,56 +1914,56 @@
             let capping = document.getElementById('cappingVal').value || "NONE";
             let price = prod.invoice || "0";
 
-            // Photo ke hisab se exact plain white sheet container[span_1](start_span)[span_1](end_span)
+            // कागज की पर्ची वाला कंटेनर (Handwriting Font & Real Blue Ink Color)
             let quoteDiv = document.createElement('div');
             quoteDiv.style.width = "480px";
             quoteDiv.style.padding = "24px 20px";
             quoteDiv.style.background = "#ffffff";
-            quoteDiv.style.color = "#001b3a";
-            quoteDiv.style.fontFamily = "'Courier New', Courier, monospace, sans-serif";
+            quoteDiv.style.color = "#1a365d"; // असली नीली बॉल-पेन वाली स्याही
+            quoteDiv.style.fontFamily = "'Architects Daughter', 'Caveat', cursive, sans-serif";
             quoteDiv.style.position = "absolute";
             quoteDiv.style.top = "-9999px";
             quoteDiv.style.boxSizing = "border-box";
 
             quoteDiv.innerHTML = `
-                <!-- 1. Top Box Header[span_2](start_span)[span_2](end_span) -->
-                <div style="border: 1.5px solid #002b5c; padding: 10px 14px; margin-bottom: 16px; background: #ffffff;">
-                    <div style="text-align: center; font-size: 20px; font-weight: bold; letter-spacing: 0.8px; color: #002244; margin-bottom: 10px;">
-                        <span style="border-bottom: 1.5px solid #002244; padding-bottom: 1px; text-decoration: underline;">BAJAJ FINSERV LOAN OFFER</span>
+                <!-- 1. Top Header Box (हाथ से खींचे हुए बॉक्स का लुक) -->
+                <div style="border: 2px solid #1e3a8a; padding: 12px 14px; margin-bottom: 16px; background: #ffffff; border-radius: 2px;">
+                    <div style="text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 1px; color: #1e3a8a; margin-bottom: 8px;">
+                        <span style="border-bottom: 2px solid #1e3a8a; padding-bottom: 2px; text-decoration: underline;">BAJAJ FINSERV LOAN OFFER</span>
                     </div>
                     
-                    <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: bold; color: #001f3f; line-height: 1.6;">
+                    <div style="display: flex; justify-content: space-between; font-size: 15px; font-weight: bold; color: #1a365d; line-height: 1.5;">
                         <div>CUSTOMER TYPE: ${custType}</div>
                         <div>APPROVED LIMIT: ₹${Number(approvedLimit).toLocaleString()}</div>
                     </div>
-                    <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: bold; color: #001f3f; line-height: 1.6;">
+                    <div style="display: flex; justify-content: space-between; font-size: 15px; font-weight: bold; color: #1a365d; line-height: 1.5;">
                         <div>MAX LTV: ${maxLtv}%</div>
                         <div>EMI CAPPING: ${capping}</div>
                     </div>
-                    <div style="font-size: 12px; font-weight: bold; color: #001f3f; line-height: 1.6; margin-top: 2px;">
+                    <div style="font-size: 15px; font-weight: bold; color: #1a365d; line-height: 1.5; margin-top: 2px;">
                         INVOICE PRICE: ₹${Number(price).toLocaleString()}
                     </div>
                 </div>
 
-                <!-- 2. Product Name & Price Section[span_3](start_span)[span_3](end_span) -->
+                <!-- 2. Product Name & Price Section (हाथ से लिखा हुआ हेडिंग) -->
                 <div style="margin-bottom: 14px; padding: 0 4px;">
-                    <div style="font-size: 15px; font-weight: bold; color: #001f3f; text-transform: uppercase; letter-spacing: 0.5px;">
+                    <div style="font-size: 19px; font-weight: bold; color: #1e3a8a; text-transform: uppercase; letter-spacing: 0.5px;">
                         ${prod.name}
                     </div>
-                    <div style="font-size: 15px; font-weight: bold; color: #001f3f; margin-top: 4px;">
+                    <div style="font-size: 18px; font-weight: bold; color: #1a365d; margin-top: 2px;">
                         PRICE : Rs ${Number(price).toLocaleString()}
                     </div>
                 </div>
 
-                <!-- 3. 5 Columns Matrix Grid Table[span_4](start_span)[span_4](end_span) -->
-                <table style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: center; border: 1.5px solid #002b5c;">
+                <!-- 3. 5 Columns Matrix Grid Table (हाथ से खींची हुई टेबल लाइन्स) -->
+                <table style="width: 100%; border-collapse: collapse; font-size: 15px; text-align: center; border: 2px solid #1e3a8a;">
                     <thead>
-                        <tr style="border-bottom: 1.5px solid #002b5c; color: #002244; font-weight: bold; background: #ffffff;">
-                            <th style="padding: 7px 4px; border-right: 1px solid #002b5c;">SCHEME</th>
-                            <th style="padding: 7px 4px; border-right: 1px solid #002b5c;">DOWN PAYMENT</th>
-                            <th style="padding: 7px 4px; border-right: 1px solid #002b5c;">MONTHLY EMI</th>
-                            <th style="padding: 7px 4px; border-right: 1px solid #002b5c;">MONTHS</th>
-                            <th style="padding: 7px 4px;">PER DAY</th>
+                        <tr style="border-bottom: 2px solid #1e3a8a; color: #1e3a8a; font-weight: bold; background: #ffffff;">
+                            <th style="padding: 7px 4px; border-right: 1.5px solid #1e3a8a; font-size: 16px;">SCHEME</th>
+                            <th style="padding: 7px 4px; border-right: 1.5px solid #1e3a8a; font-size: 16px;">DOWN PAYMENT</th>
+                            <th style="padding: 7px 4px; border-right: 1.5px solid #1e3a8a; font-size: 16px;">MONTHLY EMI</th>
+                            <th style="padding: 7px 4px; border-right: 1.5px solid #1e3a8a; font-size: 16px;">MONTHS</th>
+                            <th style="padding: 7px 4px; font-size: 16px;">PER DAY</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -1977,12 +1971,12 @@
                             let cols = r.querySelectorAll('td');
                             if (cols.length < 7) return '';
                             return `
-                                <tr style="border-bottom: 1px solid #002b5c; font-weight: bold; color: #001f3f; font-size: 12.5px;">
-                                    <td style="padding: 6px 4px; border-right: 1px solid #002b5c;">${cols[1].innerText.replace('(FIELD)', '').trim()}</td>
-                                    <td style="padding: 6px 6px; border-right: 1px solid #002b5c; text-align: right;">${cols[3].innerText}</td>
-                                    <td style="padding: 6px 6px; border-right: 1px solid #002b5c; text-align: right;">${cols[4].innerText}</td>
-                                    <td style="padding: 6px 4px; border-right: 1px solid #002b5c;">${cols[5].innerText}</td>
-                                    <td style="padding: 6px 6px; text-align: right;">${cols[6].innerText}</td>
+                                <tr style="border-bottom: 1.5px solid #1e3a8a; font-weight: bold; color: #1a365d; font-size: 16px;">
+                                    <td style="padding: 5px 4px; border-right: 1.5px solid #1e3a8a;">${cols[1].innerText.replace('(FIELD)', '').trim()}</td>
+                                    <td style="padding: 5px 6px; border-right: 1.5px solid #1e3a8a; text-align: right;">${cols[3].innerText}</td>
+                                    <td style="padding: 5px 6px; border-right: 1.5px solid #1e3a8a; text-align: right;">${cols[4].innerText}</td>
+                                    <td style="padding: 5px 4px; border-right: 1.5px solid #1e3a8a;">${cols[5].innerText}</td>
+                                    <td style="padding: 5px 6px; text-align: right;">${cols[6].innerText}</td>
                                 </tr>
                             `;
                         }).join('')}
@@ -1992,19 +1986,21 @@
 
             document.body.appendChild(quoteDiv);
 
-            // Scale 3 se bilkul crisp aur sharp handwriting text aayega[span_5](start_span)[span_5](end_span)
-            html2canvas(quoteDiv, { scale: 3, useCORS: true, backgroundColor: "#ffffff" }).then(canvas => {
-                document.body.removeChild(quoteDiv);
-                let imgData = canvas.toDataURL("image/png");
-                
-                document.getElementById('generatedQuoteImg').src = imgData;
-                currentQuoteDataBlob = imgData;
-                
-                currentQuoteTextSummary = `📱 *${prod.name}*\n💵 *Price:* ₹${Number(price).toLocaleString()}\n🎉 *BAJAJ FINSERV LOAN OFFER*\n\n(Quote image attached)`;
-                
-                document.getElementById('imageViewerModal').style.display = 'flex';
-                saveFullProfileSnapshot(prod.id, `📱 ${prod.name} (₹${Number(price).toLocaleString()}) - Quote Generated`);
-            });
+            // फॉन्ट लोड होने के बाद हाई-क्वालिटी स्केल 3 के साथ रेंडर करें
+            setTimeout(() => {
+                html2canvas(quoteDiv, { scale: 3, useCORS: true, backgroundColor: "#ffffff" }).then(canvas => {
+                    document.body.removeChild(quoteDiv);
+                    let imgData = canvas.toDataURL("image/png");
+                    
+                    document.getElementById('generatedQuoteImg').src = imgData;
+                    currentQuoteDataBlob = imgData;
+                    
+                    currentQuoteTextSummary = `📱 *${prod.name}*\n💵 *Price:* ₹${Number(price).toLocaleString()}\n🎉 *BAJAJ FINSERV LOAN OFFER*\n\n(Quote image attached)`;
+                    
+                    document.getElementById('imageViewerModal').style.display = 'flex';
+                    saveFullProfileSnapshot(prod.id, `📱 ${prod.name} (₹${Number(price).toLocaleString()}) - Quote Generated`);
+                });
+            }, 100);
         }
 
         /* 📲 WHATSAPP SHARE DIRECT */
