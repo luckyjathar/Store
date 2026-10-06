@@ -705,7 +705,7 @@
     <div id="imageViewerModal" class="modal-overlay">
         <div class="modal-content">
             <div class="copy-hint-box">
-                👉 थेट व्हॉट्सॲपवर पाठवण्यासाठी किंवा सेव्ह करण्यासाठी खालील बटणे वापरा:
+                👉 Direct WhatsApp par share ya download karne ke liye buttons ka use karein:
             </div>
             <img id="generatedQuoteImg" src="" alt="Customer Quote" style="width:100%; border-radius:6px; margin-bottom:12px; display:block; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
             
@@ -1094,7 +1094,6 @@
             const badge = document.getElementById('dataStatusBadge');
             const searchInput = document.getElementById('modelSearchInput');
 
-            // 1. Instant Cache-First Load (< 0.1s)
             let cachedDbRecords = await getFromDB('cached_db_records');
             let cachedSheet2 = await getFromDB('cached_sheet2_records');
 
@@ -1863,6 +1862,7 @@
                 };
             });
 
+            // Multi-Tier Sorting
             calculatedRows.sort((a, b) => {
                 if (a.dp !== b.dp) return a.dp - b.dp;
                 if (a.emi !== b.emi) return a.emi - b.emi;
@@ -1902,7 +1902,7 @@
             }).join('');
         }
 
-        /* 📸 WHITE PAPER + BLUE PEN STYLE QUOTE GENERATOR (WITH SHOP BRANDING & HIGHLIGHTS) */
+        /* 📸 EXACT PHOTO-STYLE WHITE PAPER & BLUE PEN QUOTE GENERATOR */
         function generateQuoteImage(pId) {
             let prod = selectedProductList.find(p => p.id === pId);
             if (!prod) return;
@@ -1910,7 +1910,7 @@
             let tableElement = document.getElementById(`tbody_${pId}`);
             let activeRows = tableElement ? Array.from(tableElement.querySelectorAll('tr:not(.row-disabled)')) : [];
             if (activeRows.length === 0) {
-                alert("कोटेशन जनरेट करण्यासाठी किमान एक ॲक्टिव्ह स्कीम आवश्यक आहे!");
+                alert("Quote generate karne ke liye kam se kam ek scheme active honi chahiye!");
                 return;
             }
 
@@ -1920,110 +1920,79 @@
             let capping = document.getElementById('cappingVal').value || "NONE";
             let price = prod.invoice || "0";
 
-            let todayDate = new Date().toLocaleDateString('en-GB');
-            let shopName = localStorage.getItem('portal_shop_name') || "AUTHORIZED SALES & FINANCE COUNTER";
-            let shopContact = localStorage.getItem('portal_shop_contact') || "";
-
-            // व्हाईट पेपर कंटेनर (कागदासारखा अस्सल लुक)
+            // Photo ke hisab se exact plain white sheet container[span_1](start_span)[span_1](end_span)
             let quoteDiv = document.createElement('div');
-            quoteDiv.style.width = "460px";
-            quoteDiv.style.padding = "20px 16px";
+            quoteDiv.style.width = "480px";
+            quoteDiv.style.padding = "24px 20px";
             quoteDiv.style.background = "#ffffff";
-            quoteDiv.style.color = "#001f3f";
+            quoteDiv.style.color = "#001b3a";
             quoteDiv.style.fontFamily = "'Courier New', Courier, monospace, sans-serif";
             quoteDiv.style.position = "absolute";
             quoteDiv.style.top = "-9999px";
             quoteDiv.style.boxSizing = "border-box";
 
-            // सर्वात कमी DP असलेली 'Best Offer' स्कीम ओळखणे
-            let minDpRowIndex = 0;
-            let minDpVal = Infinity;
-            activeRows.forEach((r, idx) => {
-                let cols = r.querySelectorAll('td');
-                if (cols.length >= 7) {
-                    let dp = parseFloat(cols[3].innerText.replace(/[^0-9.]/g, '')) || Infinity;
-                    if (dp < minDpVal) {
-                        minDpVal = dp;
-                        minDpRowIndex = idx;
-                    }
-                }
-            });
-
             quoteDiv.innerHTML = `
-                <!-- 1. वरचा हेडर आणि शॉप ब्रँडिंग -->
-                <div style="border: 1.5px solid #003366; padding: 10px 12px; margin-bottom: 12px; background: #ffffff;">
-                    <div style="text-align: center; font-size: 19px; font-weight: bold; letter-spacing: 0.5px; color: #002244; margin-bottom: 4px;">
-                        <span style="border-bottom: 2px solid #002244; padding-bottom: 2px; text-decoration: underline;">BAJAJ FINSERV LOAN OFFER</span>
-                    </div>
-                    <div style="text-align: center; font-size: 10.5px; font-weight: bold; color: #003366; margin-bottom: 8px;">
-                        ${shopName} ${shopContact ? '| 📞 ' + shopContact : ''} | DATE: ${todayDate}
+                <!-- 1. Top Box Header[span_2](start_span)[span_2](end_span) -->
+                <div style="border: 1.5px solid #002b5c; padding: 10px 14px; margin-bottom: 16px; background: #ffffff;">
+                    <div style="text-align: center; font-size: 20px; font-weight: bold; letter-spacing: 0.8px; color: #002244; margin-bottom: 10px;">
+                        <span style="border-bottom: 1.5px solid #002244; padding-bottom: 1px; text-decoration: underline;">BAJAJ FINSERV LOAN OFFER</span>
                     </div>
                     
-                    <div style="display: flex; justify-content: space-between; font-size: 11.5px; font-weight: bold; color: #002b49; line-height: 1.5;">
+                    <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: bold; color: #001f3f; line-height: 1.6;">
                         <div>CUSTOMER TYPE: ${custType}</div>
                         <div>APPROVED LIMIT: ₹${Number(approvedLimit).toLocaleString()}</div>
                     </div>
-                    <div style="display: flex; justify-content: space-between; font-size: 11.5px; font-weight: bold; color: #002b49; line-height: 1.5;">
+                    <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: bold; color: #001f3f; line-height: 1.6;">
                         <div>MAX LTV: ${maxLtv}%</div>
                         <div>EMI CAPPING: ${capping}</div>
                     </div>
-                    <div style="font-size: 11.5px; font-weight: bold; color: #002b49; line-height: 1.5; margin-top: 2px;">
+                    <div style="font-size: 12px; font-weight: bold; color: #001f3f; line-height: 1.6; margin-top: 2px;">
                         INVOICE PRICE: ₹${Number(price).toLocaleString()}
                     </div>
                 </div>
 
-                <!-- 2. मॉडेल नाव व किंमत -->
-                <div style="margin-bottom: 10px; padding: 0 4px;">
-                    <div style="font-size: 13.5px; font-weight: bold; color: #001f3f; text-transform: uppercase;">
+                <!-- 2. Product Name & Price Section[span_3](start_span)[span_3](end_span) -->
+                <div style="margin-bottom: 14px; padding: 0 4px;">
+                    <div style="font-size: 15px; font-weight: bold; color: #001f3f; text-transform: uppercase; letter-spacing: 0.5px;">
                         ${prod.name}
                     </div>
-                    <div style="font-size: 13.5px; font-weight: bold; color: #001f3f; margin-top: 2px;">
+                    <div style="font-size: 15px; font-weight: bold; color: #001f3f; margin-top: 4px;">
                         PRICE : Rs ${Number(price).toLocaleString()}
                     </div>
                 </div>
 
-                <!-- 3. फोटोप्रमाणे हुबेहूब टेबल -->
-                <table style="width: 100%; border-collapse: collapse; font-size: 11.5px; text-align: center; border: 1.5px solid #003366;">
+                <!-- 3. 5 Columns Matrix Grid Table[span_4](start_span)[span_4](end_span) -->
+                <table style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: center; border: 1.5px solid #002b5c;">
                     <thead>
-                        <tr style="border-bottom: 1.5px solid #003366; color: #002244; font-weight: bold; background: #f4f8fb;">
-                            <th style="padding: 6px 2px; border-right: 1px solid #003366;">SCHEME</th>
-                            <th style="padding: 6px 2px; border-right: 1px solid #003366;">DOWN PAYMENT</th>
-                            <th style="padding: 6px 2px; border-right: 1px solid #003366;">MONTHLY EMI</th>
-                            <th style="padding: 6px 2px; border-right: 1px solid #003366;">MONTHS</th>
-                            <th style="padding: 6px 2px;">PER DAY</th>
+                        <tr style="border-bottom: 1.5px solid #002b5c; color: #002244; font-weight: bold; background: #ffffff;">
+                            <th style="padding: 7px 4px; border-right: 1px solid #002b5c;">SCHEME</th>
+                            <th style="padding: 7px 4px; border-right: 1px solid #002b5c;">DOWN PAYMENT</th>
+                            <th style="padding: 7px 4px; border-right: 1px solid #002b5c;">MONTHLY EMI</th>
+                            <th style="padding: 7px 4px; border-right: 1px solid #002b5c;">MONTHS</th>
+                            <th style="padding: 7px 4px;">PER DAY</th>
                         </tr>
                     </thead>
                     <tbody>
-                        ${activeRows.map((r, idx) => {
+                        ${activeRows.map(r => {
                             let cols = r.querySelectorAll('td');
                             if (cols.length < 7) return '';
-                            let isBest = (idx === minDpRowIndex);
-                            let highlightStyle = isBest ? "background: #fff9e6;" : "";
-                            let starBadge = isBest ? " ⭐" : "";
-
                             return `
-                                <tr style="border-bottom: 1px solid #003366; font-weight: bold; color: #002b49; font-size: 12px; ${highlightStyle}">
-                                    <td style="padding: 5px 2px; border-right: 1px solid #003366;">${cols[1].innerText.replace('(FIELD)', '').trim()}${starBadge}</td>
-                                    <td style="padding: 5px 4px; border-right: 1px solid #003366; text-align: right;">${cols[3].innerText}</td>
-                                    <td style="padding: 5px 4px; border-right: 1px solid #003366; text-align: right;">${cols[4].innerText}</td>
-                                    <td style="padding: 5px 2px; border-right: 1px solid #003366;">${cols[5].innerText}</td>
-                                    <td style="padding: 5px 4px; text-align: right;">${cols[6].innerText}</td>
+                                <tr style="border-bottom: 1px solid #002b5c; font-weight: bold; color: #001f3f; font-size: 12.5px;">
+                                    <td style="padding: 6px 4px; border-right: 1px solid #002b5c;">${cols[1].innerText.replace('(FIELD)', '').trim()}</td>
+                                    <td style="padding: 6px 6px; border-right: 1px solid #002b5c; text-align: right;">${cols[3].innerText}</td>
+                                    <td style="padding: 6px 6px; border-right: 1px solid #002b5c; text-align: right;">${cols[4].innerText}</td>
+                                    <td style="padding: 6px 4px; border-right: 1px solid #002b5c;">${cols[5].innerText}</td>
+                                    <td style="padding: 6px 6px; text-align: right;">${cols[6].innerText}</td>
                                 </tr>
                             `;
                         }).join('')}
                     </tbody>
                 </table>
-
-                <!-- 4. आवश्यक कागदपत्रे आणि पारदर्शक DP टीप -->
-                <div style="margin-top: 10px; padding: 6px; border: 1px dashed #003366; border-radius: 4px; font-size: 9.5px; color: #002b49; text-align: left; line-height: 1.4;">
-                    <div><b>📄 कागदपत्रे:</b> आधार कार्ड | पॅन कार्ड | बँक पासबुक किंवा एटीएम कार्ड</div>
-                    <div style="margin-top: 2px;"><b>ℹ️ टीप:</b> डाऊन पेमेंटमध्ये ॲडव्हान्स हप्ते (Adv EMI) आणि प्रोसेसिंग फी समाविष्ट आहे. (⭐ = किमान डाऊन पेमेंट ऑफर)</div>
-                </div>
             `;
 
             document.body.appendChild(quoteDiv);
 
-            // हाय-रिझोल्युशन इमेज कॅनव्हास
+            // Scale 3 se bilkul crisp aur sharp handwriting text aayega[span_5](start_span)[span_5](end_span)
             html2canvas(quoteDiv, { scale: 3, useCORS: true, backgroundColor: "#ffffff" }).then(canvas => {
                 document.body.removeChild(quoteDiv);
                 let imgData = canvas.toDataURL("image/png");
@@ -2031,18 +2000,16 @@
                 document.getElementById('generatedQuoteImg').src = imgData;
                 currentQuoteDataBlob = imgData;
                 
-                // सोबत पाठवण्यासाठी टेक्स्ट समरी
-                currentQuoteTextSummary = `📱 *${prod.name}*\n💵 *Price:* ₹${Number(price).toLocaleString()}\n🎉 *BAJAJ FINSERV LOAN OFFER*\n\n(कोटेशन इमेज सोबत जोडली आहे)`;
+                currentQuoteTextSummary = `📱 *${prod.name}*\n💵 *Price:* ₹${Number(price).toLocaleString()}\n🎉 *BAJAJ FINSERV LOAN OFFER*\n\n(Quote image attached)`;
                 
                 document.getElementById('imageViewerModal').style.display = 'flex';
                 saveFullProfileSnapshot(prod.id, `📱 ${prod.name} (₹${Number(price).toLocaleString()}) - Quote Generated`);
             });
         }
 
-        /* 📲 थेट WHATSAPP शेअर किंवा टेक्स्ट पाठवणे */
+        /* 📲 WHATSAPP SHARE DIRECT */
         function shareQuoteOnWhatsAppDirect() {
             if (navigator.share && currentQuoteDataBlob) {
-                // मोबाईलवर डायरेक्ट फाईल शेअर सपोर्ट असल्यास थेट इमेज फाईल शेअर करणे
                 fetch(currentQuoteDataBlob)
                     .then(res => res.blob())
                     .then(blob => {
@@ -2063,11 +2030,11 @@
         }
 
         function fallbackWhatsAppText() {
-            let encodedText = encodeURIComponent(currentQuoteTextSummary + "\n\n👉 इमेज डाउनलोड करून कस्टमरला थेट पाठवा!");
+            let encodedText = encodeURIComponent(currentQuoteTextSummary + "\n\n👉 Kripya image download karke customer ko bhejein!");
             window.open(`https://api.whatsapp.com/send?text=${encodedText}`, '_blank');
         }
 
-        /* 📥 थेट इमेज डाउनलोड करणे */
+        /* 📥 IMAGE DOWNLOAD DIRECT */
         function downloadQuoteImageDirect() {
             if (!currentQuoteDataBlob) return;
             let a = document.createElement('a');
