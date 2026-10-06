@@ -15,12 +15,10 @@
         :root {
             --bajaj-navy-dark: #001b30;
             --bajaj-navy: #002b49;
-            --bajaj-navy-light: #063d66;
             --bajaj-blue: #0072ce;
             --bajaj-sky: #00a3e0;
             --bajaj-cyan: #38bdf8;
             --bajaj-orange: #f37021;
-            --bajaj-orange-hover: #d95d13;
             --bajaj-mint: #00a86b;
             --bajaj-card-bg: #03233c;
             --border-blue: #0f4d7a;
@@ -431,7 +429,7 @@
             color: #ffffff;
             padding: 9px 12px;
             border-radius: 6px;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 800;
             text-align: center;
             margin-bottom: 10px;
@@ -707,10 +705,22 @@
     <div id="imageViewerModal" class="modal-overlay">
         <div class="modal-content">
             <div class="copy-hint-box">
-                👉 Long Press (Tap & Hold) on the image to directly Copy or Share!
+                👉 थेट व्हॉट्सॲपवर पाठवण्यासाठी किंवा सेव्ह करण्यासाठी खालील बटणे वापरा:
             </div>
-            <img id="generatedQuoteImg" src="" alt="Customer Quote" style="width:100%; border-radius:6px; margin-bottom:10px; display:block;">
-            <button onclick="document.getElementById('imageViewerModal').style.display='none'" style="width:100%; background:#dc2626; color:white; border:none; padding:10px; border-radius:4px; font-weight:bold; font-size:14px; cursor:pointer;">CLOSE ✖</button>
+            <img id="generatedQuoteImg" src="" alt="Customer Quote" style="width:100%; border-radius:6px; margin-bottom:12px; display:block; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
+            
+            <div style="display:flex; gap:8px; margin-bottom:8px;">
+                <button id="whatsappShareBtn" onclick="shareQuoteOnWhatsAppDirect()" style="flex:1; background:#25D366; color:white; border:none; padding:10px; border-radius:4px; font-weight:bold; font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:5px;">
+                    📲 SHARE TO WHATSAPP
+                </button>
+                <button onclick="downloadQuoteImageDirect()" style="flex:1; background:var(--bajaj-blue); color:white; border:none; padding:10px; border-radius:4px; font-weight:bold; font-size:13px; cursor:pointer;">
+                    📥 DOWNLOAD QUOTE
+                </button>
+            </div>
+            
+            <button onclick="document.getElementById('imageViewerModal').style.display='none'" style="width:100%; background:#dc2626; color:white; border:none; padding:9px; border-radius:4px; font-weight:bold; font-size:13px; cursor:pointer;">
+                CLOSE ✖
+            </button>
         </div>
     </div>
 
@@ -749,6 +759,8 @@
         let sheet2CategoriesList = [];    
         let persistentCustomProducts = []; 
         let selectedProductList = [];
+        let currentQuoteDataBlob = null;
+        let currentQuoteTextSummary = "";
 
         function initDB() {
             return new Promise((resolve, reject) => {
@@ -1556,7 +1568,7 @@
             }
         }
 
-        /* 📲 WHATSAPP SHAREABLE QUOTE ENGINE (CLEAN & OPTION-FREE) */
+        /* 📲 WHATSAPP SHAREABLE QUOTE ENGINE */
         function copySmartScheme(pId, currentRowEl, tenure, adv, dp, emi, months, perDay) {
             let prod = selectedProductList.find(p => p.id === pId);
             if (!prod) return;
@@ -1583,7 +1595,6 @@
                             let sMonths = cols[5].innerText.trim();
                             let sDay = cols[6].innerText.trim();
 
-                            // 'Option' replaced with 'Scheme', Loan and LTV removed
                             textToCopy += `🔹 *Scheme ${count}:* ${sName}\n` +
                                           `💰 *DP:* ${sDp}\n` +
                                           `🗓️ *EMI:* ${sEmi} x ${sMonths} Months\n` +
@@ -1748,7 +1759,6 @@
 
             let totalFees = baseFee + margin + dealerContri;
 
-            // Filter schemes whose financed proportion (Inherent LTV) is within policy Max LTV
             let eligibleSchemes = prod.schemes.filter(s => {
                 if (s.tenure <= 0) return false;
                 let inherentSchemeLtv = ((s.tenure - s.advEmi) / s.tenure) * 100;
@@ -1853,7 +1863,6 @@
                 };
             });
 
-            // Multi-Tier Sorting
             calculatedRows.sort((a, b) => {
                 if (a.dp !== b.dp) return a.dp - b.dp;
                 if (a.emi !== b.emi) return a.emi - b.emi;
@@ -1893,86 +1902,180 @@
             }).join('');
         }
 
+        /* 📸 WHITE PAPER + BLUE PEN STYLE QUOTE GENERATOR (WITH SHOP BRANDING & HIGHLIGHTS) */
         function generateQuoteImage(pId) {
             let prod = selectedProductList.find(p => p.id === pId);
             if (!prod) return;
 
             let tableElement = document.getElementById(`tbody_${pId}`);
-            if (!tableElement || tableElement.querySelectorAll('tr:not(.row-disabled)').length === 0) {
-                alert("At least one active scheme is required for generating quotation!");
+            let activeRows = tableElement ? Array.from(tableElement.querySelectorAll('tr:not(.row-disabled)')) : [];
+            if (activeRows.length === 0) {
+                alert("कोटेशन जनरेट करण्यासाठी किमान एक ॲक्टिव्ह स्कीम आवश्यक आहे!");
                 return;
             }
 
-            let custType = document.getElementById('typeVal').value || "NEW";
+            let custType = document.getElementById('typeVal').value || "EMI CARD";
             let approvedLimit = document.getElementById('approvedVal').value || "0";
             let maxLtv = document.getElementById('maxLtvVal').value || "100";
             let capping = document.getElementById('cappingVal').value || "NONE";
             let price = prod.invoice || "0";
 
+            let todayDate = new Date().toLocaleDateString('en-GB');
+            let shopName = localStorage.getItem('portal_shop_name') || "AUTHORIZED SALES & FINANCE COUNTER";
+            let shopContact = localStorage.getItem('portal_shop_contact') || "";
+
+            // व्हाईट पेपर कंटेनर (कागदासारखा अस्सल लुक)
             let quoteDiv = document.createElement('div');
-            quoteDiv.style.width = "650px";
-            quoteDiv.style.padding = "24px";
-            quoteDiv.style.background = "#001b30";
-            quoteDiv.style.color = "#ffffff";
-            quoteDiv.style.borderRadius = "12px";
-            quoteDiv.style.border = "3px solid #0072ce";
-            quoteDiv.style.fontFamily = "sans-serif";
+            quoteDiv.style.width = "460px";
+            quoteDiv.style.padding = "20px 16px";
+            quoteDiv.style.background = "#ffffff";
+            quoteDiv.style.color = "#001f3f";
+            quoteDiv.style.fontFamily = "'Courier New', Courier, monospace, sans-serif";
             quoteDiv.style.position = "absolute";
             quoteDiv.style.top = "-9999px";
+            quoteDiv.style.boxSizing = "border-box";
+
+            // सर्वात कमी DP असलेली 'Best Offer' स्कीम ओळखणे
+            let minDpRowIndex = 0;
+            let minDpVal = Infinity;
+            activeRows.forEach((r, idx) => {
+                let cols = r.querySelectorAll('td');
+                if (cols.length >= 7) {
+                    let dp = parseFloat(cols[3].innerText.replace(/[^0-9.]/g, '')) || Infinity;
+                    if (dp < minDpVal) {
+                        minDpVal = dp;
+                        minDpRowIndex = idx;
+                    }
+                }
+            });
 
             quoteDiv.innerHTML = `
-                <div style="background: linear-gradient(135deg, #002b49 0%, #0072ce 100%); padding: 18px; border-radius: 10px; text-align: center; margin-bottom: 18px; border: 2px solid #00a3e0;">
-                    <h2 style="font-size: 26px; font-weight: 900; color: #ffffff; margin-bottom: 12px; letter-spacing: 1px;">BAJAJ FINSERV LOAN OFFER</h2>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: rgba(0,27,48,0.7); padding: 12px; border-radius: 8px; font-size: 14px; font-weight: 900; text-align: left;">
-                        <div><span style="color:#8bb4d6;">CUSTOMER TYPE:</span> <span style="color:#38bdf8;">${custType}</span></div>
-                        <div><span style="color:#8bb4d6;">APPROVED LIMIT:</span> <span style="color:#00a86b;">₹${Number(approvedLimit).toLocaleString()}</span></div>
-                        <div><span style="color:#8bb4d6;">MAX LTV:</span> <span style="color:#f37021;">${maxLtv}%</span></div>
-                        <div><span style="color:#8bb4d6;">EMI CAPPING:</span> <span style="color:#f87171;">${capping}</span></div>
-                        <div style="grid-column: span 2; border-top: 1px dashed #0f4d7a; padding-top: 6px;"><span style="color:#8bb4d6;">INVOICE PRICE:</span> <span style="color:#38bdf8; font-size:18px;">₹${Number(price).toLocaleString()}</span></div>
+                <!-- 1. वरचा हेडर आणि शॉप ब्रँडिंग -->
+                <div style="border: 1.5px solid #003366; padding: 10px 12px; margin-bottom: 12px; background: #ffffff;">
+                    <div style="text-align: center; font-size: 19px; font-weight: bold; letter-spacing: 0.5px; color: #002244; margin-bottom: 4px;">
+                        <span style="border-bottom: 2px solid #002244; padding-bottom: 2px; text-decoration: underline;">BAJAJ FINSERV LOAN OFFER</span>
+                    </div>
+                    <div style="text-align: center; font-size: 10.5px; font-weight: bold; color: #003366; margin-bottom: 8px;">
+                        ${shopName} ${shopContact ? '| 📞 ' + shopContact : ''} | DATE: ${todayDate}
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; font-size: 11.5px; font-weight: bold; color: #002b49; line-height: 1.5;">
+                        <div>CUSTOMER TYPE: ${custType}</div>
+                        <div>APPROVED LIMIT: ₹${Number(approvedLimit).toLocaleString()}</div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 11.5px; font-weight: bold; color: #002b49; line-height: 1.5;">
+                        <div>MAX LTV: ${maxLtv}%</div>
+                        <div>EMI CAPPING: ${capping}</div>
+                    </div>
+                    <div style="font-size: 11.5px; font-weight: bold; color: #002b49; line-height: 1.5; margin-top: 2px;">
+                        INVOICE PRICE: ₹${Number(price).toLocaleString()}
                     </div>
                 </div>
 
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 16px; border-bottom: 2px solid #0f4d7a; padding-bottom: 10px;">
-                    <h3 style="font-size: 24px; font-weight: 900; color: #f37021;">📱 ${prod.name}</h3>
+                <!-- 2. मॉडेल नाव व किंमत -->
+                <div style="margin-bottom: 10px; padding: 0 4px;">
+                    <div style="font-size: 13.5px; font-weight: bold; color: #001f3f; text-transform: uppercase;">
+                        ${prod.name}
+                    </div>
+                    <div style="font-size: 13.5px; font-weight: bold; color: #001f3f; margin-top: 2px;">
+                        PRICE : Rs ${Number(price).toLocaleString()}
+                    </div>
                 </div>
 
-                <table style="width: 100%; border-collapse: collapse; font-size: 16px; text-align: center;">
+                <!-- 3. फोटोप्रमाणे हुबेहूब टेबल -->
+                <table style="width: 100%; border-collapse: collapse; font-size: 11.5px; text-align: center; border: 1.5px solid #003366;">
                     <thead>
-                        <tr style="background: #002b49; color: #ffffff; font-size: 16px;">
-                            <th style="padding: 10px 6px; border: 2px solid #0072ce;">SCHEME</th>
-                            <th style="padding: 10px 6px; border: 2px solid #0072ce;">DOWN PAYMENT</th>
-                            <th style="padding: 10px 6px; border: 2px solid #0072ce;">MONTHLY EMI</th>
-                            <th style="padding: 10px 6px; border: 2px solid #0072ce;">MONTHS</th>
-                            <th style="padding: 10px 6px; border: 2px solid #0072ce;">PER DAY</th>
+                        <tr style="border-bottom: 1.5px solid #003366; color: #002244; font-weight: bold; background: #f4f8fb;">
+                            <th style="padding: 6px 2px; border-right: 1px solid #003366;">SCHEME</th>
+                            <th style="padding: 6px 2px; border-right: 1px solid #003366;">DOWN PAYMENT</th>
+                            <th style="padding: 6px 2px; border-right: 1px solid #003366;">MONTHLY EMI</th>
+                            <th style="padding: 6px 2px; border-right: 1px solid #003366;">MONTHS</th>
+                            <th style="padding: 6px 2px;">PER DAY</th>
                         </tr>
                     </thead>
                     <tbody>
-                        ${Array.from(tableElement.querySelectorAll('tr:not(.row-disabled)')).map(r => {
+                        ${activeRows.map((r, idx) => {
                             let cols = r.querySelectorAll('td');
                             if (cols.length < 7) return '';
+                            let isBest = (idx === minDpRowIndex);
+                            let highlightStyle = isBest ? "background: #fff9e6;" : "";
+                            let starBadge = isBest ? " ⭐" : "";
+
                             return `
-                                <tr style="border-bottom: 1px solid #083454; font-weight: 900; font-size: 17px;">
-                                    <td style="padding: 12px 6px; color: #38bdf8;">${cols[1].innerText.replace('(FIELD)', '').trim()}</td>
-                                    <td style="padding: 12px 6px; color: #f37021;">${cols[3].innerText}</td>
-                                    <td style="padding: 12px 6px; color: #38bdf8;">${cols[4].innerText}</td>
-                                    <td style="padding: 12px 6px; color: #e2e8f0;">${cols[5].innerText}</td>
-                                    <td style="padding: 12px 6px; color: #fb923c;">${cols[6].innerText}</td>
+                                <tr style="border-bottom: 1px solid #003366; font-weight: bold; color: #002b49; font-size: 12px; ${highlightStyle}">
+                                    <td style="padding: 5px 2px; border-right: 1px solid #003366;">${cols[1].innerText.replace('(FIELD)', '').trim()}${starBadge}</td>
+                                    <td style="padding: 5px 4px; border-right: 1px solid #003366; text-align: right;">${cols[3].innerText}</td>
+                                    <td style="padding: 5px 4px; border-right: 1px solid #003366; text-align: right;">${cols[4].innerText}</td>
+                                    <td style="padding: 5px 2px; border-right: 1px solid #003366;">${cols[5].innerText}</td>
+                                    <td style="padding: 5px 4px; text-align: right;">${cols[6].innerText}</td>
                                 </tr>
                             `;
                         }).join('')}
                     </tbody>
                 </table>
+
+                <!-- 4. आवश्यक कागदपत्रे आणि पारदर्शक DP टीप -->
+                <div style="margin-top: 10px; padding: 6px; border: 1px dashed #003366; border-radius: 4px; font-size: 9.5px; color: #002b49; text-align: left; line-height: 1.4;">
+                    <div><b>📄 कागदपत्रे:</b> आधार कार्ड | पॅन कार्ड | बँक पासबुक किंवा एटीएम कार्ड</div>
+                    <div style="margin-top: 2px;"><b>ℹ️ टीप:</b> डाऊन पेमेंटमध्ये ॲडव्हान्स हप्ते (Adv EMI) आणि प्रोसेसिंग फी समाविष्ट आहे. (⭐ = किमान डाऊन पेमेंट ऑफर)</div>
+                </div>
             `;
 
             document.body.appendChild(quoteDiv);
 
-            html2canvas(quoteDiv, { scale: 2, useCORS: true }).then(canvas => {
+            // हाय-रिझोल्युशन इमेज कॅनव्हास
+            html2canvas(quoteDiv, { scale: 3, useCORS: true, backgroundColor: "#ffffff" }).then(canvas => {
                 document.body.removeChild(quoteDiv);
                 let imgData = canvas.toDataURL("image/png");
+                
                 document.getElementById('generatedQuoteImg').src = imgData;
+                currentQuoteDataBlob = imgData;
+                
+                // सोबत पाठवण्यासाठी टेक्स्ट समरी
+                currentQuoteTextSummary = `📱 *${prod.name}*\n💵 *Price:* ₹${Number(price).toLocaleString()}\n🎉 *BAJAJ FINSERV LOAN OFFER*\n\n(कोटेशन इमेज सोबत जोडली आहे)`;
+                
                 document.getElementById('imageViewerModal').style.display = 'flex';
                 saveFullProfileSnapshot(prod.id, `📱 ${prod.name} (₹${Number(price).toLocaleString()}) - Quote Generated`);
             });
+        }
+
+        /* 📲 थेट WHATSAPP शेअर किंवा टेक्स्ट पाठवणे */
+        function shareQuoteOnWhatsAppDirect() {
+            if (navigator.share && currentQuoteDataBlob) {
+                // मोबाईलवर डायरेक्ट फाईल शेअर सपोर्ट असल्यास थेट इमेज फाईल शेअर करणे
+                fetch(currentQuoteDataBlob)
+                    .then(res => res.blob())
+                    .then(blob => {
+                        const file = new File([blob], "Bajaj_Loan_Quote.png", { type: "image/png" });
+                        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                            navigator.share({
+                                files: [file],
+                                title: "Bajaj Finserv Loan Quote",
+                                text: currentQuoteTextSummary
+                            }).catch(() => fallbackWhatsAppText());
+                        } else {
+                            fallbackWhatsAppText();
+                        }
+                    }).catch(() => fallbackWhatsAppText());
+            } else {
+                fallbackWhatsAppText();
+            }
+        }
+
+        function fallbackWhatsAppText() {
+            let encodedText = encodeURIComponent(currentQuoteTextSummary + "\n\n👉 इमेज डाउनलोड करून कस्टमरला थेट पाठवा!");
+            window.open(`https://api.whatsapp.com/send?text=${encodedText}`, '_blank');
+        }
+
+        /* 📥 थेट इमेज डाउनलोड करणे */
+        function downloadQuoteImageDirect() {
+            if (!currentQuoteDataBlob) return;
+            let a = document.createElement('a');
+            a.href = currentQuoteDataBlob;
+            a.download = `Bajaj_Quote_${Date.now()}.png`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
         }
 
         document.addEventListener('click', function(e) {
