@@ -3,780 +3,934 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Pro Store Calculator</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <title>Store - Pro RCD Calculator</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600;700;800&display=swap" rel="stylesheet">
+
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; touch-action: manipulation; }
-        .tap-scale:active { transform: scale(0.97); }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        :root {
+            --primary: #1e3a8a;
+            --primary-light: #3b82f6;
+            --accent: #059669;
+            --danger: #dc2626;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-sub: #475569;
+            --border: #cbd5e1;
+            --highlight: #fef08a;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            touch-action: manipulation;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            padding: 8px;
+            padding-bottom: 70px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            padding: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 700;
+            font-size: 13px;
+            color: var(--primary);
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 6px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .status-badge {
+            font-size: 11px;
+            background: #dcfce7;
+            color: #166534;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        /* SCENARIO TABLE */
+        .scenario-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .scenario-table td {
+            padding: 5px 4px;
+            font-size: 12px;
+            font-weight: 600;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .scenario-table td:first-child {
+            color: var(--text-sub);
+            width: 45%;
+        }
+
+        select, input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 6px 8px;
+            font-size: 13px;
+            font-weight: 600;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            outline: none;
+            background: #fff;
+        }
+
+        select:focus, input:focus {
+            border-color: var(--primary-light);
+            background: #f0f7ff;
+        }
+
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            font-size: 12px;
+            font-weight: 700;
+            border-radius: 4px;
+            cursor: pointer;
+            text-align: center;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .btn:active {
+            opacity: 0.85;
+            transform: scale(0.98);
+        }
+
+        .btn-green { background: var(--accent); }
+        .btn-secondary { background: #64748b; }
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-main); }
+
+        .search-box {
+            position: relative;
+            margin-bottom: 6px;
+        }
+
+        .search-results-list {
+            max-height: 220px;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            background: #fff;
+            margin-top: 4px;
+        }
+
+        .search-item {
+            padding: 8px;
+            font-size: 12px;
+            border-bottom: 1px solid #f1f5f9;
+            cursor: pointer;
+        }
+
+        .search-item:hover, .search-item:active {
+            background: #e0e7ff;
+        }
+
+        /* SCHEME CARDS */
+        .scheme-item-box {
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 8px;
+            margin-top: 6px;
+            background: #fafafa;
+            cursor: pointer;
+        }
+
+        .scheme-item-box.active {
+            border: 2px solid var(--primary);
+            background: #eff6ff;
+        }
+
+        .scheme-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 700;
+            font-size: 13px;
+        }
+
+        .components-chip-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 4px;
+            margin-top: 6px;
+            padding-top: 6px;
+            border-top: 1px dashed #cbd5e1;
+            font-size: 10px;
+        }
+
+        .component-chip {
+            background: #fff;
+            padding: 3px;
+            border-radius: 3px;
+            border: 1px solid #e2e8f0;
+            text-align: center;
+        }
+
+        .component-chip b {
+            display: block;
+            color: #0f172a;
+            font-size: 11px;
+        }
+
+        /* LIVE INSPECTION PANEL */
+        .inspection-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            font-size: 11px;
+            background: #0f172a;
+            color: #fff;
+            padding: 8px;
+            border-radius: 6px;
+            margin-top: 8px;
+        }
+
+        .inspection-cell {
+            background: #1e293b;
+            padding: 5px 6px;
+            border-radius: 4px;
+        }
+
+        .inspection-cell span {
+            color: #94a3b8;
+            display: block;
+            font-size: 10px;
+        }
+
+        .inspection-cell b {
+            font-size: 12px;
+        }
+
+        /* MODALS */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 999;
+            align-items: center;
+            justify-content: center;
+            padding: 12px;
+        }
+
+        .modal.open {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #fff;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 440px;
+            padding: 14px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            font-weight: 800;
+            font-size: 14px;
+            color: var(--primary);
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 6px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .modal-body {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .range-helper {
+            font-size: 11px;
+            color: #2563eb;
+            background: #eff6ff;
+            padding: 4px 6px;
+            border-radius: 4px;
+            border-left: 3px solid #2563eb;
+        }
     </style>
 </head>
-<body class="bg-slate-100 text-slate-800 antialiased pb-28">
+<body>
 
-    <!-- Top Navigation Header -->
-    <header class="bg-indigo-900 text-white sticky top-0 z-40 shadow-md">
-        <div class="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
-            <div>
-                <h1 class="text-lg font-bold tracking-tight flex items-center gap-1.5">
-                    <span>⚡</span> PRO STORE
-                </h1>
-                <p class="text-[11px] text-indigo-200">Zero Error • Retail Finance Portal</p>
-            </div>
-            <div class="flex items-center gap-2">
-                <button onclick="openSavedQuotesModal()" class="bg-indigo-800 hover:bg-indigo-700 text-xs px-2.5 py-1.5 rounded-lg flex items-center gap-1 border border-indigo-600 tap-scale">
-                    📂 Quotes (<span id="savedQuoteCount">0</span>)
-                </button>
-                <button onclick="openNewSchemeModal()" class="bg-emerald-600 hover:bg-emerald-500 text-xs px-2.5 py-1.5 rounded-lg font-medium tap-scale">
-                    + Add Scheme
-                </button>
-            </div>
+<div class="container">
+
+    <!-- 1. SCENARIO TABLE (मूळ Store प्रमाणे) -->
+    <div class="card">
+        <div class="card-header">
+            <span>⚡ SCENARIO</span>
+            <span class="status-badge" id="scenarioStatus">CHECKING...</span>
         </div>
-    </header>
 
-    <main class="max-w-3xl mx-auto px-3.5 py-3 space-y-3.5">
-
-        <!-- 1. Customer Scenario Setup Card -->
-        <section class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200/80">
-            <div class="flex items-center justify-between pb-2.5 mb-2.5 border-b border-slate-100">
-                <h2 class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
-                    👤 Customer Scenario
-                </h2>
-                <span class="text-[11px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">Live Validation</span>
-            </div>
-
-            <!-- Customer Type Chips -->
-            <div class="mb-3">
-                <label class="text-[11px] text-slate-500 font-medium block mb-1">Customer Profile</label>
-                <div class="grid grid-cols-4 gap-1.5" id="customerTypeContainer">
-                    <button type="button" onclick="setCustomerType('NEW')" class="cust-btn py-1.5 text-xs font-bold rounded-lg border border-indigo-600 bg-indigo-600 text-white tap-scale" data-type="NEW">NEW</button>
-                    <button type="button" onclick="setCustomerType('EMI CARD')" class="cust-btn py-1.5 text-xs font-bold rounded-lg border border-slate-200 bg-slate-50 text-slate-700 tap-scale" data-type="EMI CARD">CARD</button>
-                    <button type="button" onclick="setCustomerType('VIRTUAL')" class="cust-btn py-1.5 text-xs font-bold rounded-lg border border-slate-200 bg-slate-50 text-slate-700 tap-scale" data-type="VIRTUAL">VIRTUAL</button>
-                    <button type="button" onclick="setCustomerType('W/O CARD')" class="cust-btn py-1.5 text-xs font-bold rounded-lg border border-slate-200 bg-slate-50 text-slate-700 tap-scale" data-type="W/O CARD">W/O CARD</button>
-                </div>
-            </div>
-
-            <!-- Quick Matrix Inputs -->
-            <div class="grid grid-cols-3 gap-2">
-                <div>
-                    <label class="text-[11px] text-slate-500 font-medium block mb-0.5">Approved Limit (₹)</label>
-                    <input type="text" inputmode="numeric" id="approvedLimitInput" value="30000" onfocus="this.select()" oninput="handleScenarioChange()" class="w-full text-xs font-bold bg-slate-50 border border-slate-200 rounded-lg p-2 focus:ring-1 focus:ring-indigo-500 outline-none">
-                </div>
-                <div>
-                    <label class="text-[11px] text-slate-500 font-medium block mb-0.5">Max LTV (%)</label>
-                    <input type="text" inputmode="numeric" id="maxLtvInput" value="75" onfocus="this.select()" oninput="handleScenarioChange()" class="w-full text-xs font-bold bg-slate-50 border border-slate-200 rounded-lg p-2 focus:ring-1 focus:ring-indigo-500 outline-none">
-                </div>
-                <div>
-                    <label class="text-[11px] text-slate-500 font-medium block mb-0.5">Capping (₹)</label>
-                    <input type="text" inputmode="numeric" id="cappingInput" placeholder="None" onfocus="this.select()" oninput="handleScenarioChange()" class="w-full text-xs font-bold bg-slate-50 border border-slate-200 rounded-lg p-2 focus:ring-1 focus:ring-indigo-500 outline-none">
-                </div>
-            </div>
-        </section>
-
-        <!-- 2. Universal Search (Model or Reverse Scheme Search) -->
-        <section class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200/80">
-            <div class="relative">
-                <input type="text" id="universalSearchInput" placeholder="मॉडेल नाव (उदा. Vivo V30) किंवा स्कीम (उदा. 10/2, 8/0) शोधा..." oninput="handleUniversalSearch(this.value)" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-3 pr-9 font-medium focus:border-indigo-500 outline-none">
-                <span class="absolute right-3 top-3 text-slate-400 text-sm">🔍</span>
-            </div>
-
-            <!-- Search Results Dropdown / Quick Tray -->
-            <div id="searchResultsTray" class="hidden mt-2 divide-y divide-slate-100 max-h-56 overflow-y-auto rounded-xl border border-slate-100 bg-white"></div>
-        </section>
-
-        <!-- 3. Active Product & Schemes Workbench -->
-        <div id="activeWorkbench" class="hidden space-y-3.5">
-            
-            <!-- Selected Product Overview -->
-            <section class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200/80">
-                <div class="flex items-start justify-between">
-                    <div>
-                        <span id="productBrandBadge" class="text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-600 px-2 py-0.5 rounded">BRAND</span>
-                        <h3 id="productModelTitle" class="text-sm font-extrabold text-slate-900 mt-1">-</h3>
-                        <p class="text-[11px] text-slate-500">System Price: <b id="systemPriceDisplay" class="text-slate-800">₹0</b></p>
-                    </div>
-                    <button onclick="clearSelectedProduct()" class="text-xs text-rose-500 font-semibold tap-scale">बदला</button>
-                </div>
-
-                <!-- Invoice Price (Blank Input Required as per Point 2) -->
-                <div class="mt-3.5 pt-3 border-t border-slate-100 grid grid-cols-2 gap-2.5">
-                    <div>
-                        <label class="text-[11px] font-bold text-indigo-900 block mb-1">
-                            Invoice / Selling Price (₹) <span class="text-rose-500">*</span>
-                        </label>
-                        <input type="text" inputmode="numeric" id="invoicePriceInput" placeholder="किंमत टाका (उदा. 20000)" onfocus="this.select()" oninput="handleInvoicePriceChange()" class="w-full text-xs font-black bg-amber-50/60 border border-amber-300 rounded-lg p-2.5 focus:ring-2 focus:ring-amber-500 outline-none">
-                    </div>
-                    <div>
-                        <label class="text-[11px] font-medium text-slate-500 block mb-1">VAS / Insurance (₹)</label>
-                        <select id="insuranceSelect" onchange="runCalculation()" class="w-full text-xs font-semibold bg-slate-50 border border-slate-200 rounded-lg p-2.5 outline-none">
-                            <option value="0">₹0 (None)</option>
-                            <option value="699">₹699</option>
-                            <option value="1099">₹1099</option>
-                            <option value="1499">₹1499</option>
-                            <option value="1799">₹1799</option>
-                            <option value="2398">₹2398</option>
+        <table class="scenario-table">
+            <tbody>
+                <tr>
+                    <td>CUSTOMER TYPE</td>
+                    <td>
+                        <select id="custType" onchange="onScenarioUpdate()">
+                            <option value="-">-</option>
+                            <option value="NEW" selected>NEW</option>
+                            <option value="EMI CARD">EMI CARD</option>
+                            <option value="VIRTUAL CARD">VIRTUAL CARD</option>
+                            <option value="W/O CARD">W/O CARD</option>
                         </select>
-                    </div>
-                </div>
-            </section>
+                    </td>
+                </tr>
+                <tr>
+                    <td>APPROVED LIMIT (₹)</td>
+                    <td>
+                        <input type="number" id="appLimit" value="30000" onfocus="this.select()" oninput="onScenarioUpdate()">
+                    </td>
+                </tr>
+                <tr>
+                    <td>MAX LTV (%)</td>
+                    <td>
+                        <input type="number" id="maxLtv" value="75" onfocus="this.select()" oninput="onScenarioUpdate()">
+                    </td>
+                </tr>
+                <tr>
+                    <td>CAPPING (₹)</td>
+                    <td>
+                        <input type="number" id="capping" placeholder="NONE" onfocus="this.select()" oninput="onScenarioUpdate()">
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 
-            <!-- Available Schemes List for Selected Model -->
-            <section class="space-y-2">
-                <div class="flex items-center justify-between px-1">
-                    <h3 class="text-xs font-bold text-slate-600 uppercase tracking-wider">उपलब्ध स्कीम्स (Excel Components)</h3>
-                    <span id="schemeCountBadge" class="text-[11px] text-slate-400 font-medium">0 Schemes</span>
-                </div>
-                <div id="schemesCardsContainer" class="space-y-2"></div>
-            </section>
-
-            <!-- 4. Live Component Verification Card (Point 5 & 9) -->
-            <section id="verificationCard" class="hidden bg-slate-900 text-white rounded-2xl p-4 shadow-xl border border-slate-800">
-                <div class="flex items-center justify-between pb-3 border-b border-slate-800">
-                    <div>
-                        <span class="text-[10px] uppercase tracking-wider text-emerald-400 font-bold">Live Breakdown</span>
-                        <h4 class="text-xs font-extrabold text-white flex items-center gap-1.5">
-                            🔍 Component Verification
-                        </h4>
-                    </div>
-                    <button onclick="openLoanEditModal()" class="text-[11px] bg-slate-800 hover:bg-slate-700 px-2.5 py-1 rounded-md text-amber-300 border border-slate-700 font-medium tap-scale">
-                        ✏️ Edit Loan
-                    </button>
-                </div>
-
-                <!-- 10 Crucial Components Grid -->
-                <div class="grid grid-cols-2 gap-2 text-[11px] my-3">
-                    <div class="bg-slate-800/60 p-2 rounded-lg">
-                        <span class="text-slate-400 block text-[10px]">System vs Selling</span>
-                        <span id="vCompSystemSelling" class="font-bold">-</span>
-                    </div>
-                    <div class="bg-slate-800/60 p-2 rounded-lg">
-                        <span class="text-slate-400 block text-[10px]">Final Loan Amount</span>
-                        <span id="vCompLoanAmount" class="font-bold text-emerald-400">₹0</span>
-                    </div>
-                    <div class="bg-slate-800/60 p-2 rounded-lg">
-                        <span class="text-slate-400 block text-[10px]">Regular Advance EMI</span>
-                        <span id="vCompAdvanceEmi" class="font-bold">-</span>
-                    </div>
-                    <div class="bg-slate-800/60 p-2 rounded-lg">
-                        <span class="text-slate-400 block text-[10px]">Extra Cash DP (LTV/Limit)</span>
-                        <span id="vCompExtraDp" class="font-bold text-amber-300">₹0</span>
-                    </div>
-                    <div class="bg-slate-800/60 p-2 rounded-lg">
-                        <span class="text-slate-400 block text-[10px]">DBD Amount (Cut)</span>
-                        <span id="vCompDbd" class="font-bold text-rose-300">-</span>
-                    </div>
-                    <div class="bg-slate-800/60 p-2 rounded-lg">
-                        <span class="text-slate-400 block text-[10px]">PF Amount</span>
-                        <span id="vCompPf" class="font-bold">-</span>
-                    </div>
-                    <div class="bg-slate-800/60 p-2 rounded-lg">
-                        <span class="text-slate-400 block text-[10px]">ROI / Interest (₹)</span>
-                        <span id="vCompRoi" class="font-bold text-cyan-300">-</span>
-                    </div>
-                    <div class="bg-slate-800/60 p-2 rounded-lg">
-                        <span class="text-slate-400 block text-[10px]">Net Disbursal (Dealer)</span>
-                        <span id="vCompDisbursal" class="font-bold text-emerald-300 text-xs">-</span>
-                    </div>
-                </div>
-
-                <!-- Final Output Strip -->
-                <div class="pt-3 border-t border-slate-800 flex items-center justify-between">
-                    <div>
-                        <span class="text-[10px] text-slate-400 block uppercase">Net Down Payment</span>
-                        <div id="vCompNetDp" class="text-xl font-black text-amber-400">₹0</div>
-                    </div>
-                    <div class="text-right">
-                        <span class="text-[10px] text-slate-400 block uppercase">Monthly EMI</span>
-                        <div id="vCompMonthlyEmi" class="text-xl font-black text-white">₹0</div>
-                        <span id="vCompDailyEmi" class="text-[10px] text-slate-400">₹0/day</span>
-                    </div>
-                </div>
-            </section>
+    <!-- 2. ADD PRODUCT / MODEL (Direct Search + Reverse Scheme Search) -->
+    <div class="card">
+        <div class="card-header">
+            <span>🔍 Add Product / Model</span>
+            <button class="btn btn-outline" style="padding: 2px 6px; font-size:10px;" onclick="openNewSchemeModal()">+ Add Scheme</button>
         </div>
-    </main>
 
-    <!-- Sticky Bottom Quick Action Bar -->
-    <div id="stickyBottomBar" class="hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-200 px-4 py-3 z-30 shadow-2xl">
-        <div class="max-w-3xl mx-auto flex items-center justify-between">
+        <div class="search-box">
+            <input type="text" id="modelSearch" placeholder="मॉडेल नाव किंवा स्कीम (उदा. 10/2, 8/0) शोधा..." oninput="handleUniversalSearch(this.value)" autocomplete="off">
+            <div id="searchDropdown" class="search-results-list" style="display: none;"></div>
+        </div>
+
+        <!-- Selected Product Area -->
+        <div id="selectedProductArea" style="display: none; margin-top: 8px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; padding: 6px; background: #f1f5f9; border-radius: 4px;">
+                <div>
+                    <span id="pBrandBadge" style="font-size: 10px; font-weight:700; background:#cbd5e1; padding: 1px 4px; border-radius:2px;">BRAND</span>
+                    <div id="pModelName" style="font-weight: 700; font-size: 13px; margin-top: 2px;">-</div>
+                    <div style="font-size: 11px; color: var(--text-sub);">System Price: <b id="pSystemPrice">₹0</b></div>
+                </div>
+                <button class="btn btn-outline" style="padding: 2px 6px; font-size: 10px; color: var(--danger);" onclick="resetProductSelection()">✕ बदला</button>
+            </div>
+
+            <!-- Invoice Amount (Blank by Default as requested in Point 2) -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 8px;">
+                <div>
+                    <label style="font-size: 11px; font-weight:700; display:block; margin-bottom:2px;">Invoice Amount (₹) *</label>
+                    <input type="number" id="invoiceAmount" placeholder="किंमत टाका" onfocus="this.select()" oninput="handleInvoiceInput()">
+                </div>
+                <div>
+                    <label style="font-size: 11px; font-weight:700; display:block; margin-bottom:2px;">VAS / Insurance</label>
+                    <select id="vasSelect" onchange="recalculate()">
+                        <option value="0">₹0</option>
+                        <option value="699">₹699</option>
+                        <option value="1099">₹1099</option>
+                        <option value="1499">₹1499</option>
+                        <option value="1799">₹1799</option>
+                        <option value="2398">₹2398</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Schemes Available List -->
+        <div id="schemesWrapper" style="display: none; margin-top: 10px;">
+            <div style="font-size: 11px; font-weight:700; color:var(--text-sub); margin-bottom:4px; display:flex; justify-content:space-between;">
+                <span>AVAILABLE SCHEMES</span>
+                <span id="schemeCounter">0 Schemes</span>
+            </div>
+            <div id="schemesList"></div>
+        </div>
+    </div>
+
+    <!-- 3. LIVE COMPONENT VERIFICATION & BREAKDOWN (Point 5, 8 & 9) -->
+    <div id="verificationCard" class="card" style="display: none; background: #0f172a; border-color: #334155;">
+        <div class="card-header" style="color: #38bdf8; border-color: #334155;">
+            <span>🔍 All Components Verification</span>
+            <button class="btn" style="background:#f59e0b; color:#000; padding:2px 8px; font-size:11px;" onclick="openLoanEditModal()">✏️ Edit Loan</button>
+        </div>
+
+        <div class="inspection-grid">
+            <div class="inspection-cell">
+                <span>System vs Selling</span>
+                <b id="lblSysVsSell">-</b>
+            </div>
+            <div class="inspection-cell">
+                <span>Final Loan Base</span>
+                <b id="lblFinalLoan" style="color: #4ade80;">₹0</b>
+            </div>
+            <div class="inspection-cell">
+                <span>Adv. EMI Amount</span>
+                <b id="lblAdvEmiAmt">-</b>
+            </div>
+            <div class="inspection-cell">
+                <span>LTV / Cap Extra DP</span>
+                <b id="lblExtraDp" style="color: #fde047;">₹0</b>
+            </div>
+            <div class="inspection-cell">
+                <span>DBD Amount (Subvention)</span>
+                <b id="lblDbdAmt" style="color: #f87171;">₹0</b>
+            </div>
+            <div class="inspection-cell">
+                <span>PF (Processing Fee)</span>
+                <b id="lblPfAmt">₹0</b>
+            </div>
+            <div class="inspection-cell">
+                <span>ROI / Interest (₹)</span>
+                <b id="lblRoiAmt" style="color: #38bdf8;">₹0</b>
+            </div>
+            <div class="inspection-cell" style="background: #14532d;">
+                <span style="color:#86efac;">Dealer Net Disbursal</span>
+                <b id="lblDisbursal" style="color:#4ade80; font-size:13px;">₹0</b>
+            </div>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; padding-top:6px; border-top:1px solid #334155;">
             <div>
-                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Final Quote</span>
-                <div class="text-xs font-black text-slate-900">
-                    DP: <span id="stickyDpVal" class="text-amber-600">₹0</span> • EMI: <span id="stickyEmiVal" class="text-indigo-600">₹0</span>
-                </div>
+                <span style="font-size:10px; color:#94a3b8; display:block;">CUSTOMER NET DP</span>
+                <span id="lblNetDp" style="font-size:18px; font-weight:800; color:#facc15;">₹0</span>
             </div>
-            <div class="flex items-center gap-2">
-                <button onclick="promptSaveQuote()" class="bg-slate-800 hover:bg-slate-700 text-white text-xs px-3 py-2 rounded-xl font-bold tap-scale">
-                    💾 Save
-                </button>
-                <button onclick="shareQuoteWhatsApp()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3.5 py-2 rounded-xl font-bold flex items-center gap-1.5 shadow-md shadow-emerald-600/20 tap-scale">
-                    <span>📤</span> Share
-                </button>
+            <div style="text-align:right;">
+                <span style="font-size:10px; color:#94a3b8; display:block;">MONTHLY EMI</span>
+                <span id="lblMonthlyEmi" style="font-size:18px; font-weight:800; color:#fff;">₹0</span>
+                <span id="lblDailyEmi" style="font-size:10px; color:#94a3b8;">₹0/day</span>
             </div>
         </div>
     </div>
 
-    <!-- MODAL 1: Edit Loan Amount Modal (Min / Max Rules Included) -->
-    <div id="loanEditModal" class="hidden fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-3">
-        <div class="bg-white rounded-2xl w-full max-w-sm p-5 space-y-4 shadow-2xl">
-            <div class="flex items-center justify-between pb-2 border-b border-slate-100">
-                <h3 class="text-sm font-extrabold text-slate-900">✏️ Loan Amount सानुकूल करा</h3>
-                <button onclick="closeLoanEditModal()" class="text-slate-400 hover:text-slate-600 text-sm">✕</button>
+    <!-- 4. BOTTOM ACTION & WHATSAPP SHARING -->
+    <div id="bottomActions" class="card" style="display: none;">
+        <div style="display: flex; gap: 6px;">
+            <button class="btn btn-secondary" style="flex: 1;" onclick="promptSaveQuote()">💾 Save with Name</button>
+            <button class="btn btn-green" style="flex: 2;" onclick="shareOnWhatsApp()">👉 WhatsApp Share</button>
+        </div>
+    </div>
+
+    <!-- 5. RECENT QUOTE HISTORY & EXPORT (Store चा मूळ भाग) -->
+    <div class="card">
+        <div class="card-header">
+            <span>📜 RECENT QUOTE HISTORY</span>
+            <button class="btn btn-outline" style="padding: 2px 6px; font-size:10px;" onclick="renderQuotesList()">Refresh</button>
+        </div>
+        <div id="savedQuotesContainer" style="font-size:12px; color:var(--text-sub);">
+            अद्याप कोणतेही सेव्ह केलेले कोटेशन नाही.
+        </div>
+    </div>
+
+</div>
+
+<!-- MODAL: EDIT SCHEME & LOAN AMOUNT (Range Validation 50% Rule Attached) -->
+<div id="editLoanModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span>✏️ EDIT SCHEME & LOAN AMOUNT</span>
+            <span style="cursor:pointer;" onclick="closeLoanEditModal()">✕</span>
+        </div>
+        <div class="modal-body">
+            <div class="range-helper" id="loanRangeNotice">
+                मर्यादा तपासत आहे...
             </div>
-            
+
             <div>
-                <div class="flex items-center justify-between mb-1">
-                    <label class="text-xs font-bold text-slate-700">नवीन Loan Amount (₹)</label>
-                    <span id="loanRangeNotice" class="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">Min-Max</span>
-                </div>
-                <input type="text" inputmode="numeric" id="modalCustomLoanInput" onfocus="this.select()" class="w-full text-base font-black bg-slate-50 border border-slate-300 rounded-xl p-3 outline-none focus:border-indigo-600">
-                <p id="loanRangeExplainer" class="text-[11px] text-slate-500 mt-1 leading-tight">
-                    * 50% पॉलिसी नियम आणि LTV/Limit मर्यादा लागू.
-                </p>
+                <label style="font-size: 11px; font-weight:700; display:block; margin-bottom:2px;">Loan Amount (₹)</label>
+                <input type="number" id="customLoanInput" onfocus="this.select()">
             </div>
 
-            <div class="grid grid-cols-2 gap-2 pt-2">
-                <button onclick="resetLoanToMax()" class="py-2.5 text-xs font-bold text-slate-600 bg-slate-100 rounded-xl tap-scale">Reset Max</button>
-                <button onclick="applyCustomLoanAmount()" class="py-2.5 text-xs font-bold text-white bg-indigo-600 rounded-xl tap-scale">Apply</button>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 10px;">
+                <button class="btn btn-secondary" onclick="resetLoanMax()">Reset Max</button>
+                <button class="btn" onclick="applyCustomLoan()">Apply Loan</button>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- MODAL 2: Add New Custom Scheme Modal (Point 7) -->
-    <div id="newSchemeModal" class="hidden fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-3">
-        <div class="bg-white rounded-2xl w-full max-w-sm p-5 space-y-3 shadow-2xl">
-            <div class="flex items-center justify-between pb-2 border-b border-slate-100">
-                <h3 class="text-sm font-extrabold text-slate-900">+ Add New Scheme</h3>
-                <button onclick="closeNewSchemeModal()" class="text-slate-400 hover:text-slate-600 text-sm">✕</button>
+<!-- MODAL: ADD NEW SCHEME (Point 7) -->
+<div id="addSchemeModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span>➕ ADD NEW SCHEME</span>
+            <span style="cursor:pointer;" onclick="closeNewSchemeModal()">✕</span>
+        </div>
+        <div class="modal-body">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+                <div>
+                    <label style="font-size: 11px; font-weight:700;">Total Tenure</label>
+                    <input type="number" id="nsTotTenure" placeholder="उदा. 10">
+                </div>
+                <div>
+                    <label style="font-size: 11px; font-weight:700;">Advance EMI</label>
+                    <input type="number" id="nsAdvTenure" placeholder="उदा. 2">
+                </div>
+                <div>
+                    <label style="font-size: 11px; font-weight:700;">DBD %</label>
+                    <input type="number" step="0.1" id="nsDbd" placeholder="उदा. 1.5">
+                </div>
+                <div>
+                    <label style="font-size: 11px; font-weight:700;">PF (₹)</label>
+                    <input type="number" id="nsPf" placeholder="उदा. 750">
+                </div>
+                <div style="grid-column: span 2;">
+                    <label style="font-size: 11px; font-weight:700;">ROI % (लागू असल्यास)</label>
+                    <input type="number" step="0.1" id="nsRoi" placeholder="0">
+                </div>
             </div>
-
-            <div class="grid grid-cols-2 gap-2 text-xs">
-                <div>
-                    <label class="font-medium text-slate-500 block mb-0.5">Total Tenure</label>
-                    <input type="text" inputmode="numeric" id="nsTotalTenure" placeholder="उदा. 10" class="w-full bg-slate-50 border rounded-lg p-2 font-bold outline-none">
-                </div>
-                <div>
-                    <label class="font-medium text-slate-500 block mb-0.5">Advance EMI</label>
-                    <input type="text" inputmode="numeric" id="nsAdvTenure" placeholder="उदा. 2" class="w-full bg-slate-50 border rounded-lg p-2 font-bold outline-none">
-                </div>
-                <div>
-                    <label class="font-medium text-slate-500 block mb-0.5">DBD %</label>
-                    <input type="text" inputmode="numeric" id="nsDbd" placeholder="उदा. 1.5" class="w-full bg-slate-50 border rounded-lg p-2 font-bold outline-none">
-                </div>
-                <div>
-                    <label class="font-medium text-slate-500 block mb-0.5">PF Amount (₹)</label>
-                    <input type="text" inputmode="numeric" id="nsPf" placeholder="उदा. 750" class="w-full bg-slate-50 border rounded-lg p-2 font-bold outline-none">
-                </div>
-                <div class="col-span-2">
-                    <label class="font-medium text-slate-500 block mb-0.5">ROI % (लागू असल्यास)</label>
-                    <input type="text" inputmode="numeric" id="nsRoi" placeholder="उदा. 0 किंवा 14" class="w-full bg-slate-50 border rounded-lg p-2 font-bold outline-none">
-                </div>
-            </div>
-
-            <button onclick="saveCustomScheme()" class="w-full py-2.5 text-xs font-bold text-white bg-emerald-600 rounded-xl tap-scale mt-2">
-                स्कीम सेव्ह करा
-            </button>
+            <button class="btn btn-green" style="margin-top: 10px;" onclick="saveCustomScheme()">स्कीम सेव्ह करा</button>
         </div>
     </div>
+</div>
 
-    <!-- MODAL 3: Saved Quotes Drawer (Point 10) -->
-    <div id="savedQuotesModal" class="hidden fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-3">
-        <div class="bg-white rounded-2xl w-full max-w-md p-5 space-y-3 max-h-[85vh] flex flex-col shadow-2xl">
-            <div class="flex items-center justify-between pb-2 border-b border-slate-100">
-                <h3 class="text-sm font-extrabold text-slate-900">📂 Saved Quotes</h3>
-                <button onclick="closeSavedQuotesModal()" class="text-slate-400 hover:text-slate-600 text-sm">✕</button>
-            </div>
-            <div id="savedQuotesListContainer" class="overflow-y-auto space-y-2 flex-1 pr-1"></div>
-        </div>
-    </div>
+<script>
+    // Master Inventory (Point 1: Manual Product चा लेबल नाही, थेट ब्रँड आणि मॉडेल)
+    let masterProducts = [
+        { id: 101, brand: 'VIVO', model: 'Vivo V30 5G (8/128)', category: 'MOBILE', systemPrice: 20000 },
+        { id: 102, brand: 'SAMSUNG', model: 'Samsung Galaxy A55', category: 'MOBILE', systemPrice: 38000 },
+        { id: 103, brand: 'OPPO', model: 'Oppo Reno 11 Pro', category: 'MOBILE', systemPrice: 37999 },
+        { id: 104, brand: 'REALME', model: 'Realme 12 Pro Plus', category: 'MOBILE', systemPrice: 29999 }
+    ];
 
-    <!-- Application Script Engine -->
-    <script>
-        // 1. Data Store & Sample Inventory with Exact Master Columns
-        let masterProducts = [
-            { id: 1, brand: 'VIVO', model: 'Vivo V30 5G (8/128)', category: 'MOBILE', systemPrice: 20000 },
-            { id: 2, brand: 'SAMSUNG', model: 'Samsung Galaxy A55', category: 'MOBILE', systemPrice: 38000 },
-            { id: 3, brand: 'OPPO', model: 'Oppo Reno 11 Pro', category: 'MOBILE', systemPrice: 37999 },
-            { id: 4, brand: 'REALME', model: 'Realme 12 Pro Plus', category: 'MOBILE', systemPrice: 29999 }
-        ];
+    let masterSchemes = [
+        { id: 'sc1', name: '10/2 Regular', totalTenure: 10, advTenure: 2, dbd: 1.5, pf: 850, roi: 0 },
+        { id: 'sc2', name: '8/0 Zero Advance', totalTenure: 8, advTenure: 0, dbd: 2.2, pf: 990, roi: 0 },
+        { id: 'sc3', name: '12/4 Special', totalTenure: 12, advTenure: 4, dbd: 0.0, pf: 650, roi: 0 },
+        { id: 'sc4', name: '18/4 Non-Zero ROI', totalTenure: 18, advTenure: 4, dbd: 1.0, pf: 1100, roi: 14 }
+    ];
 
-        let masterSchemes = [
-            { id: 's1', name: '10/2 Regular', totalTenure: 10, advTenure: 2, dbd: 1.5, pf: 850, roi: 0, modelId: null },
-            { id: 's2', name: '8/0 Zero Advance', totalTenure: 8, advTenure: 0, dbd: 2.2, pf: 990, roi: 0, modelId: null },
-            { id: 's3', name: '12/4 Special', totalTenure: 12, advTenure: 4, dbd: 0.0, pf: 650, roi: 0, modelId: null },
-            { id: 's4', name: '18/4 Interest Saver', totalTenure: 18, advTenure: 4, dbd: 1.0, pf: 1100, roi: 12, modelId: null }
-        ];
+    let appState = {
+        custType: 'NEW',
+        appLimit: 30000,
+        maxLtv: 75,
+        capping: 0,
+        selectedProduct: null,
+        invoicePrice: 0,
+        selectedScheme: null,
+        customLoan: null,
+        calculated: null
+    };
 
-        // Central State Management (Single Source of Truth)
-        let state = {
-            customerType: 'NEW',
-            approvedLimit: 30000,
-            maxLtv: 75,
-            capping: 0,
-            selectedProduct: null,
-            invoicePrice: 0,
-            insurance: 0,
-            selectedScheme: null,
-            customLoanAmount: null // Null indicates maximum permissible loan
-        };
+    function toNum(v, def = 0) {
+        if (!v) return def;
+        let n = parseFloat(v);
+        return isNaN(n) ? def : n;
+    }
 
-        // Number Sanitizer Guard
-        const toNum = (val, fallback = 0) => {
-            if (val === null || val === undefined || val === '') return fallback;
-            const n = Number(String(val).replace(/[^0-9.-]+/g, ''));
-            return isNaN(n) || !isFinite(n) ? fallback : n;
-        };
+    window.onload = function() {
+        onScenarioUpdate();
+        renderQuotesList();
+    };
 
-        // Initialize App
-        window.addEventListener('DOMContentLoaded', () => {
-            updateSavedQuoteCountBadge();
-            renderCustomerTypeButtons();
+    function onScenarioUpdate() {
+        appState.custType = document.getElementById('custType').value;
+        appState.appLimit = toNum(document.getElementById('appLimit').value, Infinity);
+        appState.maxLtv = toNum(document.getElementById('maxLtv').value, 100);
+        appState.capping = toNum(document.getElementById('capping').value, 0);
+
+        document.getElementById('scenarioStatus').innerText = 
+            appState.custType !== '-' ? `${appState.custType} ACTIVE` : 'SELECT TYPE';
+
+        recalculate();
+    }
+
+    // Direct Search + Reverse Scheme Search (Point 6 & 8)
+    function handleUniversalSearch(val) {
+        let q = val.trim().toLowerCase();
+        let box = document.getElementById('searchDropdown');
+        if (!q) {
+            box.style.display = 'none';
+            box.innerHTML = '';
+            return;
+        }
+
+        let hits = [];
+
+        // Check Reverse Scheme match (उदा. 10/2 किंवा 8/0)
+        let matchedSchemes = masterSchemes.filter(s => `${s.totalTenure}/${s.advTenure}`.includes(q));
+        if (matchedSchemes.length > 0) {
+            hits.push({
+                isScheme: true,
+                title: `⚡ SCHEME: ${matchedSchemes[0].totalTenure}/${matchedSchemes[0].advTenure}`,
+                targetScheme: matchedSchemes[0]
+            });
+        }
+
+        // Check Products
+        masterProducts.forEach(p => {
+            if (p.model.toLowerCase().includes(q) || p.brand.toLowerCase().includes(q)) {
+                hits.push({ isProduct: true, p: p });
+            }
         });
 
-        // Scenario Event Handlers
-        function setCustomerType(type) {
-            state.customerType = type;
-            renderCustomerTypeButtons();
-            runCalculation();
-        }
-
-        function renderCustomerTypeButtons() {
-            document.querySelectorAll('.cust-btn').forEach(btn => {
-                if (btn.dataset.type === state.customerType) {
-                    btn.className = 'cust-btn py-1.5 text-xs font-bold rounded-lg border border-indigo-600 bg-indigo-600 text-white tap-scale';
-                } else {
-                    btn.className = 'cust-btn py-1.5 text-xs font-bold rounded-lg border border-slate-200 bg-slate-50 text-slate-700 tap-scale';
-                }
-            });
-        }
-
-        function handleScenarioChange() {
-            state.approvedLimit = toNum(document.getElementById('approvedLimitInput').value);
-            state.maxLtv = toNum(document.getElementById('maxLtvInput').value, 100);
-            state.capping = toNum(document.getElementById('cappingInput').value, 0);
-            runCalculation();
-        }
-
-        // Search Engine: Direct Model Search + Reverse Scheme Search
-        function handleUniversalSearch(val) {
-            const q = val.trim().toLowerCase();
-            const tray = document.getElementById('searchResultsTray');
-            if (!q) {
-                tray.classList.add('hidden');
-                tray.innerHTML = '';
-                return;
-            }
-
-            let matches = [];
-
-            // Case A: Reverse Scheme Search (e.g., '10/2', '8/0')
-            if (q.includes('/') || q.includes('zero') || q.includes('scheme')) {
-                const matchedSchemes = masterSchemes.filter(s => 
-                    `${s.totalTenure}/${s.advTenure}`.includes(q) || s.name.toLowerCase().includes(q)
-                );
-                
-                if (matchedSchemes.length > 0) {
-                    matches.push({
-                        isSchemeGroup: true,
-                        schemeName: `${matchedSchemes[0].totalTenure}/${matchedSchemes[0].advTenure}`,
-                        schemeObj: matchedSchemes[0]
-                    });
-                }
-            }
-
-            // Case B: Model & Brand Match
-            masterProducts.forEach(p => {
-                if (p.model.toLowerCase().includes(q) || p.brand.toLowerCase().includes(q)) {
-                    matches.push({ isModel: true, product: p });
-                }
-            });
-
-            if (matches.length === 0) {
-                tray.innerHTML = `<div class="p-3 text-xs text-slate-400">कोणतेही मॉडेल किंवा स्कीम आढळली नाही.</div>`;
-            } else {
-                tray.innerHTML = matches.map(m => {
-                    if (m.isSchemeGroup) {
-                        return `
-                        <div onclick="selectSchemeReverse('${m.schemeObj.id}')" class="p-2.5 hover:bg-slate-50 cursor-pointer tap-scale">
-                            <span class="text-[10px] bg-indigo-100 text-indigo-700 font-bold px-1.5 py-0.5 rounded">REVERSE SCHEME</span>
-                            <div class="text-xs font-bold text-slate-900 mt-0.5">Scheme: ${m.schemeName}</div>
-                            <div class="text-[11px] text-slate-500">या स्कीमसाठी उपलब्ध सर्व मॉडेल्स दाखवा</div>
-                        </div>`;
-                    }
-                    return `
-                    <div onclick="selectProduct(${m.product.id})" class="p-2.5 hover:bg-slate-50 cursor-pointer tap-scale flex items-center justify-between">
-                        <div>
-                            <span class="text-[10px] bg-slate-100 text-slate-600 font-bold px-1.5 py-0.5 rounded">${m.product.brand}</span>
-                            <div class="text-xs font-bold text-slate-900 mt-0.5">${m.product.model}</div>
-                        </div>
-                        <div class="text-right">
-                            <span class="text-xs font-black text-slate-700">₹${m.product.systemPrice.toLocaleString('en-IN')}</span>
-                        </div>
+        if (hits.length === 0) {
+            box.innerHTML = `<div class="search-item" style="color:#94a3b8;">कोणतेही मॉडेल किंवा स्कीम आढळली नाही.</div>`;
+        } else {
+            box.innerHTML = hits.map(h => {
+                if (h.isScheme) {
+                    return `<div class="search-item" style="background:#e0f2fe;" onclick="applyReverseScheme('${h.targetScheme.id}')">
+                        <b>${h.title}</b>
+                        <div style="font-size:10px; color:#0369a1;">या स्कीमचे सर्व मॉडेल्स पाहण्यासाठी टॅप करा</div>
                     </div>`;
-                }).join('');
-            }
-            tray.classList.remove('hidden');
-        }
-
-        function selectProduct(id) {
-            const p = masterProducts.find(x => x.id === id);
-            if (!p) return;
-
-            state.selectedProduct = p;
-            state.customLoanAmount = null; // Reset custom loan
-            document.getElementById('searchResultsTray').classList.add('hidden');
-            document.getElementById('universalSearchInput').value = '';
-
-            // Update Product Workbench UI
-            document.getElementById('productBrandBadge').innerText = p.brand;
-            document.getElementById('productModelTitle').innerText = p.model;
-            document.getElementById('systemPriceDisplay').innerText = `₹${p.systemPrice.toLocaleString('en-IN')}`;
-
-            // Leave Invoice Price Blank (Explicit Point 2)
-            const invField = document.getElementById('invoicePriceInput');
-            invField.value = '';
-            state.invoicePrice = 0;
-
-            document.getElementById('activeWorkbench').classList.remove('hidden');
-            renderSchemesList();
-            invField.focus();
-        }
-
-        function selectSchemeReverse(schemeId) {
-            document.getElementById('searchResultsTray').classList.add('hidden');
-            document.getElementById('universalSearchInput').value = '';
-            // Pick first model for demonstration or prompt model pick
-            selectProduct(masterProducts[0].id);
-            const targetScheme = masterSchemes.find(s => s.id === schemeId);
-            if (targetScheme) selectScheme(targetScheme.id);
-        }
-
-        function clearSelectedProduct() {
-            state.selectedProduct = null;
-            state.selectedScheme = null;
-            document.getElementById('activeWorkbench').classList.add('hidden');
-            document.getElementById('verificationCard').classList.add('hidden');
-            document.getElementById('stickyBottomBar').classList.add('hidden');
-        }
-
-        function handleInvoicePriceChange() {
-            state.invoicePrice = toNum(document.getElementById('invoicePriceInput').value);
-            state.customLoanAmount = null; // Re-evaluate loan limits on price change
-            renderSchemesList();
-            runCalculation();
-        }
-
-        // Render Schemes with Actual rupee Components and Disbursal values (Point 6 & 9)
-        function renderSchemesList() {
-            const container = document.getElementById('schemesCardsContainer');
-            if (!state.selectedProduct) return;
-
-            const sysPrice = state.selectedProduct.systemPrice;
-            const invPrice = state.invoicePrice > 0 ? state.invoicePrice : sysPrice;
-            const eligiblePrice = Math.min(sysPrice, invPrice);
-
-            document.getElementById('schemeCountBadge').innerText = `${masterSchemes.length} Schemes`;
-
-            container.innerHTML = masterSchemes.map(sch => {
-                const isSelected = state.selectedScheme && state.selectedScheme.id === sch.id;
-                
-                // Approximate Breakdowns for preview
-                const tenure = sch.totalTenure;
-                const adv = sch.advTenure;
-                const bal = tenure - adv;
-                const emi = Math.round(eligiblePrice / tenure);
-                const loanApprox = emi * bal;
-                const dbdAmt = Math.round((loanApprox * sch.dbd) / 100);
-                const roiAmt = sch.roi > 0 ? Math.round((loanApprox * sch.roi / 100) * (bal / 12)) : 0;
-                const netDisbursal = loanApprox - dbdAmt;
-
-                return `
-                <div onclick="selectScheme('${sch.id}')" class="p-3.5 rounded-xl border transition-all cursor-pointer tap-scale ${isSelected ? 'bg-indigo-50/80 border-indigo-500 ring-1 ring-indigo-500' : 'bg-white border-slate-200 hover:border-slate-300'}">
-                    <div class="flex items-center justify-between pb-2 border-b border-slate-100">
-                        <div>
-                            <span class="text-xs font-black text-slate-900">${sch.totalTenure}/${sch.advTenure}</span>
-                            <span class="text-[11px] text-slate-500 font-medium ml-1.5">${sch.name}</span>
-                        </div>
-                        <span class="text-xs font-extrabold text-indigo-700">EMI: ₹${emi.toLocaleString('en-IN')}</span>
-                    </div>
-
-                    <!-- Actual rupee Components strip (Point 9) -->
-                    <div class="grid grid-cols-4 gap-1.5 mt-2.5 text-[10px] text-slate-600">
-                        <div class="bg-slate-50 p-1.5 rounded">
-                            <span class="block text-slate-400">DBD (${sch.dbd}%)</span>
-                            <b class="text-slate-800">₹${dbdAmt}</b>
-                        </div>
-                        <div class="bg-slate-50 p-1.5 rounded">
-                            <span class="block text-slate-400">PF Fee</span>
-                            <b class="text-slate-800">₹${sch.pf}</b>
-                        </div>
-                        <div class="bg-slate-50 p-1.5 rounded">
-                            <span class="block text-slate-400">ROI (${sch.roi}%)</span>
-                            <b class="${roiAmt > 0 ? 'text-amber-600' : 'text-slate-800'}">₹${roiAmt}</b>
-                        </div>
-                        <div class="bg-emerald-50 p-1.5 rounded text-emerald-800">
-                            <span class="block text-emerald-600 font-medium">Disbursal</span>
-                            <b>₹${netDisbursal.toLocaleString('en-IN')}</b>
-                        </div>
-                    </div>
+                }
+                return `<div class="search-item" onclick="selectProduct(${h.p.id})">
+                    <b>${h.p.model}</b> - <span style="color:#059669;">₹${h.p.systemPrice.toLocaleString('en-IN')}</span>
+                    <div style="font-size:10px; color:#64748b;">${h.p.brand} | ${h.p.category}</div>
                 </div>`;
             }).join('');
         }
+        box.style.display = 'block';
+    }
 
-        function selectScheme(id) {
-            state.selectedScheme = masterSchemes.find(s => s.id === id);
-            state.customLoanAmount = null; // Reset custom adjustments on new scheme
-            renderSchemesList();
-            runCalculation();
-        }
+    function selectProduct(id) {
+        let p = masterProducts.find(x => x.id === id);
+        if (!p) return;
 
-        // Central Calculation and Inspection Logic (All Rules Enforced)
-        function runCalculation() {
-            if (!state.selectedProduct || !state.selectedScheme) return;
+        appState.selectedProduct = p;
+        appState.customLoan = null;
+        document.getElementById('searchDropdown').style.display = 'none';
+        document.getElementById('modelSearch').value = '';
 
-            const sysPrice = state.selectedProduct.systemPrice;
-            const invPrice = toNum(document.getElementById('invoicePriceInput').value);
-            state.insurance = toNum(document.getElementById('insuranceSelect').value);
+        document.getElementById('pBrandBadge').innerText = p.brand;
+        document.getElementById('pModelName').innerText = p.model;
+        document.getElementById('pSystemPrice').innerText = `₹${p.systemPrice.toLocaleString('en-IN')}`;
 
-            // Require Invoice Price
-            if (invPrice <= 0) {
-                document.getElementById('verificationCard').classList.add('hidden');
-                document.getElementById('stickyBottomBar').classList.add('hidden');
-                return;
-            }
+        // Point 2: Invoice Amount Blank by default
+        document.getElementById('invoiceAmount').value = '';
+        appState.invoicePrice = 0;
 
-            const sch = state.selectedScheme;
-            const eligiblePrice = Math.min(sysPrice, invPrice);
-            const extraCashFromPriceGap = Math.max(0, invPrice - sysPrice); // Point 3
+        document.getElementById('selectedProductArea').style.display = 'block';
+        document.getElementById('schemesWrapper').style.display = 'block';
 
-            // Scheme LTV & Customer LTV Rules
-            const schemeLtvRatio = (sch.totalTenure - sch.advTenure) / sch.totalTenure;
-            const standardSchemeLoan = Math.round(eligiblePrice * schemeLtvRatio);
+        renderSchemes();
+        document.getElementById('invoiceAmount').focus();
+    }
 
-            const customerLtvLimit = Math.round(eligiblePrice * (state.maxLtv / 100));
-            const approvedLimit = state.approvedLimit > 0 ? state.approvedLimit : Infinity;
-            const cappingLimit = state.capping > 0 ? state.capping : Infinity;
+    function applyReverseScheme(schemeId) {
+        document.getElementById('searchDropdown').style.display = 'none';
+        document.getElementById('modelSearch').value = '';
+        selectProduct(masterProducts[0].id);
+        selectScheme(schemeId);
+    }
 
-            // Maximum Permissible Loan Calculation (Point 4A)
-            const maxAllowedLoan = Math.min(
-                standardSchemeLoan,
-                customerLtvLimit,
-                approvedLimit,
-                cappingLimit
-            );
+    function resetProductSelection() {
+        appState.selectedProduct = null;
+        appState.selectedScheme = null;
+        document.getElementById('selectedProductArea').style.display = 'none';
+        document.getElementById('schemesWrapper').style.display = 'none';
+        document.getElementById('verificationCard').style.display = 'none';
+        document.getElementById('bottomActions').style.display = 'none';
+    }
 
-            // Minimum Permissible Loan Calculation (Point 4B: 50% Rule)
-            const minAllowedLoan = Math.round(Math.max(5000, eligiblePrice * 0.5));
+    function handleInvoiceInput() {
+        appState.invoicePrice = toNum(document.getElementById('invoiceAmount').value, 0);
+        appState.customLoan = null;
+        renderSchemes();
+        recalculate();
+    }
 
-            // Actual Loan Amount applied
-            let finalLoan = state.customLoanAmount !== null ? state.customLoanAmount : maxAllowedLoan;
-            // Bound checks
-            finalLoan = Math.max(minAllowedLoan, Math.min(finalLoan, maxAllowedLoan));
+    // Render Schemes with Components (Point 6 & 9)
+    function renderSchemes() {
+        let wrapper = document.getElementById('schemesList');
+        if (!appState.selectedProduct) return;
 
-            // Tenure derivations
-            const balTenure = sch.totalTenure - sch.advTenure;
-            const singleEmi = Math.round(eligiblePrice / sch.totalTenure);
-            const baseAdvEmiAmount = singleEmi * sch.advTenure;
+        let sys = appState.selectedProduct.systemPrice;
+        let inv = appState.invoicePrice > 0 ? appState.invoicePrice : sys;
+        let eligibleBase = Math.min(sys, inv);
 
-            // Extra DP incurred if loan is curtailed due to LTV/Limits
-            const extraDpFromLimits = Math.max(0, standardSchemeLoan - finalLoan);
+        document.getElementById('schemeCounter').innerText = `${masterSchemes.length} Schemes`;
 
-            // Rupee components
-            const dbdAmount = Math.round((finalLoan * sch.dbd) / 100);
-            const pfAmount = sch.pf;
-            const roiInterestAmount = sch.roi > 0 ? Math.round((finalLoan * (sch.roi / 100)) * (balTenure / 12)) : 0;
-            const netDisbursal = finalLoan - dbdAmount;
+        wrapper.innerHTML = masterSchemes.map(s => {
+            let active = appState.selectedScheme && appState.selectedScheme.id === s.id ? 'active' : '';
+            let emiApprox = Math.round(eligibleBase / s.totalTenure);
+            let loanApprox = emiApprox * (s.totalTenure - s.advTenure);
+            let dbdAmt = Math.round((loanApprox * s.dbd) / 100);
+            let roiAmt = s.roi > 0 ? Math.round((loanApprox * s.roi / 100) * ((s.totalTenure - s.advTenure) / 12)) : 0;
+            let disbursal = loanApprox - dbdAmt;
 
-            // Net Down Payment Calculation
-            const netDp = baseAdvEmiAmount + extraCashFromPriceGap + extraDpFromLimits + dbdAmount + pfAmount + state.insurance;
-
-            // Final EMI adjusted for ROI
-            const finalMonthlyEmi = Math.round((finalLoan + roiInterestAmount) / (balTenure > 0 ? balTenure : 1));
-            const dailyEmi = Math.round(finalMonthlyEmi / 30);
-
-            // Populate Live Component Verification Card (Point 5 & 9)
-            document.getElementById('vCompSystemSelling').innerText = `Sys: ₹${sysPrice.toLocaleString('en-IN')} | Inv: ₹${invPrice.toLocaleString('en-IN')}`;
-            document.getElementById('vCompLoanAmount').innerText = `₹${finalLoan.toLocaleString('en-IN')}`;
-            document.getElementById('vCompAdvanceEmi').innerText = `₹${baseAdvEmiAmount.toLocaleString('en-IN')} (${sch.advTenure} EMI)`;
-            document.getElementById('vCompExtraDp').innerText = `₹${(extraCashFromPriceGap + extraDpFromLimits).toLocaleString('en-IN')}`;
-            document.getElementById('vCompDbd').innerText = `₹${dbdAmount.toLocaleString('en-IN')} (${sch.dbd}%)`;
-            document.getElementById('vCompPf').innerText = `₹${pfAmount.toLocaleString('en-IN')}`;
-            document.getElementById('vCompRoi').innerText = sch.roi > 0 ? `₹${roiInterestAmount.toLocaleString('en-IN')} (${sch.roi}%)` : '₹0 (0%)';
-            document.getElementById('vCompDisbursal').innerText = `₹${netDisbursal.toLocaleString('en-IN')}`;
-
-            document.getElementById('vCompNetDp').innerText = `₹${netDp.toLocaleString('en-IN')}`;
-            document.getElementById('vCompMonthlyEmi').innerText = `₹${finalMonthlyEmi.toLocaleString('en-IN')}`;
-            document.getElementById('vCompDailyEmi').innerText = `₹${dailyEmi}/दिवस`;
-
-            // Sticky Bottom Bar
-            document.getElementById('stickyDpVal').innerText = `₹${netDp.toLocaleString('en-IN')}`;
-            document.getElementById('stickyEmiVal').innerText = `₹${finalMonthlyEmi.toLocaleString('en-IN')}`;
-
-            document.getElementById('verificationCard').classList.remove('hidden');
-            document.getElementById('stickyBottomBar').classList.remove('hidden');
-
-            // Stash latest calculated state for Quotes/WhatsApp
-            state.latestCalculation = {
-                model: state.selectedProduct.model,
-                invPrice,
-                netDp,
-                emi: finalMonthlyEmi,
-                loan: finalLoan,
-                tenure: sch.totalTenure,
-                adv: sch.advTenure,
-                schemeName: sch.name,
-                minAllowedLoan,
-                maxAllowedLoan
-            };
-        }
-
-        // Modal: Edit Loan Amount with Min-Max Guards (Point 4)
-        function openLoanEditModal() {
-            if (!state.latestCalculation) return;
-            const { minAllowedLoan, maxAllowedLoan, loan } = state.latestCalculation;
-            
-            document.getElementById('modalCustomLoanInput').value = loan;
-            document.getElementById('loanRangeNotice').innerText = `Range: ₹${minAllowedLoan.toLocaleString('en-IN')} - ₹${maxAllowedLoan.toLocaleString('en-IN')}`;
-            document.getElementById('loanRangeExplainer').innerText = `* Minimum 50% threshold: ₹${minAllowedLoan.toLocaleString('en-IN')}, Allowed Limit/LTV Max: ₹${maxAllowedLoan.toLocaleString('en-IN')}`;
-            document.getElementById('loanEditModal').classList.remove('hidden');
-        }
-
-        function closeLoanEditModal() {
-            document.getElementById('loanEditModal').classList.add('hidden');
-        }
-
-        function resetLoanToMax() {
-            state.customLoanAmount = null;
-            closeLoanEditModal();
-            runCalculation();
-        }
-
-        function applyCustomLoanAmount() {
-            const entered = toNum(document.getElementById('modalCustomLoanInput').value);
-            const { minAllowedLoan, maxAllowedLoan } = state.latestCalculation;
-
-            if (entered < minAllowedLoan) {
-                alert(`पॉलिसीनुसार लोन रक्कम किमान ५०% (₹${minAllowedLoan.toLocaleString('en-IN')}) असणे अनिवार्य आहे.`);
-                state.customLoanAmount = minAllowedLoan;
-            } else if (entered > maxAllowedLoan) {
-                alert(`कमाल मंजूर मर्यादा ₹${maxAllowedLoan.toLocaleString('en-IN')} आहे.`);
-                state.customLoanAmount = maxAllowedLoan;
-            } else {
-                state.customLoanAmount = entered;
-            }
-
-            closeLoanEditModal();
-            runCalculation();
-        }
-
-        // Modal: Add Custom Scheme (Point 7)
-        function openNewSchemeModal() {
-            document.getElementById('newSchemeModal').classList.remove('hidden');
-        }
-
-        function closeNewSchemeModal() {
-            document.getElementById('newSchemeModal').classList.add('hidden');
-        }
-
-        function saveCustomScheme() {
-            const tot = toNum(document.getElementById('nsTotalTenure').value);
-            const adv = toNum(document.getElementById('nsAdvTenure').value);
-            const dbd = toNum(document.getElementById('nsDbd').value);
-            const pf = toNum(document.getElementById('nsPf').value);
-            const roi = toNum(document.getElementById('nsRoi').value);
-
-            if (tot <= 0) {
-                alert('कृपया वैध Tenure टाका.');
-                return;
-            }
-
-            const newSch = {
-                id: 'cust_' + Date.now(),
-                name: `${tot}/${adv} Custom`,
-                totalTenure: tot,
-                advTenure: adv,
-                dbd,
-                pf,
-                roi,
-                modelId: null
-            };
-
-            masterSchemes.unshift(newSch);
-            closeNewSchemeModal();
-            renderSchemesList();
-            selectScheme(newSch.id);
-        }
-
-        // Point 10: Save Quote with Customer Name (Local Persistence)
-        function promptSaveQuote() {
-            if (!state.latestCalculation) return;
-            const name = prompt('ग्राहकाचे नाव टाका (Customer Name):');
-            if (!name || !name.trim()) return;
-
-            const savedQuotes = JSON.parse(localStorage.getItem('pro_store_quotes') || '[]');
-            const newQuote = {
-                id: Date.now(),
-                customerName: name.trim(),
-                date: new Date().toLocaleDateString('mr-IN', { hour: '2-digit', minute: '2-digit' }),
-                data: state.latestCalculation
-            };
-
-            savedQuotes.unshift(newQuote);
-            localStorage.setItem('pro_store_quotes', JSON.stringify(savedQuotes));
-            updateSavedQuoteCountBadge();
-            alert(`'${name}' चे कोटेशन यशस्वीरित्या सेव्ह झाले!`);
-        }
-
-        function updateSavedQuoteCountBadge() {
-            const savedQuotes = JSON.parse(localStorage.getItem('pro_store_quotes') || '[]');
-            document.getElementById('savedQuoteCount').innerText = savedQuotes.length;
-        }
-
-        function openSavedQuotesModal() {
-            const container = document.getElementById('savedQuotesListContainer');
-            const savedQuotes = JSON.parse(localStorage.getItem('pro_store_quotes') || '[]');
-
-            if (savedQuotes.length === 0) {
-                container.innerHTML = `<div class="p-4 text-center text-xs text-slate-400">कोणतेही सेव्ह केलेले कोटेशन नाही.</div>`;
-            } else {
-                container.innerHTML = savedQuotes.map(q => `
-                <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
-                    <div>
-                        <div class="text-xs font-black text-slate-900">${q.customerName}</div>
-                        <div class="text-[11px] text-slate-500">${q.data.model} • ${q.data.tenure}/${q.data.adv}</div>
-                        <div class="text-[10px] text-slate-400">${q.date}</div>
+            return `<div class="scheme-item-box ${active}" onclick="selectScheme('${s.id}')">
+                <div class="scheme-header-row">
+                    <span>${s.totalTenure}/${s.advTenure} - ${s.name}</span>
+                    <span style="color:var(--primary);">EMI: ₹${emiApprox.toLocaleString('en-IN')}</span>
+                </div>
+                <div class="components-chip-grid">
+                    <div class="component-chip"><span>DBD (${s.dbd}%)</span><b>₹${dbdAmt}</b></div>
+                    <div class="component-chip"><span>PF Fee</span><b>₹${s.pf}</b></div>
+                    <div class="component-chip"><span>ROI (${s.roi}%)</span><b>₹${roiAmt}</b></div>
+                    <div class="component-chip" style="background:#ecfdf5; border-color:#a7f3d0;">
+                        <span style="color:#059669;">Disbursal</span><b>₹${disbursal.toLocaleString('en-IN')}</b>
                     </div>
-                    <div class="text-right">
-                        <div class="text-xs font-bold text-amber-600">DP: ₹${q.data.netDp.toLocaleString('en-IN')}</div>
-                        <div class="text-xs font-bold text-indigo-600">EMI: ₹${q.data.emi.toLocaleString('en-IN')}</div>
-                    </div>
-                </div>`).join('');
-            }
-            document.getElementById('savedQuotesModal').classList.remove('hidden');
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    function selectScheme(id) {
+        appState.selectedScheme = masterSchemes.find(x => x.id === id);
+        appState.customLoan = null;
+        renderSchemes();
+        recalculate();
+    }
+
+    // CENTRAL RE-CALCULATION & COMPONENT ENGINE (Rules 3, 4, 5 & 9)
+    function recalculate() {
+        if (!appState.selectedProduct || !appState.selectedScheme) return;
+
+        let inv = appState.invoicePrice;
+        if (inv <= 0) {
+            document.getElementById('verificationCard').style.display = 'none';
+            document.getElementById('bottomActions').style.display = 'none';
+            return;
         }
 
-        function closeSavedQuotesModal() {
-            document.getElementById('savedQuotesModal').classList.add('hidden');
+        let sys = appState.selectedProduct.systemPrice;
+        let eligiblePrice = Math.min(sys, inv);
+        let extraSellingGap = Math.max(0, inv - sys); // Point 3: Selling > System gap
+
+        let s = appState.selectedScheme;
+        let balTenure = s.totalTenure - s.advTenure;
+
+        // Scheme LTV Ratio
+        let schemeLtvRatio = balTenure / s.totalTenure;
+        let standardLoan = Math.round(eligiblePrice * schemeLtvRatio);
+
+        // LTV & Limit Cap Checks
+        let customerLtvMax = Math.round(eligiblePrice * (appState.maxLtv / 100));
+        let approvedLimit = appState.appLimit > 0 ? appState.appLimit : Infinity;
+        let capping = appState.capping > 0 ? appState.capping : Infinity;
+
+        // Maximum Permissible Loan (Point 4A)
+        let maxAllowedLoan = Math.min(standardLoan, customerLtvMax, approvedLimit, capping);
+
+        // Minimum 50% Rule (Point 4B)
+        let minAllowedLoan = Math.round(Math.max(5000, eligiblePrice * 0.5));
+
+        let finalLoan = appState.customLoan !== null ? appState.customLoan : maxAllowedLoan;
+        finalLoan = Math.max(minAllowedLoan, Math.min(finalLoan, maxAllowedLoan));
+
+        // Advance EMI & Extra Cash DP
+        let singleEmi = Math.round(eligiblePrice / s.totalTenure);
+        let baseAdvEmiAmt = singleEmi * s.advTenure;
+        let extraDpFromLimit = Math.max(0, standardLoan - finalLoan);
+
+        // Fee Calculations
+        let dbdAmt = Math.round((finalLoan * s.dbd) / 100);
+        let pfAmt = s.pf;
+        let vasAmt = toNum(document.getElementById('vasSelect').value, 0);
+        let roiAmt = s.roi > 0 ? Math.round((finalLoan * (s.roi / 100)) * (balTenure / 12)) : 0;
+        let disbursal = finalLoan - dbdAmt;
+
+        // Total Net DP & Monthly EMI
+        let netDp = baseAdvEmiAmt + extraSellingGap + extraDpFromLimit + dbdAmt + pfAmt + vasAmt;
+        let monthlyEmi = Math.round((finalLoan + roiAmt) / (balTenure > 0 ? balTenure : 1));
+
+        // Update Inspection View (Point 5 & 9)
+        document.getElementById('lblSysVsSell').innerText = `Sys: ₹${sys} | Inv: ₹${inv}`;
+        document.getElementById('lblFinalLoan').innerText = `₹${finalLoan.toLocaleString('en-IN')}`;
+        document.getElementById('lblAdvEmiAmt').innerText = `₹${baseAdvEmiAmt} (${s.advTenure} EMI)`;
+        document.getElementById('lblExtraDp').innerText = `₹${(extraSellingGap + extraDpFromLimit).toLocaleString('en-IN')}`;
+        document.getElementById('lblDbdAmt').innerText = `₹${dbdAmt} (${s.dbd}%)`;
+        document.getElementById('lblPfAmt').innerText = `₹${pfAmt}`;
+        document.getElementById('lblRoiAmt').innerText = s.roi > 0 ? `₹${roiAmt} (${s.roi}%)` : `₹0 (0%)`;
+        document.getElementById('lblDisbursal').innerText = `₹${disbursal.toLocaleString('en-IN')}`;
+
+        document.getElementById('lblNetDp').innerText = `₹${netDp.toLocaleString('en-IN')}`;
+        document.getElementById('lblMonthlyEmi').innerText = `₹${monthlyEmi.toLocaleString('en-IN')}`;
+        document.getElementById('lblDailyEmi').innerText = `₹${Math.round(monthlyEmi / 30)}/दिवस`;
+
+        document.getElementById('verificationCard').style.display = 'block';
+        document.getElementById('bottomActions').style.display = 'block';
+
+        appState.calculated = {
+            model: appState.selectedProduct.model,
+            invPrice: inv,
+            netDp: netDp,
+            emi: monthlyEmi,
+            balTenure: balTenure,
+            tenure: s.totalTenure,
+            adv: s.advTenure,
+            minLoan: minAllowedLoan,
+            maxLoan: maxAllowedLoan,
+            currentLoan: finalLoan
+        };
+    }
+
+    // EDIT LOAN AMOUNT MODAL (50% Min to Max LTV Range Guard)
+    function openLoanEditModal() {
+        if (!appState.calculated) return;
+        let c = appState.calculated;
+        document.getElementById('customLoanInput').value = c.currentLoan;
+        document.getElementById('loanRangeNotice').innerHTML = 
+            `<b>Allowed Range:</b> ₹${c.minLoan.toLocaleString('en-IN')} ते ₹${c.maxLoan.toLocaleString('en-IN')}<br>
+             <span style="font-size:10px; color:#64748b;">(50% Policy Floor & Max LTV/Limit Enforced)</span>`;
+        document.getElementById('editLoanModal').classList.add('open');
+    }
+
+    function closeLoanEditModal() {
+        document.getElementById('editLoanModal').classList.remove('open');
+    }
+
+    function resetLoanMax() {
+        appState.customLoan = null;
+        closeLoanEditModal();
+        recalculate();
+    }
+
+    function applyCustomLoan() {
+        let entered = toNum(document.getElementById('customLoanInput').value, 0);
+        let { minLoan, maxLoan } = appState.calculated;
+
+        if (entered < minLoan) {
+            alert(`पॉलिसीनुसार लोन रक्कम किमान ५०% (₹${minLoan.toLocaleString('en-IN')}) असणे बंधनकारक आहे.`);
+            appState.customLoan = minLoan;
+        } else if (entered > maxLoan) {
+            alert(`कमाल अनुज्ञेय मर्यादा ₹${maxLoan.toLocaleString('en-IN')} आहे.`);
+            appState.customLoan = maxLoan;
+        } else {
+            appState.customLoan = entered;
+        }
+        closeLoanEditModal();
+        recalculate();
+    }
+
+    // ON-THE-FLY SCHEME ADDITION (Point 7)
+    function openNewSchemeModal() {
+        document.getElementById('addSchemeModal').classList.add('open');
+    }
+
+    function closeNewSchemeModal() {
+        document.getElementById('addSchemeModal').classList.remove('open');
+    }
+
+    function saveCustomScheme() {
+        let tot = toNum(document.getElementById('nsTotTenure').value, 0);
+        let adv = toNum(document.getElementById('nsAdvTenure').value, 0);
+        let dbd = toNum(document.getElementById('nsDbd').value, 0);
+        let pf = toNum(document.getElementById('nsPf').value, 0);
+        let roi = toNum(document.getElementById('nsRoi').value, 0);
+
+        if (tot <= 0) {
+            alert('कृपया वैध Tenure टाका.');
+            return;
         }
 
-        // Point 6: Instant WhatsApp Payload
-        function shareQuoteWhatsApp() {
-            if (!state.latestCalculation) return;
-            const c = state.latestCalculation;
-            const text = 
+        let newSch = {
+            id: 'c_' + Date.now(),
+            name: `${tot}/${adv} Custom`,
+            totalTenure: tot,
+            advTenure: adv,
+            dbd: dbd,
+            pf: pf,
+            roi: roi
+        };
+
+        masterSchemes.unshift(newSch);
+        closeNewSchemeModal();
+        renderSchemes();
+        selectScheme(newSch.id);
+    }
+
+    // SAVE QUOTE WITH NAME (Point 10)
+    function promptSaveQuote() {
+        if (!appState.calculated) return;
+        let name = prompt('ग्राहकाचे नाव प्रविष्ट करा (Customer Name):');
+        if (!name || !name.trim()) return;
+
+        let list = JSON.parse(localStorage.getItem('store_quotes_db') || '[]');
+        let item = {
+            id: Date.now(),
+            name: name.trim(),
+            calc: appState.calculated,
+            time: new Date().toLocaleDateString('mr-IN', { hour: '2-digit', minute: '2-digit' })
+        };
+
+        list.unshift(item);
+        localStorage.setItem('store_quotes_db', JSON.stringify(list));
+        renderQuotesList();
+        alert(`'${name}' चे कोटेशन सेव्ह झाले.`);
+    }
+
+    function renderQuotesList() {
+        let box = document.getElementById('savedQuotesContainer');
+        let list = JSON.parse(localStorage.getItem('store_quotes_db') || '[]');
+        if (list.length === 0) {
+            box.innerHTML = `अद्याप कोणतेही सेव्ह केलेले कोटेशन नाही.`;
+            return;
+        }
+
+        box.innerHTML = list.map(q => `
+            <div style="border-bottom: 1px solid #e2e8f0; padding: 4px 0; display:flex; justify-content:space-between;">
+                <div>
+                    <b>${q.name}</b> (${q.calc.model})
+                    <div style="font-size:10px; color:#64748b;">${q.time} • ${q.calc.tenure}/${q.calc.adv}</div>
+                </div>
+                <div style="text-align:right;">
+                    <span style="color:#b45309; font-weight:700;">DP: ₹${q.calc.netDp.toLocaleString('en-IN')}</span><br>
+                    <span style="color:#1d4ed8; font-weight:700;">EMI: ₹${q.calc.emi.toLocaleString('en-IN')}</span>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // WHATSAPP SHARE
+    function shareOnWhatsApp() {
+        if (!appState.calculated) return;
+        let c = appState.calculated;
+        let text = 
 `📱 *${c.model.toUpperCase()}*
 💰 *किंमत:* ₹${c.invPrice.toLocaleString('en-IN')}
 ------------------------------
 🔹 *डाउन पेमेंट (Net DP):* ₹${c.netDp.toLocaleString('en-IN')}
 🔹 *दरमहा हप्ता (EMI):* ₹${c.emi.toLocaleString('en-IN')}
-🔹 *कालावधी (Tenure):* ${c.tenure - c.adv} महिने (${c.tenure}/${c.adv})
+🔹 *कालावधी (Tenure):* ${c.balTenure} महिने (${c.tenure}/${c.adv})
 🔹 *रोजचा हप्ता:* फक्त ₹${Math.round(c.emi / 30)}/दिवस
 ------------------------------
-✅ *Zero Hidden Charges • Instant Delivery*`;
+✅ *Zero Hidden Charges • Instant Approval*`;
 
-            window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
-        }
-    </script>
+        window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+    }
+</script>
+
 </body>
 </html>
