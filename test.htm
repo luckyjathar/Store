@@ -1678,24 +1678,35 @@
             let balTenure = ten - adv;
             if (balTenure < 1) balTenure = 1;
 
+            let approvedLimit = parseFloat(document.getElementById('approvedVal').value) || 0;
+            let rawMaxLtv = document.getElementById('maxLtvVal').value || "100";
+            let maxLtv = Math.min(100, Math.max(0, parseFloat(rawMaxLtv) || 100));
+
+            // Original NBFC Formula
+            let maxAllowedLoan = eligibleBase;
+            if (maxLtv < 100) {
+                let allowedFinanced = eligibleBase * (maxLtv / 100);
+                maxAllowedLoan = (allowedFinanced * ten) / balTenure;
+            }
+            if (approvedLimit > 0) {
+                let nbfcMaxL = (approvedLimit * ten) / balTenure;
+                maxAllowedLoan = Math.min(maxAllowedLoan, nbfcMaxL);
+            }
+            maxAllowedLoan = Math.min(eligibleBase, Math.max(0, maxAllowedLoan));
+
             let minAllowedLoan = Math.round(Math.max(5000, eligibleBase * 0.5));
-            let inherentSchemeLtv = (balTenure / ten);
-            let schemeMaxLoan = Math.round(eligibleBase * inherentSchemeLtv);
-            let maxLtv = Math.min(100, Math.max(0, parseFloat(document.getElementById('maxLtvVal').value) || 100));
-            let customerLtvMax = Math.round(eligibleBase * (maxLtv / 100));
-            let approvedLimit = parseFloat(document.getElementById('approvedVal').value) || Infinity;
-            let capping = parseFloat(document.getElementById('cappingVal').value) || Infinity;
-
-            let maxAllowedLoan = Math.min(schemeMaxLoan, customerLtvMax, approvedLimit, capping);
-
             document.getElementById('loanRangeNoticeText').innerText = 
-                `Allowed Range: ₹${minAllowedLoan.toLocaleString()} - ₹${maxAllowedLoan.toLocaleString()} (Min 50% Policy & Max LTV)`;
+                `Allowed Range: ₹${minAllowedLoan.toLocaleString()} - ₹${Math.round(maxAllowedLoan).toLocaleString()} (Min 50% Policy & NBFC Limit)`;
 
             let loan = customLoanInput > 0 ? customLoanInput : maxAllowedLoan;
+            loan = Math.max(minAllowedLoan, Math.min(loan, maxAllowedLoan));
 
-            let extraDpFromLimit = Math.max(0, schemeMaxLoan - loan);
-            let singleBaseEmi = Math.round(eligibleBase / ten);
-            let advanceEmiAmt = singleBaseEmi * adv;
+            let singleBaseEmi = loan / ten;
+            let advanceEmiAmt = Math.round(singleBaseEmi * adv);
+
+            let inherentSchemeLoan = (eligibleBase / ten) * balTenure;
+            let currentSchemeFinanced = (loan / ten) * balTenure;
+            let extraDpFromLimit = Math.max(0, Math.round(inherentSchemeLoan - currentSchemeFinanced));
 
             let dbdRupees = Math.round(loan * (dbdRate * 1.18 / 100));
 
@@ -1715,7 +1726,7 @@
             let exw = parseFloat(prod.exw) || 0;
             let vasTotal = gtl + rfc + exw;
 
-            let exactDp = advanceEmiAmt + extraSellingGap + extraDpFromLimit + dbdRupees + pfAmt + loginFee + margin + dealerContri + roiInDp;
+            let exactDp = (eligibleBase - loan) + advanceEmiAmt + extraSellingGap + dbdRupees + pfAmt + loginFee + margin + dealerContri + roiInDp;
             let finalDp = Math.ceil(exactDp / 10) * 10;
 
             let baseEmi = loan / ten;
@@ -1757,31 +1768,6 @@
             if (!s) return;
 
             let rawCustomLoan = parseFloat(document.getElementById('editCustomLoan').value) || 0;
-
-            if (rawCustomLoan > 0) {
-                let invoiceAmount = parseFloat(prod.invoice) || 0;
-                let sysPrice = parseFloat(prod.systemPrice) || 0;
-                let eligibleBase = invoiceAmount > 0 && sysPrice > 0 ? Math.min(invoiceAmount, sysPrice) : (invoiceAmount > 0 ? invoiceAmount : sysPrice);
-                
-                let minAllowedLoan = Math.round(Math.max(5000, eligibleBase * 0.5));
-                let inherentSchemeLtv = ((s.tenure - s.advEmi) / s.tenure);
-                let schemeMaxLoan = Math.round(eligibleBase * inherentSchemeLtv);
-                let maxLtv = Math.min(100, Math.max(0, parseFloat(document.getElementById('maxLtvVal').value) || 100));
-                let customerLtvMax = Math.round(eligibleBase * (maxLtv / 100));
-                let approvedLimit = parseFloat(document.getElementById('approvedVal').value) || Infinity;
-                let capping = parseFloat(document.getElementById('cappingVal').value) || Infinity;
-
-                let maxAllowedLoan = Math.min(schemeMaxLoan, customerLtvMax, approvedLimit, capping);
-
-                if (rawCustomLoan < minAllowedLoan) {
-                    alert(`Loan amount cannot be less than 50% minimum threshold: ₹${minAllowedLoan.toLocaleString()}`);
-                    rawCustomLoan = minAllowedLoan;
-                } else if (rawCustomLoan > maxAllowedLoan) {
-                    alert(`Loan amount exceeds maximum policy limit: ₹${maxAllowedLoan.toLocaleString()}`);
-                    rawCustomLoan = maxAllowedLoan;
-                }
-            }
-
             s.customLoan = rawCustomLoan;
             s.tenure = parseInt(document.getElementById('editTen').value) || s.tenure;
             s.advEmi = parseInt(document.getElementById('editAdv').value) || 0;
@@ -1801,34 +1787,10 @@
             let s = prod.schemes.find(x => x.sId === sId);
             if (!s) return;
 
-            let invoiceAmount = parseFloat(prod.invoice) || 0;
-            let sysPrice = parseFloat(prod.systemPrice) || 0;
-            let eligibleBase = invoiceAmount > 0 && sysPrice > 0 ? Math.min(invoiceAmount, sysPrice) : (invoiceAmount > 0 ? invoiceAmount : sysPrice);
-            
-            let minAllowedLoan = Math.round(Math.max(5000, eligibleBase * 0.5));
-            let inherentSchemeLtv = ((s.tenure - s.advEmi) / s.tenure);
-            let schemeMaxLoan = Math.round(eligibleBase * inherentSchemeLtv);
-            let maxLtv = Math.min(100, Math.max(0, parseFloat(document.getElementById('maxLtvVal').value) || 100));
-            let customerLtvMax = Math.round(eligibleBase * (maxLtv / 100));
-            let approvedLimit = parseFloat(document.getElementById('approvedVal').value) || Infinity;
-            let capping = parseFloat(document.getElementById('cappingVal').value) || Infinity;
-
-            let maxAllowedLoan = Math.min(schemeMaxLoan, customerLtvMax, approvedLimit, capping);
-
-            let newLoanStr = prompt(`Enter custom Loan Amount (Allowed: ₹${minAllowedLoan} to ₹${maxAllowedLoan}):`, Math.round(currentLoan));
+            let newLoanStr = prompt(`Enter custom Loan Amount:`, Math.round(currentLoan));
             if (newLoanStr === null) return;
             let newLoan = parseFloat(newLoanStr) || 0;
             
-            if (newLoan > 0) {
-                if (newLoan < minAllowedLoan) {
-                    alert(`Minimum 50% limit applies: ₹${minAllowedLoan}`);
-                    newLoan = minAllowedLoan;
-                } else if (newLoan > maxAllowedLoan) {
-                    alert(`Max limit applies: ₹${maxAllowedLoan}`);
-                    newLoan = maxAllowedLoan;
-                }
-            }
-
             s.customLoan = newLoan;
             savePersistentCustomProduct(prod);
             renderProductTableOnly(pId);
@@ -1996,7 +1958,7 @@
             selectedProductList.forEach(p => renderProductTableOnly(p.id));
         }
 
-        /* 🎯 CENTRAL CALCULATION & VERIFICATION ENGINE */
+        /* 🎯 CENTRAL CALCULATION & VERIFICATION ENGINE (ORIGINAL NBFC LOGIC PRESERVED) */
         function renderProductTableOnly(pId) {
             let prod = selectedProductList.find(p => p.id === pId);
             if (!prod) return;
@@ -2013,7 +1975,7 @@
             let invoiceAmount = parseFloat(prod.invoice) || 0;
             let systemPrice = parseFloat(prod.systemPrice) || 0;
             
-            let eligibleBase = invoiceAmount > 0 && systemPrice > 0 ? Math.min(invoiceAmount, systemPrice) : (invoiceAmount > 0 ? invoiceAmount : systemPrice);
+            let eligibleBase = (invoiceAmount > 0 && systemPrice > 0) ? Math.min(invoiceAmount, systemPrice) : (invoiceAmount > 0 ? invoiceAmount : systemPrice);
             let extraSellingGap = (invoiceAmount > 0 && systemPrice > 0) ? Math.max(0, invoiceAmount - systemPrice) : 0;
 
             let targetDpAmount = parseFloat(prod.targetDp) || 0;
@@ -2075,6 +2037,7 @@
                     }
                 }
 
+                // EXACT ORIGINAL NBFC FORMULA
                 if (approvedLimit > 0) {
                     let nbfcMaxL = (approvedLimit * s.tenure) / inst;
                     loan = Math.min(loan, nbfcMaxL);
