@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test Pro Financial Portal - Bajaj Edition</title>
+    <title>Pro Financial Portal - Bajaj Edition</title>
 
     <!-- Google Handwriting Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -546,7 +546,7 @@
         <!-- 1. SCENARIO CARD -->
         <div class="scenario-card">
             <div class="scenario-header">
-                <span class="scenario-title">⚡ SCENARIO (Test Edition)</span>
+                <span class="scenario-title">⚡ SCENARIO</span>
                 <span id="dataStatusBadge" class="status-badge" onclick="fetchFromMasterStream(true)">CHECKING...</span>
             </div>
             <table class="scenario-table">
@@ -1657,7 +1657,7 @@
             document.getElementById('editSchemeModal').style.display = 'flex';
         }
 
-        /* ⚡ RE-CALCULATE ALL A TO Z CHARGES LIVE IN MODAL (WITH 50% CLAMPING) */
+        /* ⚡ RE-CALCULATE ALL A TO Z CHARGES LIVE IN MODAL (WITH 50% CLAMPING & ₹850 EMI FLOOR) */
         function updateModalBreakdownLive() {
             let pId = document.getElementById('editTargetProdId').value;
             let prod = selectedProductList.find(p => p.id === pId);
@@ -1733,7 +1733,8 @@
             let baseEmi = loan / ten;
             let monthlyRoiAmt = Math.round(loan * roiRate);
             let vasPerMonth = Math.round(vasTotal / balTenure);
-            let finalEmi = Math.round((baseEmi < 900 && baseEmi > 0 ? 900 : baseEmi) + monthlyRoiAmt + vasPerMonth);
+            // 🟢 UPDATED: Base EMI Floor changed from 900 to 850
+            let finalEmi = Math.round((baseEmi < 850 && baseEmi > 0 ? 850 : baseEmi) + monthlyRoiAmt + vasPerMonth);
 
             let netDisbursal = Math.round(loan - Math.round(loan * (dbdRate / 100)));
 
@@ -1985,7 +1986,7 @@
             selectedProductList.forEach(p => renderProductTableOnly(p.id));
         }
 
-        /* 🎯 CENTRAL CALCULATION & VERIFICATION ENGINE (WITH 50% CLAMPING RULE) */
+        /* 🎯 CENTRAL CALCULATION & VERIFICATION ENGINE (BASE EMI FLOOR = 850) */
         function renderProductTableOnly(pId) {
             let prod = selectedProductList.find(p => p.id === pId);
             if (!prod) return;
@@ -2072,7 +2073,7 @@
 
                 loan = Math.min(price, Math.max(0, loan));
 
-                // 50% POLICY CLAMPING (Locking loan to minimum threshold)
+                // 50% POLICY CLAMPING
                 let minAllowedLoan = price * 0.50;
                 if (loan < minAllowedLoan) {
                     loan = minAllowedLoan;
@@ -2084,10 +2085,11 @@
 
                 let baseEmi = loan / s.tenure;
                 let roiInEmi = loan * roiRate;
+                
+                // 🟢 UPDATED: Base EMI Floor changed from 900 to 850
                 let emi = baseEmi + (insTotal / inst) + roiInEmi;
-
-                if (baseEmi > 0 && baseEmi < 900) {
-                    emi = 900 + (insTotal / inst) + roiInEmi;
+                if (baseEmi > 0 && baseEmi < 850) {
+                    emi = 850 + (insTotal / inst) + roiInEmi;
                 }
 
                 if ((!s.customLoan || s.customLoan <= 0) && targetDpAmount <= 0 && emiCap > 0 && emi > emiCap) {
@@ -2096,7 +2098,8 @@
                     loan = Math.min(price, Math.max(0, loan));
                     baseEmi = loan / s.tenure;
                     roiInEmi = loan * roiRate;
-                    emi = (baseEmi < 900 && baseEmi > 0 ? 900 : baseEmi) + (insTotal / inst) + roiInEmi;
+                    // 🟢 UPDATED: 850 Floor in Capping
+                    emi = (baseEmi < 850 && baseEmi > 0 ? 850 : baseEmi) + (insTotal / inst) + roiInEmi;
                     s.currentCalculatedLoan = loan;
                 }
 
