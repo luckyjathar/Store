@@ -524,23 +524,6 @@
             font-size: 11px;
         }
 
-        .charges-card-title {
-            color: var(--bajaj-sky);
-            font-weight: 800;
-            font-size: 12px;
-            border-bottom: 1px dashed var(--border-blue);
-            padding-bottom: 5px;
-            margin-bottom: 8px;
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .charges-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 6px 10px;
-        }
-
         .charges-row {
             display: flex;
             justify-content: space-between;
@@ -689,53 +672,53 @@
                 </div>
             </div>
 
-            <!-- 📋 LIVE A TO Z CHARGES & COMPONENTS CARD (Point 2) -->
+            <!-- 📋 A TO Z ZERO-HIDDEN CHARGES BREAKDOWN CARD -->
             <div class="charges-breakdown-card">
-                <div class="charges-card-title">
-                    <span>📑 A TO Z SCHEME CHARGES & VALUES</span>
+                <div style="color:var(--bajaj-sky); font-weight:800; font-size:12px; border-bottom:1px dashed var(--border-blue); padding-bottom:5px; margin-bottom:8px; display:flex; justify-content:space-between;">
+                    <span>📑 A TO Z COMPLETE BREAKDOWN (ZERO HIDDEN CHARGES)</span>
                     <span id="cardSchemeTitle" style="color:#facc15;">-</span>
                 </div>
-                <div class="charges-grid">
-                    <div class="charges-row">
-                        <span>Invoice / Base Price</span>
-                        <b id="cBasePrice">₹0</b>
+
+                <!-- DP GROUP -->
+                <div style="font-size:10px; font-weight:800; color:#fb923c; margin-bottom:4px; text-transform:uppercase;">
+                    🔹 Down Payment (DP) Components:
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:4px 8px; font-size:11px; margin-bottom:8px;">
+                    <div class="charges-row"><span>Advance EMI</span><b id="cAdvEmi">₹0</b></div>
+                    <div class="charges-row"><span>Selling Price Gap</span><b id="cPriceGap">₹0</b></div>
+                    <div class="charges-row"><span>LTV / Limit Breach DP</span><b id="cLimitBreachDp">₹0</b></div>
+                    <div class="charges-row"><span>DBD (+18% GST)</span><b id="cDbdVal">0% (₹0)</b></div>
+                    <div class="charges-row"><span>Processing Fee (PF)</span><b id="cPfVal">₹0</b></div>
+                    <div class="charges-row"><span>Customer Login Fee</span><b id="cLoginFee">₹0</b></div>
+                    <div class="charges-row"><span>Dealer Margin</span><b id="cMarginVal">₹0</b></div>
+                    <div class="charges-row"><span>Dealer Contribution</span><b id="cDealerContri">₹0</b></div>
+                    <div class="charges-row"><span>Advance ROI in DP</span><b id="cAdvRoiVal">₹0</b></div>
+                    <div class="charges-row highlight" style="background:#291e02; padding:3px 5px; border-radius:3px;">
+                        <span>Total Net DP (Round-off)</span>
+                        <b id="cFinalDpVal" style="color:#facc15; font-size:12px;">₹0</b>
                     </div>
-                    <div class="charges-row">
-                        <span>Financed Loan Base</span>
-                        <b id="cFinLoan" class="cyan">₹0</b>
+                </div>
+
+                <!-- EMI & VAS GROUP -->
+                <div style="font-size:10px; font-weight:800; color:#38bdf8; margin-bottom:4px; text-transform:uppercase;">
+                    🔹 Monthly EMI & Protection Components:
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:4px 8px; font-size:11px; margin-bottom:8px;">
+                    <div class="charges-row"><span>Base Principal Loan EMI</span><b id="cBaseEmi">₹0</b></div>
+                    <div class="charges-row"><span>Monthly Interest (ROI)</span><b id="cMonthlyRoi">₹0</b></div>
+                    <div class="charges-row"><span>GTL Life Insurance</span><b id="cGtlVal">₹0</b></div>
+                    <div class="charges-row"><span>RFC Device Cover</span><b id="cRfcVal">₹0</b></div>
+                    <div class="charges-row"><span>EXW Ext. Warranty</span><b id="cExwVal">₹0</b></div>
+                    <div class="charges-row cyan" style="background:#082f49; padding:3px 5px; border-radius:3px;">
+                        <span>Final Monthly EMI</span>
+                        <b id="cFinalEmiVal" style="color:#38bdf8; font-size:12px;">₹0</b>
                     </div>
-                    <div class="charges-row">
-                        <span>Advance EMI</span>
-                        <b id="cAdvEmi">₹0</b>
-                    </div>
-                    <div class="charges-row">
-                        <span>DBD Subvention</span>
-                        <b id="cDbdVal">0% (₹0)</b>
-                    </div>
-                    <div class="charges-row">
-                        <span>Processing Fee (PF)</span>
-                        <b id="cPfVal">₹0</b>
-                    </div>
-                    <div class="charges-row">
-                        <span>ROI / Total Interest</span>
-                        <b id="cRoiVal">0% (₹0)</b>
-                    </div>
-                    <div class="charges-row">
-                        <span>Insurance / VAS</span>
-                        <b id="cVasVal">₹0</b>
-                    </div>
-                    <div class="charges-row">
-                        <span>Extra DP (Gap / Limit)</span>
-                        <b id="cExtraDp" class="highlight">₹0</b>
-                    </div>
-                    <div class="charges-row green" style="grid-column: span 2; background:#002414; padding:5px; border-radius:4px; margin-top:2px;">
-                        <span>Dealer Net Disbursal</span>
-                        <b id="cDisbursal" style="font-size:12px; color:#4ade80;">₹0</b>
-                    </div>
-                    <div class="charges-row highlight" style="grid-column: span 2; background:#291e02; padding:5px; border-radius:4px;">
-                        <span>Customer Net DP | Monthly EMI</span>
-                        <b id="cFinalDpEmi" style="font-size:12px; color:#facc15;">DP: ₹0 | EMI: ₹0</b>
-                    </div>
+                </div>
+
+                <!-- DEALER DISBURSAL -->
+                <div style="background:#002414; border:1px solid #166534; padding:6px 8px; border-radius:4px; display:flex; justify-content:space-between; align-items:center;">
+                    <span style="color:#86efac; font-size:11px; font-weight:bold;">Dealer Net Disbursal (Loan - DBD Cut):</span>
+                    <b id="cDisbursal" style="color:#4ade80; font-size:13px;">₹0</b>
                 </div>
             </div>
 
@@ -1650,7 +1633,7 @@
             }
         }
 
-        /* ✏️ EDIT SCHEME COMPONENTS & LOAN OVERRIDE (Features: Auto-Fill Loan + A to Z Breakdown) */
+        /* ✏️ OPEN EDIT MODAL & AUTO-FILL CURRENT TABLE LOAN */
         function openEditSchemeModal(pId, sId) {
             let prod = selectedProductList.find(p => p.id === pId);
             if (!prod) return;
@@ -1661,24 +1644,20 @@
             document.getElementById('editTargetSchemeId').value = sId;
             document.getElementById('editSchemeSubTitle').innerText = `${prod.name} (Scheme: ${s.tenure}/${s.advEmi})`;
 
-            // Get Current Computed Loan Amount from Table Memory
             let currentTableLoan = s.currentCalculatedLoan || s.customLoan || 0;
+            document.getElementById('editCustomLoan').value = Math.round(currentTableLoan);
 
-            // Set inputs
-            document.getElementById('editCustomLoan').value = Math.round(currentTableLoan); // Auto-fill loan amount
             document.getElementById('editTen').value = s.tenure;
             document.getElementById('editAdv').value = s.advEmi;
             document.getElementById('editDbd').value = s.dbd;
             document.getElementById('editPf').value = s.pf;
             document.getElementById('editRoi').value = s.roi;
 
-            // Compute Range & Trigger Live Breakdown
             updateModalBreakdownLive();
-
             document.getElementById('editSchemeModal').style.display = 'flex';
         }
 
-        /* ⚡ LIVE BREAKDOWN IN EDIT MODAL (Point 2: A TO Z CHARGES & DISBURSAL) */
+        /* ⚡ RE-CALCULATE ALL A TO Z CHARGES LIVE IN MODAL */
         function updateModalBreakdownLive() {
             let pId = document.getElementById('editTargetProdId').value;
             let prod = selectedProductList.find(p => p.id === pId);
@@ -1686,20 +1665,19 @@
 
             let invoiceAmount = parseFloat(prod.invoice) || 0;
             let sysPrice = parseFloat(prod.systemPrice) || 0;
-            let eligibleBase = invoiceAmount > 0 && sysPrice > 0 ? Math.min(invoiceAmount, sysPrice) : (invoiceAmount > 0 ? invoiceAmount : (sysPrice > 0 ? sysPrice : 30000));
+            let eligibleBase = (invoiceAmount > 0 && sysPrice > 0) ? Math.min(invoiceAmount, sysPrice) : (invoiceAmount > 0 ? invoiceAmount : (sysPrice > 0 ? sysPrice : 30000));
             let extraSellingGap = (invoiceAmount > 0 && sysPrice > 0) ? Math.max(0, invoiceAmount - sysPrice) : 0;
 
             let ten = parseInt(document.getElementById('editTen').value) || 1;
             let adv = parseInt(document.getElementById('editAdv').value) || 0;
-            let dbd = parseFloat(document.getElementById('editDbd').value) || 0;
-            let pf = parseInt(document.getElementById('editPf').value) || 0;
+            let dbdRate = parseFloat(document.getElementById('editDbd').value) || 0;
+            let pfAmt = parseInt(document.getElementById('editPf').value) || 0;
             let roi = parseFloat(document.getElementById('editRoi').value) || 0;
             let customLoanInput = parseFloat(document.getElementById('editCustomLoan').value) || 0;
 
             let balTenure = ten - adv;
             if (balTenure < 1) balTenure = 1;
 
-            // Ranges
             let minAllowedLoan = Math.round(Math.max(5000, eligibleBase * 0.5));
             let inherentSchemeLtv = (balTenure / ten);
             let schemeMaxLoan = Math.round(eligibleBase * inherentSchemeLtv);
@@ -1711,49 +1689,62 @@
             let maxAllowedLoan = Math.min(schemeMaxLoan, customerLtvMax, approvedLimit, capping);
 
             document.getElementById('loanRangeNoticeText').innerText = 
-                `Allowed Loan Range: ₹${minAllowedLoan.toLocaleString()} - ₹${maxAllowedLoan.toLocaleString()} (Min 50% Floor & Policy Max)`;
+                `Allowed Range: ₹${minAllowedLoan.toLocaleString()} - ₹${maxAllowedLoan.toLocaleString()} (Min 50% Policy & Max LTV)`;
 
-            let effectiveLoan = customLoanInput > 0 ? customLoanInput : maxAllowedLoan;
+            let loan = customLoanInput > 0 ? customLoanInput : maxAllowedLoan;
 
-            // Extra DP from limit breach
-            let extraDpFromLimit = Math.max(0, schemeMaxLoan - effectiveLoan);
+            let extraDpFromLimit = Math.max(0, schemeMaxLoan - loan);
+            let singleBaseEmi = Math.round(eligibleBase / ten);
+            let advanceEmiAmt = singleBaseEmi * adv;
 
-            // Calculations
-            let baseSingleEmi = Math.round(eligibleBase / ten);
-            let advEmiAmount = baseSingleEmi * adv;
-
-            let dbdAmount = Math.round(effectiveLoan * (dbd / 100));
-            let roiInterestAmount = roi > 0 ? Math.round((effectiveLoan * (roi / 100)) * (balTenure / 12)) : 0;
-
-            let gtlVal = parseFloat(prod.gtl) || 0;
-            let rfcVal = parseFloat(prod.rfc) || 0;
-            let exwVal = parseFloat(prod.exw) || 0;
-            let vasTotal = gtlVal + rfcVal + exwVal;
+            let dbdRupees = Math.round(loan * (dbdRate * 1.18 / 100));
 
             let custType = document.getElementById('typeVal').value || "NEW";
-            let baseFee = 850;
-            if (custType === 'EMI CARD' || custType === 'VIRTUAL CARD') baseFee = 270;
-            else if (custType === 'W/O CARD') baseFee = 320;
+            let loginFee = 850;
+            if (custType === 'EMI CARD' || custType === 'VIRTUAL CARD') loginFee = 270;
+            else if (custType === 'W/O CARD') loginFee = 320;
+
             let margin = parseFloat(prod.margin) || 0;
             let dealerContri = parseFloat(prod.dealerContri) || 0;
-            let otherFees = baseFee + margin + dealerContri;
 
-            let netDp = advEmiAmount + extraSellingGap + extraDpFromLimit + dbdAmount + pf + vasTotal + otherFees;
-            let monthlyEmi = Math.round((effectiveLoan + roiInterestAmount + vasTotal) / balTenure);
-            let netDisbursal = Math.round(effectiveLoan - dbdAmount);
+            let roiRate = roi / 1200;
+            let roiInDp = Math.round(loan * roiRate * adv);
 
-            // Render Card Values
+            let gtl = parseFloat(prod.gtl) || 0;
+            let rfc = parseFloat(prod.rfc) || 0;
+            let exw = parseFloat(prod.exw) || 0;
+            let vasTotal = gtl + rfc + exw;
+
+            let exactDp = advanceEmiAmt + extraSellingGap + extraDpFromLimit + dbdRupees + pfAmt + loginFee + margin + dealerContri + roiInDp;
+            let finalDp = Math.ceil(exactDp / 10) * 10;
+
+            let baseEmi = loan / ten;
+            let monthlyRoiAmt = Math.round(loan * roiRate);
+            let vasPerMonth = Math.round(vasTotal / balTenure);
+            let finalEmi = Math.round((baseEmi < 900 && baseEmi > 0 ? 900 : baseEmi) + monthlyRoiAmt + vasPerMonth);
+
+            let netDisbursal = Math.round(loan - Math.round(loan * (dbdRate / 100)));
+
             document.getElementById('cardSchemeTitle').innerText = `${ten}/${adv}`;
-            document.getElementById('cBasePrice').innerText = `₹${eligibleBase.toLocaleString()} ${extraSellingGap > 0 ? '(+₹' + extraSellingGap + ' Gap)' : ''}`;
-            document.getElementById('cFinLoan').innerText = `₹${Math.round(effectiveLoan).toLocaleString()}`;
-            document.getElementById('cAdvEmi').innerText = `₹${advEmiAmount.toLocaleString()} (${adv} EMI)`;
-            document.getElementById('cDbdVal').innerText = `${dbd}% (₹${dbdAmount.toLocaleString()})`;
-            document.getElementById('cPfVal').innerText = `₹${pf.toLocaleString()}`;
-            document.getElementById('cRoiVal').innerText = roi > 0 ? `${roi}% (₹${roiInterestAmount.toLocaleString()})` : `0% (₹0)`;
-            document.getElementById('cVasVal').innerText = `₹${vasTotal.toLocaleString()}`;
-            document.getElementById('cExtraDp').innerText = `₹${(extraSellingGap + extraDpFromLimit).toLocaleString()}`;
-            document.getElementById('cDisbursal').innerText = `₹${netDisbursal.toLocaleString()} (Loan - DBD)`;
-            document.getElementById('cFinalDpEmi').innerText = `DP: ₹${netDp.toLocaleString()} | EMI: ₹${monthlyEmi.toLocaleString()} x ${balTenure}M`;
+            document.getElementById('cAdvEmi').innerText = `₹${advanceEmiAmt.toLocaleString()} (${adv} EMI)`;
+            document.getElementById('cPriceGap').innerText = `₹${extraSellingGap.toLocaleString()}`;
+            document.getElementById('cLimitBreachDp').innerText = `₹${extraDpFromLimit.toLocaleString()}`;
+            document.getElementById('cDbdVal').innerText = `${dbdRate}% (₹${dbdRupees.toLocaleString()})`;
+            document.getElementById('cPfVal').innerText = `₹${pfAmt.toLocaleString()}`;
+            document.getElementById('cLoginFee').innerText = `₹${loginFee.toLocaleString()} (${custType})`;
+            document.getElementById('cMarginVal').innerText = `₹${margin.toLocaleString()}`;
+            document.getElementById('cDealerContri').innerText = `₹${dealerContri.toLocaleString()}`;
+            document.getElementById('cAdvRoiVal').innerText = `₹${roiInDp.toLocaleString()}`;
+            document.getElementById('cFinalDpVal').innerText = `₹${finalDp.toLocaleString()}`;
+
+            document.getElementById('cBaseEmi').innerText = `₹${Math.round(baseEmi).toLocaleString()}`;
+            document.getElementById('cMonthlyRoi').innerText = `₹${monthlyRoiAmt.toLocaleString()} (${roi}%)`;
+            document.getElementById('cGtlVal').innerText = `₹${gtl.toLocaleString()}`;
+            document.getElementById('cRfcVal').innerText = `₹${rfc.toLocaleString()}`;
+            document.getElementById('cExwVal').innerText = `₹${exw.toLocaleString()}`;
+            document.getElementById('cFinalEmiVal').innerText = `₹${finalEmi.toLocaleString()} x ${balTenure}M`;
+
+            document.getElementById('cDisbursal').innerText = `₹${netDisbursal.toLocaleString()}`;
         }
 
         async function saveEditedSchemeValues() {
@@ -2096,7 +2087,6 @@
                     loan = minAllowedLoan;
                 }
 
-                // Store in object memory for modal auto-fill (Point 1)
                 s.currentCalculatedLoan = loan;
 
                 let insTotal = gtlVal + rfcVal + exwVal;
