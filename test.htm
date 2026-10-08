@@ -1119,7 +1119,7 @@
                     let p = h.product || {};
                     return `
                     <div class="history-card">
-                        <div class="history-time">📅 ${h.time} \vert{} 👤 <b>${h.customerName || 'WALK-IN'}</b></div>
+                        <div class="history-time">📅 ${h.time} | 👤 <b>${h.customerName || 'WALK-IN'}</b></div>
                         <div class="history-title">📱 ${p.name || h.model}</div>
                         
                         <div class="history-tags">
@@ -1392,7 +1392,7 @@
 
                 return `
                 <div class="dropdown-item" onclick="addNewProductToBasket('${m.model.replace(/'/g, "\\'")}')">
-                    <span>📱 ${m.model}${badge}</span>
+                    <span>📱 ${m.model} ${badge}</span>
                 </div>`;
             }).join('');
             dropdown.style.display = 'block';
@@ -1741,7 +1741,7 @@
             document.getElementById('cAdvEmi').innerText = `₹${advanceEmiAmt.toLocaleString()} (${adv} EMI)`;
             document.getElementById('cPriceGap').innerText = `₹${extraSellingGap.toLocaleString()}`;
             document.getElementById('cLimitBreachDp').innerText = `₹${extraDpFromLimit.toLocaleString()}`;
-            document.getElementById('cDbdVal').innerText = `${dbdRate}\% (₹${dbdRupees.toLocaleString()})`;
+            document.getElementById('cDbdVal').innerText = `${dbdRate}% (₹${dbdRupees.toLocaleString()})`;
             document.getElementById('cPfVal').innerText = `₹${pfAmt.toLocaleString()}`;
             document.getElementById('cLoginFee').innerText = `₹${loginFee.toLocaleString()} (${custType})`;
             document.getElementById('cMarginVal').innerText = `₹${margin.toLocaleString()}`;
@@ -1754,7 +1754,7 @@
             document.getElementById('cGtlVal').innerText = `₹${gtl.toLocaleString()}`;
             document.getElementById('cRfcVal').innerText = `₹${rfc.toLocaleString()}`;
             document.getElementById('cExwVal').innerText = `₹${exw.toLocaleString()}`;
-            document.getElementById('cFinalEmiVal').innerText = `₹${finalEmi.toLocaleString()} x${balTenure}M`;
+            document.getElementById('cFinalEmiVal').innerText = `₹${finalEmi.toLocaleString()} x ${balTenure}M`;
 
             document.getElementById('cDisbursal').innerText = `₹${netDisbursal.toLocaleString()}`;
         }
@@ -1813,4 +1813,504 @@
                 let minAllowedLoan = Math.round(Math.max(5000, eligibleBase * 0.5));
 
                 if (newLoan < minAllowedLoan) {
-                    alert(`Minimum 50% rule
+                    alert(`Minimum 50% rule lagu ahe. Loan amount ₹${minAllowedLoan.toLocaleString()} var lock keli ahe.`);
+                    newLoan = minAllowedLoan;
+                }
+            }
+            
+            s.customLoan = newLoan;
+            savePersistentCustomProduct(prod);
+            renderProductTableOnly(pId);
+        }
+
+        /* 📲 WHATSAPP SHAREABLE QUOTE & LIVE SUMMARY */
+        function copySmartScheme(pId, currentRowEl, tenure, adv, dp, emi, months, perDay) {
+            let prod = selectedProductList.find(p => p.id === pId);
+            if (!prod) return;
+
+            let tableElement = document.getElementById(`tbody_${pId}`);
+            if (!tableElement) return;
+
+            let checkedBoxes = tableElement.querySelectorAll('.scheme-checkbox:checked');
+            let price = prod.invoice || "0";
+            let textToCopy = "";
+
+            if (checkedBoxes.length > 0) {
+                textToCopy = `📱 *${prod.name}*\n` + `💵 *Invoice:* ₹${Number(price).toLocaleString()}\n\n`;
+                let count = 1;
+
+                checkedBoxes.forEach(cb => {
+                    let tr = cb.closest('tr');
+                    if (tr && !tr.classList.contains('row-disabled')) {
+                        let cols = tr.querySelectorAll('td');
+                        if (cols.length >= 7) {
+                            let sName = cols[1].innerText.replace('(FIELD)', '').trim();
+                            let sDp = cols[3].innerText.trim();
+                            let sEmi = cols[4].innerText.trim();
+                            let sMonths = cols[5].innerText.trim();
+                            let sDay = cols[6].innerText.trim();
+
+                            textToCopy += `🔹 *Scheme ${count}:* ${sName}\n` +
+                                          `💰 *DP:* ${sDp}\n` +
+                                          `🗓️ *EMI:* ${sEmi} x ${sMonths} Months\n` +
+                                          `✨ *Per Day:* ${sDay}\n\n`;
+                            count++;
+                        }
+                    }
+                });
+                clipboardCopy(textToCopy, `${count - 1} Selected scheme(s) copied successfully! ✅`);
+            } else {
+                textToCopy = `📱 *${prod.name}*\n` +
+                             `💵 *Invoice:* ₹${Number(price).toLocaleString()}\n\n` +
+                             `✅ *Scheme:* ${tenure}/${adv}\n` +
+                             `💰 *DP:* ₹${Number(dp).toLocaleString()}\n` +
+                             `🗓️ *EMI:* ₹${Number(emi).toLocaleString()} x ${months} Months\n` +
+                             `✨ *Per Day:* ₹${Number(perDay).toLocaleString()}`;
+                clipboardCopy(textToCopy, "Scheme copied successfully! ✅");
+            }
+
+            saveFullProfileSnapshot(prod.id, textToCopy);
+        }
+
+        function clipboardCopy(text, successMsg) {
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).then(() => alert(successMsg));
+            } else {
+                let ta = document.createElement("textarea"); ta.value = text;
+                document.body.appendChild(ta); ta.select(); document.execCommand('copy');
+                document.body.removeChild(ta); alert(successMsg);
+            }
+        }
+
+        function renderAllProductPanels() {
+            const container = document.getElementById('selectedProductsContainer');
+            if (selectedProductList.length === 0) { container.innerHTML = ""; return; }
+
+            container.innerHTML = selectedProductList.map((prod, idx) => {
+                let isCol = prod.isCollapsed;
+                let bodyDisplay = isCol ? "none" : "block";
+                let arrowIcon = isCol ? "▶" : "▼";
+
+                let categorySelectorHtml = prod.isSheet2 ? `
+                    <div style="grid-column: span 3; background:var(--bajaj-navy); padding:6px; border-radius:4px; border:1px solid var(--border-blue);">
+                        <label style="color:var(--bajaj-sky);">📂 CATEGORY (SHEET 2):</label>
+                        <select onchange="changeCardCategory('${prod.id}', this.value)" style="color:var(--bajaj-sky); font-weight:bold;">
+                            ${sheet2CategoriesList.map(c => `<option value="${c}" ${c === prod.category ? 'selected' : ''}>${c}</option>`).join('')}
+                        </select>
+                    </div>
+                ` : '';
+
+                return `
+                <div class="product-panel" id="panel_${prod.id}">
+                    <div class="panel-header" onclick="toggleCollapseProduct('${prod.id}')">
+                        <div class="panel-header-left">
+                            <span style="font-size:12px; color:var(--bajaj-sky);">${arrowIcon}</span>
+                            <span class="panel-title">📱 #${idx+1} ${prod.name}</span>
+                            <span class="panel-inv-badge">₹${Number(prod.invoice||0).toLocaleString()}</span>
+                        </div>
+                        <div class="btn-panel-action" onclick="event.stopPropagation()">
+                            <button class="btn-action-sm" style="background:#475569; color:#fff;" onclick="saveFullProfileSnapshot('${prod.id}', 'Manual Snapshot')">💾 SAVE</button>
+                            <button class="btn-action-sm btn-add-scheme" onclick="openAddSchemeModal('${prod.id}', '${prod.name.replace(/'/g, "\\'")}')">➕ SCHEME</button>
+                            <button class="btn-action-sm btn-quote" onclick="generateQuoteImage('${prod.id}')">📸 QUOTE</button>
+                            <button class="btn-action-sm btn-remove" onclick="removeProductFromBasket('${prod.id}')">✖</button>
+                        </div>
+                    </div>
+
+                    <div id="panel_body_${prod.id}" style="display:${bodyDisplay};">
+                        <div class="sub-config-grid">
+                            ${categorySelectorHtml}
+                            <div>
+                                <label style="color:var(--bajaj-orange);">INVOICE (₹) *</label>
+                                <input type="number" value="${prod.invoice}" placeholder="Enter Price" oninput="updateProductParam('${prod.id}', 'invoice', this.value)" style="border-color:var(--bajaj-orange); color:#fff; font-weight:bold;">
+                            </div>
+                            <div>
+                                <label style="color:var(--bajaj-mint);">🎯 TARGET DP (₹)</label>
+                                <input type="number" value="${prod.targetDp || 0}" placeholder="0" oninput="updateProductParam('${prod.id}', 'targetDp', this.value)" style="border-color:var(--bajaj-mint); color:#34d399;">
+                            </div>
+                            <div>
+                                <label>GTL (₹) [SLAB]</label>
+                                <select id="gtl_${prod.id}" onchange="updateProductParam('${prod.id}', 'gtl', this.value)">
+                                    <option value="0" ${prod.gtl == 0 ? 'selected' : ''}>0</option>
+                                    <option value="699" ${prod.gtl == 699 ? 'selected' : ''}>699</option>
+                                    <option value="1199" ${prod.gtl == 1199 ? 'selected' : ''}>1199</option>
+                                    <option value="1499" ${prod.gtl == 1499 ? 'selected' : ''}>1499</option>
+                                    <option value="1799" ${prod.gtl == 1799 ? 'selected' : ''}>1799</option>
+                                    <option value="2398" ${prod.gtl == 2398 ? 'selected' : ''}>2398</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label>RFC (₹) [DEFAULT: 0]</label>
+                                <select id="rfc_${prod.id}" onchange="updateProductParam('${prod.id}', 'rfc', this.value)">
+                                    <option value="0" ${prod.rfc == 0 ? 'selected' : ''}>0</option>
+                                    <option id="rfc_opt_${prod.id}" value="${prod.rfcSlab}" ${prod.rfc > 0 ? 'selected' : ''}>${prod.rfcSlab}</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label>EXW (₹) [EXT. WARRANTY]</label>
+                                <input type="number" value="${prod.exw || 0}" placeholder="0" oninput="updateProductParam('${prod.id}', 'exw', this.value)">
+                            </div>
+                            <div>
+                                <label>MARGIN (₹)</label>
+                                <input type="number" value="${prod.margin}" placeholder="0" oninput="updateProductParam('${prod.id}', 'margin', this.value)">
+                            </div>
+                            <div style="grid-column: span 3;">
+                                <label>DEALER CONTRI (₹)</label>
+                                <input type="number" value="${prod.dealerContri}" placeholder="0" oninput="updateProductParam('${prod.id}', 'dealerContri', this.value)">
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="scheme-table">
+                                <thead>
+                                    <tr>
+                                        <th>☑</th>
+                                        <th>SCHEME</th>
+                                        <th title="Click any Loan to adjust/override">LOAN ✎</th>
+                                        <th>DP</th>
+                                        <th>EMI</th>
+                                        <th>M</th>
+                                        <th>DAY</th>
+                                        <th>DISBURSAL</th>
+                                        <th>ACTION</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbody_${prod.id}"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                `;
+            }).join('');
+
+            selectedProductList.forEach(p => renderProductTableOnly(p.id));
+        }
+
+        /* 🎯 CENTRAL CALCULATION & VERIFICATION ENGINE (WITH 50% CLAMPING RULE) */
+        function renderProductTableOnly(pId) {
+            let prod = selectedProductList.find(p => p.id === pId);
+            if (!prod) return;
+
+            const tbody = document.getElementById(`tbody_${pId}`);
+            if (!tbody) return;
+
+            let approvedLimit = parseFloat(document.getElementById('approvedVal').value) || 0;
+            let rawMaxLtv = document.getElementById('maxLtvVal').value || "100";
+            let maxLtv = Math.min(100, Math.max(0, parseFloat(rawMaxLtv) || 100));
+            let custType = document.getElementById('typeVal').value || "NEW";
+            let emiCap = parseFloat(document.getElementById('cappingVal').value) || 0;
+
+            let invoiceAmount = parseFloat(prod.invoice) || 0;
+            let systemPrice = parseFloat(prod.systemPrice) || 0;
+            
+            let eligibleBase = (invoiceAmount > 0 && systemPrice > 0) ? Math.min(invoiceAmount, systemPrice) : (invoiceAmount > 0 ? invoiceAmount : systemPrice);
+            let extraSellingGap = (invoiceAmount > 0 && systemPrice > 0) ? Math.max(0, invoiceAmount - systemPrice) : 0;
+
+            let targetDpAmount = parseFloat(prod.targetDp) || 0;
+            let margin = parseFloat(prod.margin) || 0;
+            let dealerContri = parseFloat(prod.dealerContri) || 0;
+            let gtlVal = parseFloat(prod.gtl) || 0;
+            let rfcVal = parseFloat(prod.rfc) || 0;
+            let exwVal = parseFloat(prod.exw) || 0;
+
+            let baseFee = 850;
+            if (custType === 'EMI CARD' || custType === 'VIRTUAL CARD') {
+                baseFee = 270;
+            } else if (custType === 'W/O CARD') {
+                baseFee = 320;
+            }
+
+            let totalFees = baseFee + margin + dealerContri;
+
+            let eligibleSchemes = prod.schemes.filter(s => {
+                if (s.tenure <= 0) return false;
+                let inherentSchemeLtv = ((s.tenure - s.advEmi) / s.tenure) * 100;
+                return inherentSchemeLtv <= maxLtv;
+            });
+
+            if (eligibleSchemes.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="9" style="color:#f87171; padding:10px;">No schemes found under Max LTV (${maxLtv}%).</td></tr>`;
+                return;
+            }
+
+            let calculatedRows = eligibleSchemes.map(s => {
+                let price = eligibleBase > 0 ? eligibleBase : (s.mrp > 0 ? s.mrp : (approvedLimit > 0 ? approvedLimit : 30000));
+                let inst = s.tenure - s.advEmi;
+                if (inst < 1) inst = 1;
+
+                let inherentSchemeLtv = (inst / s.tenure) * 100;
+                let dbdRate = (s.dbd * 1.18 / 100);
+                let roiRate = s.roi / 1200;
+                let roiRateDP = roiRate * s.advEmi;
+
+                let loan = 0;
+
+                if (s.customLoan && s.customLoan > 0) {
+                    loan = s.customLoan;
+                } else if (targetDpAmount > 0) {
+                    let totalFixedAdditions = s.pf + totalFees;
+                    let denominator = 1 - (s.advEmi / s.tenure) - dbdRate - roiRateDP;
+                    
+                    if (denominator > 0) {
+                        loan = (price + totalFixedAdditions - targetDpAmount) / denominator;
+                    } else {
+                        loan = price - targetDpAmount;
+                    }
+                } else {
+                    if (inherentSchemeLtv <= maxLtv) {
+                        loan = price;
+                    } else {
+                        let allowedFinancedAmount = price * (maxLtv / 100);
+                        loan = (allowedFinancedAmount * s.tenure) / inst;
+                    }
+                }
+
+                // EXACT ORIGINAL NBFC FORMULA
+                if (approvedLimit > 0) {
+                    let nbfcMaxL = (approvedLimit * s.tenure) / inst;
+                    loan = Math.min(loan, nbfcMaxL);
+                }
+
+                loan = Math.min(price, Math.max(0, loan));
+
+                // 50% POLICY CLAMPING (Locking loan to minimum threshold)
+                let minAllowedLoan = price * 0.50;
+                if (loan < minAllowedLoan) {
+                    loan = minAllowedLoan;
+                }
+
+                s.currentCalculatedLoan = loan;
+
+                let insTotal = gtlVal + rfcVal + exwVal;
+
+                let baseEmi = loan / s.tenure;
+                let roiInEmi = loan * roiRate;
+                let emi = baseEmi + (insTotal / inst) + roiInEmi;
+
+                if (baseEmi > 0 && baseEmi < 900) {
+                    emi = 900 + (insTotal / inst) + roiInEmi;
+                }
+
+                if ((!s.customLoan || s.customLoan <= 0) && targetDpAmount <= 0 && emiCap > 0 && emi > emiCap) {
+                    loan = (emiCap - (insTotal / inst)) / ((1 / s.tenure) + roiRate);
+                    if (loan < minAllowedLoan) loan = minAllowedLoan;
+                    loan = Math.min(price, Math.max(0, loan));
+                    baseEmi = loan / s.tenure;
+                    roiInEmi = loan * roiRate;
+                    emi = (baseEmi < 900 && baseEmi > 0 ? 900 : baseEmi) + (insTotal / inst) + roiInEmi;
+                    s.currentCalculatedLoan = loan;
+                }
+
+                let roiInDp = loan * roiRateDP;
+                let dpExact = price - loan + ((loan / s.tenure) * s.advEmi) + (loan * dbdRate) + s.pf + totalFees + roiInDp + extraSellingGap;
+                let dp = Math.ceil(dpExact / 10) * 10;
+
+                let perDay = emi / 30;
+
+                let dbdRupees = Math.round(loan * (s.dbd / 100));
+                let netDisbursal = Math.round(loan - dbdRupees);
+
+                return {
+                    scheme: s,
+                    loan: loan,
+                    dp: dp,
+                    emi: emi,
+                    months: inst,
+                    perDay: perDay,
+                    netDisbursal: netDisbursal,
+                    dbdRupees: dbdRupees,
+                    disabled: s.disabled,
+                    sId: s.sId,
+                    isCustom: s.isCustom,
+                    hasCustomLoan: (s.customLoan && s.customLoan > 0)
+                };
+            });
+
+            calculatedRows.sort((a, b) => {
+                if (a.dp !== b.dp) return a.dp - b.dp;
+                if (a.emi !== b.emi) return a.emi - b.emi;
+                return b.months - a.months;
+            });
+
+            tbody.innerHTML = calculatedRows.map(row => {
+                let s = row.scheme;
+                let rowClass = row.disabled ? "row-disabled" : "";
+                let customBadge = row.isCustom ? `<span style="font-size:9px; color:var(--bajaj-mint);">(FIELD)</span>` : '';
+                let loanCustomStyle = row.hasCustomLoan ? 'color:#facc15; text-decoration:underline;' : 'color:#34d399;';
+
+                let toggleBtn = row.disabled 
+                    ? `<button class="action-icon-btn btn-toggle-mini btn-ena" title="Enable" onclick="toggleSchemeStatus('${prod.id}', '${row.sId}')">✅</button>`
+                    : `<button class="action-icon-btn btn-toggle-mini btn-dis" title="Disable" onclick="toggleSchemeStatus('${prod.id}', '${row.sId}')">🚫</button>`;
+
+                return `
+                    <tr class="${rowClass}">
+                        <td><input type="checkbox" class="scheme-checkbox" ${row.disabled ? 'disabled' : ''}></td>
+                        <td style="color:var(--bajaj-sky); font-weight:900;">${s.tenure}/${s.advEmi} ${customBadge}</td>
+                        <td style="${loanCustomStyle} cursor:pointer;" title="Click to edit loan amount" onclick="promptDirectLoanEdit('${prod.id}', '${row.sId}', ${row.loan})">
+                            ₹${Math.round(row.loan).toLocaleString()}
+                        </td>
+                        <td style="color:var(--bajaj-orange); font-weight:900;">₹${Math.round(row.dp).toLocaleString()}</td>
+                        <td style="color:var(--bajaj-cyan); font-weight:900;">₹${Math.round(row.emi).toLocaleString()}</td>
+                        <td style="color:#e2e8f0;">${row.months}</td>
+                        <td style="color:#fb923c;">₹${Math.round(row.perDay).toLocaleString()}</td>
+                        <td style="color:#4ade80; font-weight:800;" title="DBD Cut: ₹${row.dbdRupees}">₹${row.netDisbursal.toLocaleString()}</td>
+                        <td>
+                            <div class="action-btn-group">
+                                <button class="action-icon-btn btn-copy-mini" title="Copy Scheme" onclick="copySmartScheme('${prod.id}', this, '${s.tenure}', '${s.advEmi}', '${Math.round(row.dp)}', '${Math.round(row.emi)}', '${row.months}', '${Math.round(row.perDay)}')">📋</button>
+                                <button class="action-icon-btn btn-edit-mini" title="Edit Components / Loan" onclick="openEditSchemeModal('${prod.id}', '${row.sId}')">✏️</button>
+                                ${toggleBtn}
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        /* ✍️ असली हैंडराइटिंग QUOTE GENERATOR */
+        function generateQuoteImage(pId) {
+            let prod = selectedProductList.find(p => p.id === pId);
+            if (!prod) return;
+
+            let tableElement = document.getElementById(`tbody_${pId}`);
+            let activeRows = tableElement ? Array.from(tableElement.querySelectorAll('tr:not(.row-disabled)')) : [];
+            if (activeRows.length === 0) {
+                alert("Quote generate karne ke liye kam se kam ek scheme active honi chahiye!");
+                return;
+            }
+
+            let custType = document.getElementById('typeVal').value || "EMI CARD";
+            let approvedLimit = document.getElementById('approvedVal').value || "0";
+            let maxLtv = document.getElementById('maxLtvVal').value || "100";
+            let capping = document.getElementById('cappingVal').value || "NONE";
+            let price = prod.invoice || "0";
+
+            let quoteDiv = document.createElement('div');
+            quoteDiv.style.width = "480px";
+            quoteDiv.style.padding = "24px 20px";
+            quoteDiv.style.background = "#ffffff";
+            quoteDiv.style.color = "#1a365d";
+            quoteDiv.style.fontFamily = "'Architects Daughter', 'Caveat', cursive, sans-serif";
+            quoteDiv.style.position = "absolute";
+            quoteDiv.style.top = "-9999px";
+            quoteDiv.style.boxSizing = "border-box";
+
+            quoteDiv.innerHTML = `
+                <div style="border: 2px solid #1e3a8a; padding: 12px 14px; margin-bottom: 16px; background: #ffffff; border-radius: 2px;">
+                    <div style="text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 1px; color: #1e3a8a; margin-bottom: 8px;">
+                        <span style="border-bottom: 2px solid #1e3a8a; padding-bottom: 2px; text-decoration: underline;">BAJAJ FINSERV LOAN OFFER</span>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; font-size: 15px; font-weight: bold; color: #1a365d; line-height: 1.5;">
+                        <div>CUSTOMER TYPE: ${custType}</div>
+                        <div>APPROVED LIMIT: ₹${Number(approvedLimit).toLocaleString()}</div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 15px; font-weight: bold; color: #1a365d; line-height: 1.5;">
+                        <div>MAX LTV: ${maxLtv}%</div>
+                        <div>EMI CAPPING: ${capping}</div>
+                    </div>
+                    <div style="font-size: 15px; font-weight: bold; color: #1a365d; line-height: 1.5; margin-top: 2px;">
+                        INVOICE PRICE: ₹${Number(price).toLocaleString()}
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 14px; padding: 0 4px;">
+                    <div style="font-size: 19px; font-weight: bold; color: #1e3a8a; text-transform: uppercase; letter-spacing: 0.5px;">
+                        ${prod.name}
+                    </div>
+                    <div style="font-size: 18px; font-weight: bold; color: #1a365d; margin-top: 2px;">
+                        PRICE : Rs ${Number(price).toLocaleString()}
+                    </div>
+                </div>
+
+                <table style="width: 100%; border-collapse: collapse; font-size: 15px; text-align: center; border: 2px solid #1e3a8a;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid #1e3a8a; color: #1e3a8a; font-weight: bold; background: #ffffff;">
+                            <th style="padding: 7px 4px; border-right: 1.5px solid #1e3a8a; font-size: 16px;">SCHEME</th>
+                            <th style="padding: 7px 4px; border-right: 1.5px solid #1e3a8a; font-size: 16px;">DOWN PAYMENT</th>
+                            <th style="padding: 7px 4px; border-right: 1.5px solid #1e3a8a; font-size: 16px;">MONTHLY EMI</th>
+                            <th style="padding: 7px 4px; border-right: 1.5px solid #1e3a8a; font-size: 16px;">MONTHS</th>
+                            <th style="padding: 7px 4px; font-size: 16px;">PER DAY</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${activeRows.map(r => {
+                            let cols = r.querySelectorAll('td');
+                            if (cols.length < 7) return '';
+                            return `
+                                <tr style="border-bottom: 1.5px solid #1e3a8a; font-weight: bold; color: #1a365d; font-size: 16px;">
+                                    <td style="padding: 5px 4px; border-right: 1.5px solid #1e3a8a;">${cols[1].innerText.replace('(FIELD)', '').trim()}</td>
+                                    <td style="padding: 5px 6px; border-right: 1.5px solid #1e3a8a; text-align: right;">${cols[3].innerText}</td>
+                                    <td style="padding: 5px 6px; border-right: 1.5px solid #1e3a8a; text-align: right;">${cols[4].innerText}</td>
+                                    <td style="padding: 5px 4px; border-right: 1.5px solid #1e3a8a;">${cols[5].innerText}</td>
+                                    <td style="padding: 5px 6px; text-align: right;">${cols[6].innerText}</td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            `;
+
+            document.body.appendChild(quoteDiv);
+
+            setTimeout(() => {
+                html2canvas(quoteDiv, { scale: 3, useCORS: true, backgroundColor: "#ffffff" }).then(canvas => {
+                    document.body.removeChild(quoteDiv);
+                    let imgData = canvas.toDataURL("image/png");
+                    
+                    document.getElementById('generatedQuoteImg').src = imgData;
+                    currentQuoteDataBlob = imgData;
+                    
+                    currentQuoteTextSummary = `📱 *${prod.name}*\n💵 *Price:* ₹${Number(price).toLocaleString()}\n🎉 *BAJAJ FINSERV LOAN OFFER*\n\n(Quote image attached)`;
+                    
+                    document.getElementById('imageViewerModal').style.display = 'flex';
+                    saveFullProfileSnapshot(prod.id, `📱 ${prod.name} (₹${Number(price).toLocaleString()}) - Quote Generated`, prod.customerName || "WALK-IN");
+                });
+            }, 100);
+        }
+
+        /* 📲 WHATSAPP SHARE DIRECT */
+        function shareQuoteOnWhatsAppDirect() {
+            if (navigator.share && currentQuoteDataBlob) {
+                fetch(currentQuoteDataBlob)
+                    .then(res => res.blob())
+                    .then(blob => {
+                        const file = new File([blob], "Bajaj_Loan_Quote.png", { type: "image/png" });
+                        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                            navigator.share({
+                                files: [file],
+                                title: "Bajaj Finserv Loan Quote",
+                                text: currentQuoteTextSummary
+                            }).catch(() => fallbackWhatsAppText());
+                        } else {
+                            fallbackWhatsAppText();
+                        }
+                    }).catch(() => fallbackWhatsAppText());
+            } else {
+                fallbackWhatsAppText();
+            }
+        }
+
+        function fallbackWhatsAppText() {
+            let encodedText = encodeURIComponent(currentQuoteTextSummary + "\n\n👉 Kripya image download karke customer ko bhejein!");
+            window.open(`https://api.whatsapp.com/send?text=${encodedText}`, '_blank');
+        }
+
+        function downloadQuoteImageDirect() {
+            if (!currentQuoteDataBlob) return;
+            let a = document.createElement('a');
+            a.href = currentQuoteDataBlob;
+            a.download = `Bajaj_Quote_${Date.now()}.png`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        document.addEventListener('click', function(e) {
+            const dropdown = document.getElementById('modelDropdown');
+            const searchInput = document.getElementById('modelSearchInput');
+            if (dropdown && !dropdown.contains(e.target) && e.target !== searchInput) {
+                dropdown.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
