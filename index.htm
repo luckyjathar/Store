@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pro Financial Portal - Bajaj Edition</title>
 
-    <!-- Google Handwriting Fonts (असली हाथ से लिखा हुआ फील लाने के लिए) -->
+    <!-- Google Handwriting Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
@@ -284,15 +284,6 @@
             color: var(--bajaj-orange);
         }
 
-        .panel-inv-badge {
-            background: var(--bajaj-blue);
-            color: #fff;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: 900;
-        }
-
         .btn-panel-action {
             display: flex;
             gap: 5px;
@@ -314,7 +305,7 @@
 
         .sub-config-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-columns: 1fr 1fr;
             gap: 8px;
             background: #021a2d;
             padding: 10px;
@@ -502,6 +493,41 @@
             white-space: pre;
             overflow-x: auto;
         }
+
+        .range-helper-badge {
+            background: #021a2d;
+            border: 1px solid var(--bajaj-sky);
+            color: #38bdf8;
+            font-size: 11px;
+            padding: 5px 8px;
+            border-radius: 4px;
+            margin-top: 4px;
+            display: block;
+        }
+
+        /* 📋 A TO Z CHARGES BREAKDOWN CARD */
+        .charges-breakdown-card {
+            background: #021a2d;
+            border: 1px solid var(--bajaj-sky);
+            border-radius: 6px;
+            padding: 10px;
+            margin-top: 10px;
+            font-size: 11px;
+        }
+
+        .charges-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #062b48;
+            padding-bottom: 3px;
+        }
+
+        .charges-row span { color: var(--text-muted); font-size: 10px; }
+        .charges-row b { color: #f0f7fd; font-size: 11px; }
+        .charges-row.highlight b { color: #facc15; }
+        .charges-row.green b { color: #4ade80; }
+        .charges-row.cyan b { color: #38bdf8; }
     </style>
 </head>
 <body>
@@ -559,7 +585,7 @@
                     📂 OPEN SCHEMES (CATEGORY)
                 </button>
                 <button type="button" class="quick-btn btn-manual-prod" onclick="addNewManualProductPrompt()">
-                    ➕ MANUAL PRODUCT
+                    ➕ ADD CUSTOM MODEL
                 </button>
             </div>
         </div>
@@ -585,7 +611,7 @@
                 <button onclick="copyMasterExportText()" style="flex:1; background:var(--bajaj-blue); color:white; padding:9px; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">
                     📋 COPY FOR EXCEL
                 </button>
-                <button onclick="markManualDataAsSynced()" style="flex:1; background:var(--bajaj-mint); color:white; padding:9px; border:none; border-radius:4px; font-weight:bold; cursor:pointer;" title="Removes items once added to Excel">
+                <button onclick="markManualDataAsSynced()" style="flex:1; background:var(--bajaj-mint); color:white; padding:9px; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">
                     ✅ MARK SYNCED / REMOVE
                 </button>
             </div>
@@ -606,37 +632,89 @@
             <input type="hidden" id="editTargetProdId">
             <input type="hidden" id="editTargetSchemeId">
 
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
                 <div style="grid-column: span 2; background:#021a2d; padding:8px; border-radius:6px; border:1px solid var(--bajaj-sky);">
                     <label style="font-size:11px; color:var(--bajaj-sky); font-weight:bold; display:block; margin-bottom:3px;">
-                        💰 CUSTOM LOAN AMOUNT (₹) [Leave 0 for Auto-Calculate]:
+                        💰 CUSTOM LOAN AMOUNT (₹):
                     </label>
-                    <input type="number" id="editCustomLoan" placeholder="0" style="width:100%; background:var(--bajaj-card-bg); border:1px solid var(--bajaj-sky); color:#34d399; padding:8px; border-radius:4px; font-weight:bold; font-size:14px;">
+                    <input type="number" id="editCustomLoan" placeholder="0" oninput="updateModalBreakdownLive()" style="width:100%; background:var(--bajaj-card-bg); border:1px solid var(--bajaj-sky); color:#34d399; padding:8px; border-radius:4px; font-weight:bold; font-size:14px;">
+                    <span id="loanRangeNoticeText" class="range-helper-badge">Allowed: Checking...</span>
                 </div>
 
                 <div>
                     <label style="font-size:11px; color:var(--text-muted); font-weight:bold; display:block; margin-bottom:3px;">TENURE (MONTHS)</label>
-                    <input type="number" id="editTen" style="width:100%; background:#021a2d; border:1px solid var(--border-blue); color:#fff; padding:8px; border-radius:4px; font-weight:bold;">
+                    <input type="number" id="editTen" oninput="updateModalBreakdownLive()" style="width:100%; background:#021a2d; border:1px solid var(--border-blue); color:#fff; padding:8px; border-radius:4px; font-weight:bold;">
                 </div>
                 <div>
                     <label style="font-size:11px; color:var(--text-muted); font-weight:bold; display:block; margin-bottom:3px;">ADVANCE EMI</label>
-                    <input type="number" id="editAdv" style="width:100%; background:#021a2d; border:1px solid var(--border-blue); color:#fff; padding:8px; border-radius:4px; font-weight:bold;">
+                    <input type="number" id="editAdv" oninput="updateModalBreakdownLive()" style="width:100%; background:#021a2d; border:1px solid var(--border-blue); color:#fff; padding:8px; border-radius:4px; font-weight:bold;">
                 </div>
                 <div>
                     <label style="font-size:11px; color:var(--text-muted); font-weight:bold; display:block; margin-bottom:3px;">DBD %</label>
-                    <input type="number" step="0.01" id="editDbd" style="width:100%; background:#021a2d; border:1px solid var(--border-blue); color:#fff; padding:8px; border-radius:4px; font-weight:bold;">
+                    <input type="number" step="0.01" id="editDbd" oninput="updateModalBreakdownLive()" style="width:100%; background:#021a2d; border:1px solid var(--border-blue); color:#fff; padding:8px; border-radius:4px; font-weight:bold;">
                 </div>
                 <div>
                     <label style="font-size:11px; color:var(--text-muted); font-weight:bold; display:block; margin-bottom:3px;">PF (₹)</label>
-                    <input type="number" id="editPf" style="width:100%; background:#021a2d; border:1px solid var(--border-blue); color:#fff; padding:8px; border-radius:4px; font-weight:bold;">
+                    <input type="number" id="editPf" oninput="updateModalBreakdownLive()" style="width:100%; background:#021a2d; border:1px solid var(--border-blue); color:#fff; padding:8px; border-radius:4px; font-weight:bold;">
                 </div>
                 <div style="grid-column: span 2;">
                     <label style="font-size:11px; color:var(--text-muted); font-weight:bold; display:block; margin-bottom:3px;">ROI %</label>
-                    <input type="number" step="0.01" id="editRoi" style="width:100%; background:#021a2d; border:1px solid var(--border-blue); color:#fff; padding:8px; border-radius:4px; font-weight:bold;">
+                    <input type="number" step="0.01" id="editRoi" oninput="updateModalBreakdownLive()" style="width:100%; background:#021a2d; border:1px solid var(--border-blue); color:#fff; padding:8px; border-radius:4px; font-weight:bold;">
                 </div>
             </div>
 
-            <div style="display:flex; gap:8px;">
+            <!-- 📋 A TO Z ZERO-HIDDEN CHARGES BREAKDOWN CARD -->
+            <div class="charges-breakdown-card">
+                <div style="color:var(--bajaj-sky); font-weight:800; font-size:12px; border-bottom:1px dashed var(--border-blue); padding-bottom:5px; margin-bottom:8px; display:flex; justify-content:space-between;">
+                    <span>📑 A TO Z COMPLETE BREAKDOWN (ZERO HIDDEN CHARGES)</span>
+                    <span id="cardSchemeTitle" style="color:#facc15;">-</span>
+                </div>
+
+                <!-- DP GROUP -->
+                <div style="font-size:10px; font-weight:800; color:#fb923c; margin-bottom:4px; text-transform:uppercase;">
+                    🔹 Down Payment (DP) Components:
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:4px 8px; font-size:11px; margin-bottom:8px;">
+                    <div class="charges-row"><span>Advance EMI</span><b id="cAdvEmi">₹0</b></div>
+                    <div class="charges-row highlight"><span>Selling Price Gap (Extra DP)</span><b id="cPriceGap">₹0</b></div>
+                    <div class="charges-row"><span>LTV / Limit Breach DP</span><b id="cLimitBreachDp">₹0</b></div>
+                    <div class="charges-row"><span>DBD (+18% GST)</span><b id="cDbdVal">0% (₹0)</b></div>
+                    <div class="charges-row"><span>Processing Fee (PF)</span><b id="cPfVal">₹0</b></div>
+                    <div class="charges-row"><span>Customer Login Fee</span><b id="cLoginFee">₹0</b></div>
+                    <div class="charges-row"><span>Dealer Margin</span><b id="cMarginVal">₹0</b></div>
+                    <div class="charges-row"><span>Dealer Contribution</span><b id="cDealerContri">₹0</b></div>
+                    <div class="charges-row"><span>Advance ROI in DP</span><b id="cAdvRoiVal">₹0</b></div>
+                    <div class="charges-row cyan"><span>DP Round-off Amount</span><b id="cRoundOffVal">₹0</b></div>
+                    <div class="charges-row highlight" style="background:#291e02; padding:3px 5px; border-radius:3px; grid-column: span 2;">
+                        <span>Total Net DP (Final Amount)</span>
+                        <b id="cFinalDpVal" style="color:#facc15; font-size:12px;">₹0</b>
+                    </div>
+                </div>
+
+                <!-- EMI & VAS GROUP -->
+                <div style="font-size:10px; font-weight:800; color:#38bdf8; margin-bottom:4px; text-transform:uppercase;">
+                    🔹 Monthly EMI & Protection Components:
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:4px 8px; font-size:11px; margin-bottom:8px;">
+                    <div class="charges-row"><span>Base Principal Loan EMI</span><b id="cBaseEmi">₹0</b></div>
+                    <div class="charges-row"><span>Monthly Interest (ROI)</span><b id="cMonthlyRoi">₹0</b></div>
+                    <div class="charges-row"><span>GTL Life Insurance</span><b id="cGtlVal">₹0</b></div>
+                    <div class="charges-row"><span>RFC Device Cover</span><b id="cRfcVal">₹0</b></div>
+                    <div class="charges-row"><span>EXW Ext. Warranty</span><b id="cExwVal">₹0</b></div>
+                    <div class="charges-row cyan" style="background:#082f49; padding:3px 5px; border-radius:3px;">
+                        <span>Final Monthly EMI</span>
+                        <b id="cFinalEmiVal" style="color:#38bdf8; font-size:12px;">₹0</b>
+                    </div>
+                </div>
+
+                <!-- DEALER DISBURSAL -->
+                <div style="background:#002414; border:1px solid #166534; padding:6px 8px; border-radius:4px; display:flex; justify-content:space-between; align-items:center;">
+                    <span style="color:#86efac; font-size:11px; font-weight:bold;">Dealer Net Disbursal:</span>
+                    <b id="cDisbursal" style="color:#4ade80; font-size:13px;">₹0</b>
+                </div>
+            </div>
+
+            <div style="display:flex; gap:8px; margin-top:10px;">
                 <button onclick="saveEditedSchemeValues()" style="flex:1; background:var(--bajaj-mint); color:white; padding:9px; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">UPDATE & RECALCULATE ✅</button>
                 <button onclick="document.getElementById('editSchemeModal').style.display='none'" style="flex:1; background:#dc2626; color:white; border:none; padding:9px; border-radius:4px; font-weight:bold; cursor:pointer;">CANCEL</button>
             </div>
@@ -750,8 +828,6 @@
 
     <script>
         const PRIMARY_EXCEL_URL = "https://raw.githubusercontent.com/luckyjathar/testcalculator/main/master_data.xlsx";
-        const SECONDARY_EXCEL_URL = "https://raw.githubusercontent.com/luckyjathar/CALCULATOR/main/master_data.xlsx";
-        const LOCAL_EXCEL_URL = "./master_data.xlsx";
         const GITHUB_COMMIT_API = "https://api.github.com/repos/luckyjathar/testcalculator/commits?path=master_data.xlsx&page=1&per_page=1";
 
         const DB_NAME = "PersistentPortalDB";
@@ -947,10 +1023,18 @@
             dropdown.style.display = 'block';
         }
 
-        function saveFullProfileSnapshot(prodId, summaryText) {
+        /* 💾 SAVE QUOTE WITH CUSTOMER NAME */
+        function saveFullProfileSnapshot(prodId, summaryText, explicitCustName = null) {
             try {
                 let targetProd = selectedProductList.find(p => p.id === prodId);
                 if (!targetProd) return;
+
+                let custName = explicitCustName;
+                if (!custName) {
+                    custName = prompt("Enter Customer Name to Save Quote:", targetProd.customerName || "");
+                    if (custName === null) return;
+                }
+                targetProd.customerName = custName.trim();
 
                 let history = JSON.parse(localStorage.getItem('portal_quote_history') || '[]');
                 let now = new Date();
@@ -958,6 +1042,7 @@
 
                 let snapshot = {
                     id: Date.now(),
+                    customerName: targetProd.customerName || "WALK-IN",
                     time: timeStr,
                     scenario: {
                         type: document.getElementById('typeVal').value,
@@ -970,8 +1055,10 @@
                 };
 
                 history.unshift(snapshot);
-                if (history.length > 25) history = history.slice(0, 25);
+                if (history.length > 30) history = history.slice(0, 30);
                 localStorage.setItem('portal_quote_history', JSON.stringify(history));
+
+                if (!explicitCustName) alert(`Quote for '${snapshot.customerName}' saved to history! 💾✅`);
             } catch(e) {
                 console.error("Snapshot save error:", e);
             }
@@ -1024,10 +1111,11 @@
                     let p = h.product || {};
                     return `
                     <div class="history-card">
-                        <div class="history-time">📅 ${h.time}</div>
+                        <div class="history-time">📅 ${h.time} | 👤 <b>${h.customerName || 'WALK-IN'}</b></div>
                         <div class="history-title">📱 ${p.name || h.model}</div>
                         
                         <div class="history-tags">
+                            <span class="history-tag">SYS: ₹${Number(p.systemPrice||0).toLocaleString()}</span>
                             <span class="history-tag">INV: ₹${Number(p.invoice||0).toLocaleString()}</span>
                             <span class="history-tag">T.DP: ₹${p.targetDp||0}</span>
                             <span class="history-tag">TYPE: ${sc.type||'-'}</span>
@@ -1062,7 +1150,6 @@
             }
         }
 
-        /* ⚡ INSTANT 0.1s LOAD & BACKGROUND UPDATER */
         window.addEventListener('pageshow', async function() {
             resetAllInputsToBlank();
             await initDB();
@@ -1094,7 +1181,6 @@
             return { tenure, advEmi };
         }
 
-        /* ⚡ ULTRA-FAST STREAM FETCHING */
         async function fetchFromMasterStream(forceSync = false) {
             const badge = document.getElementById('dataStatusBadge');
             const searchInput = document.getElementById('modelSearchInput');
@@ -1112,7 +1198,7 @@
                 badge.style.background = "var(--bajaj-mint)";
                 badge.style.color = "#fff";
                 searchInput.disabled = false;
-                searchInput.placeholder = "Type Model Name to Add...";
+                searchInput.placeholder = "Type Model or Scheme (e.g. 10/2)...";
 
                 setTimeout(() => checkBackgroundUpdate(), 2000);
                 return;
@@ -1183,7 +1269,7 @@
                 badge.style.background = "var(--bajaj-mint)";
                 badge.style.color = "#fff";
                 searchInput.disabled = false;
-                searchInput.placeholder = "Type Model Name to Add...";
+                searchInput.placeholder = "Type Model or Scheme (e.g. 10/2)...";
 
                 cleanDuplicateManualProducts();
 
@@ -1197,7 +1283,7 @@
                     badge.style.background = "var(--bajaj-mint)";
                     badge.style.color = "#fff";
                     searchInput.disabled = false;
-                    searchInput.placeholder = "Type Model Name to Add...";
+                    searchInput.placeholder = "Type Model or Scheme (e.g. 10/2)...";
                 } else {
                     badge.innerText = "SYNC FAILED";
                     badge.style.background = "#ef4444";
@@ -1245,6 +1331,7 @@
             return foundKey ? row[foundKey] : null;
         }
 
+        /* 🔍 DUAL ENGINE: DIRECT MODEL SEARCH + REVERSE SCHEME SEARCH */
         function handleModelSearch(query) {
             const dropdown = document.getElementById('modelDropdown');
             const q = query.trim().toUpperCase();
@@ -1253,36 +1340,58 @@
                 return;
             }
 
-            let uniqueModels = [];
+            let results = [];
             let seen = new Set();
+
+            if (q.includes('/') || /^\d+$/.test(q)) {
+                let matchedModelsForScheme = masterDbRecords.filter(r => {
+                    let sStr = `${r.tenure}/${r.advEmi}`;
+                    return sStr.includes(q);
+                });
+
+                if (matchedModelsForScheme.length > 0) {
+                    matchedModelsForScheme.forEach(r => {
+                        if (!seen.has(r.model)) {
+                            seen.add(r.model);
+                            results.push({ model: r.model, isSchemeHit: true, schemeStr: `${r.tenure}/${r.advEmi}` });
+                        }
+                    });
+                }
+            }
 
             persistentCustomProducts.forEach(p => {
                 if (p.name.includes(q) && !seen.has(p.name)) {
                     seen.add(p.name);
-                    uniqueModels.push({ model: p.name, isCustom: true });
+                    results.push({ model: p.name, isCustom: true });
                 }
             });
 
             masterDbRecords.forEach(r => {
                 if (r.model.includes(q) && !seen.has(r.model)) {
                     seen.add(r.model);
-                    uniqueModels.push({ model: r.model, isCustom: false });
+                    results.push({ model: r.model, isCustom: false });
                 }
             });
 
-            if (uniqueModels.length === 0) {
-                dropdown.innerHTML = `<div style="padding:10px; color:#888; text-align:center;">No matching models found.</div>`;
+            if (results.length === 0) {
+                dropdown.innerHTML = `<div style="padding:10px; color:#888; text-align:center;">No matching models or schemes found.</div>`;
                 dropdown.style.display = 'block'; return;
             }
 
-            dropdown.innerHTML = uniqueModels.slice(0, 30).map(m => `
+            dropdown.innerHTML = results.slice(0, 35).map(m => {
+                let badge = '';
+                if (m.isSchemeHit) badge = `<span style="color:var(--bajaj-sky); font-size:10px; background:#021a2d; padding:2px 5px; border-radius:3px;">⚡ SCHEME ${m.schemeStr}</span>`;
+                else if (m.isCustom) badge = `<span style="color:var(--bajaj-mint); font-size:10px;">[SAVED]</span>`;
+
+                return `
                 <div class="dropdown-item" onclick="addNewProductToBasket('${m.model.replace(/'/g, "\\'")}')">
-                    <span>📱 ${m.model} ${m.isCustom ? '<span style="color:var(--bajaj-mint); font-size:10px;">[SAVED]</span>' : ''}</span>
-                </div>
-            `).join('');
+                    <span>📱 ${m.model} ${badge}</span>
+                </div>`;
+            }).join('');
             dropdown.style.display = 'block';
         }
 
+        /* 📱 ADD PRODUCT TO BASKET */
         function addNewProductToBasket(modelName) {
             const dropdown = document.getElementById('modelDropdown');
             const searchInput = document.getElementById('modelSearchInput');
@@ -1295,6 +1404,7 @@
                 let restored = JSON.parse(JSON.stringify(customProd));
                 restored.id = 'prod_' + Date.now() + '_' + Math.floor(Math.random()*1000);
                 restored.isCollapsed = false;
+                restored.invoice = ""; 
                 if (!restored.exw) restored.exw = 0;
                 if (!restored.targetDp) restored.targetDp = 0;
                 selectedProductList.push(restored);
@@ -1303,20 +1413,18 @@
             }
 
             let modelSchemes = masterDbRecords.filter(r => r.model === modelName);
-            let defaultMrp = modelSchemes[0] && modelSchemes[0].mrp > 0 ? modelSchemes[0].mrp : "";
-
-            let autoGtl = getGtlSlabValue(defaultMrp);
-            let autoRfcSlab = getRfcSlabValue(defaultMrp);
+            let defaultSystemMrp = modelSchemes[0] && modelSchemes[0].mrp > 0 ? modelSchemes[0].mrp : 0;
 
             let newProduct = {
                 id: 'prod_' + Date.now() + '_' + Math.floor(Math.random()*1000),
                 name: modelName,
                 category: modelSchemes[0]?.category || "MODEL",
-                invoice: defaultMrp,
+                systemPrice: defaultSystemMrp,
+                invoice: "", 
                 targetDp: 0,
-                gtl: autoGtl,
+                gtl: 0,
                 rfc: 0,
-                rfcSlab: autoRfcSlab,
+                rfcSlab: 0,
                 exw: 0,
                 margin: 0,
                 dealerContri: 0,
@@ -1354,9 +1462,10 @@
                 id: 'prod_' + Date.now(),
                 name: `[${selectedCat}] NON-TIEUP`,
                 category: selectedCat,
-                invoice: 30000,
+                systemPrice: 0,
+                invoice: "",
                 targetDp: 0,
-                gtl: 1499,
+                gtl: 0,
                 rfc: 0,
                 rfcSlab: 0,
                 exw: 0,
@@ -1385,8 +1494,9 @@
             renderAllProductPanels();
         }
 
+        /* ➕ ADD CUSTOM MODEL */
         async function addNewManualProductPrompt() {
-            let prodName = prompt("Enter Manual Product / Model Name:", "MANUAL PRODUCT");
+            let prodName = prompt("Enter Model Name:");
             if (!prodName || prodName.trim() === "") return;
 
             prodName = prodName.trim().toUpperCase();
@@ -1398,6 +1508,7 @@
                 newProduct = JSON.parse(JSON.stringify(existing));
                 newProduct.id = 'prod_' + Date.now();
                 newProduct.isCollapsed = false;
+                newProduct.invoice = "";
                 if (!newProduct.exw) newProduct.exw = 0;
                 if (!newProduct.targetDp) newProduct.targetDp = 0;
             } else {
@@ -1405,9 +1516,10 @@
                     id: 'prod_' + Date.now(),
                     name: prodName,
                     category: "CUSTOM",
-                    invoice: 25000,
+                    systemPrice: 0,
+                    invoice: "",
                     targetDp: 0,
-                    gtl: 1199,
+                    gtl: 0,
                     rfc: 0,
                     rfcSlab: 0,
                     exw: 0,
@@ -1439,10 +1551,10 @@
             let prod = selectedProductList.find(p => p.id === pId);
             if (prod) {
                 prod[field] = val;
-                if (field === 'invoice') {
-                    let invVal = parseFloat(val) || 0;
-                    prod.gtl = getGtlSlabValue(invVal);
-                    prod.rfcSlab = getRfcSlabValue(invVal);
+                if (field === 'invoice' || field === 'systemPrice') {
+                    let calcBasis = parseFloat(prod.invoice) || parseFloat(prod.systemPrice) || 0;
+                    prod.gtl = getGtlSlabValue(calcBasis);
+                    prod.rfcSlab = getRfcSlabValue(calcBasis);
                     
                     let gtlSelect = document.getElementById(`gtl_${pId}`);
                     let rfcSelect = document.getElementById(`rfc_${pId}`);
@@ -1514,6 +1626,7 @@
             }
         }
 
+        /* ✏️ OPEN EDIT MODAL & AUTO-FILL CURRENT TABLE LOAN */
         function openEditSchemeModal(pId, sId) {
             let prod = selectedProductList.find(p => p.id === pId);
             if (!prod) return;
@@ -1524,14 +1637,123 @@
             document.getElementById('editTargetSchemeId').value = sId;
             document.getElementById('editSchemeSubTitle').innerText = `${prod.name} (Scheme: ${s.tenure}/${s.advEmi})`;
 
-            document.getElementById('editCustomLoan').value = s.customLoan || "";
+            let currentTableLoan = s.currentCalculatedLoan || s.customLoan || 0;
+            document.getElementById('editCustomLoan').value = Math.round(currentTableLoan);
+
             document.getElementById('editTen').value = s.tenure;
             document.getElementById('editAdv').value = s.advEmi;
             document.getElementById('editDbd').value = s.dbd;
             document.getElementById('editPf').value = s.pf;
             document.getElementById('editRoi').value = s.roi;
 
+            updateModalBreakdownLive();
             document.getElementById('editSchemeModal').style.display = 'flex';
+        }
+
+        /* ⚡ RE-CALCULATE ALL A TO Z CHARGES LIVE IN MODAL */
+        function updateModalBreakdownLive() {
+            let pId = document.getElementById('editTargetProdId').value;
+            let prod = selectedProductList.find(p => p.id === pId);
+            if (!prod) return;
+
+            let invoiceAmount = parseFloat(prod.invoice) || 0;
+            let sysPrice = parseFloat(prod.systemPrice) || 0;
+            
+            // Difference Rule: If invoice > system price, difference goes to DP. If less, 0.
+            let extraSellingGap = (invoiceAmount > sysPrice && sysPrice > 0) ? (invoiceAmount - sysPrice) : 0;
+            let eligibleBase = (invoiceAmount > 0 && sysPrice > 0) ? Math.min(invoiceAmount, sysPrice) : (invoiceAmount > 0 ? invoiceAmount : (sysPrice > 0 ? sysPrice : 30000));
+
+            let ten = parseInt(document.getElementById('editTen').value) || 1;
+            let adv = parseInt(document.getElementById('editAdv').value) || 0;
+            let dbdRate = parseFloat(document.getElementById('editDbd').value) || 0;
+            let pfAmt = parseInt(document.getElementById('editPf').value) || 0;
+            let roi = parseFloat(document.getElementById('editRoi').value) || 0;
+            let customLoanInput = parseFloat(document.getElementById('editCustomLoan').value) || 0;
+
+            let balTenure = ten - adv;
+            if (balTenure < 1) balTenure = 1;
+
+            let approvedLimit = parseFloat(document.getElementById('approvedVal').value) || 0;
+            let rawMaxLtv = document.getElementById('maxLtvVal').value || "100";
+            let maxLtv = Math.min(100, Math.max(0, parseFloat(rawMaxLtv) || 100));
+
+            let maxAllowedLoan = eligibleBase;
+            if (maxLtv < 100) {
+                let allowedFinanced = eligibleBase * (maxLtv / 100);
+                maxAllowedLoan = (allowedFinanced * ten) / balTenure;
+            }
+            if (approvedLimit > 0) {
+                let nbfcMaxL = (approvedLimit * ten) / balTenure;
+                maxAllowedLoan = Math.min(maxAllowedLoan, nbfcMaxL);
+            }
+            maxAllowedLoan = Math.min(eligibleBase, Math.max(0, maxAllowedLoan));
+
+            let minAllowedLoan = Math.round(Math.max(5000, eligibleBase * 0.5));
+            document.getElementById('loanRangeNoticeText').innerText = 
+                `Allowed Range: ₹${minAllowedLoan.toLocaleString()} - ₹${Math.round(maxAllowedLoan).toLocaleString()} (Min 50% Policy Floor Clamped & NBFC Limit)`;
+
+            let loan = customLoanInput > 0 ? customLoanInput : maxAllowedLoan;
+            loan = Math.max(minAllowedLoan, Math.min(loan, maxAllowedLoan));
+
+            let singleBaseEmi = loan / ten;
+            let advanceEmiAmt = Math.round(singleBaseEmi * adv);
+
+            let inherentSchemeLoan = (eligibleBase / ten) * balTenure;
+            let currentSchemeFinanced = (loan / ten) * balTenure;
+            let extraDpFromLimit = Math.max(0, Math.round(inherentSchemeLoan - currentSchemeFinanced));
+
+            let dbdRupees = Math.round(loan * (dbdRate * 1.18 / 100));
+
+            let custType = document.getElementById('typeVal').value || "NEW";
+            let loginFee = 850;
+            if (custType === 'EMI CARD' || custType === 'VIRTUAL CARD') loginFee = 270;
+            else if (custType === 'W/O CARD') loginFee = 320;
+
+            let margin = parseFloat(prod.margin) || 0;
+            let dealerContri = parseFloat(prod.dealerContri) || 0;
+
+            let roiRate = roi / 1200;
+            let roiInDp = Math.round(loan * roiRate * adv);
+
+            let gtl = parseFloat(prod.gtl) || 0;
+            let rfc = parseFloat(prod.rfc) || 0;
+            let exw = parseFloat(prod.exw) || 0;
+            let vasTotal = gtl + rfc + exw;
+
+            let exactDp = (eligibleBase - loan) + advanceEmiAmt + extraSellingGap + dbdRupees + pfAmt + loginFee + margin + dealerContri + roiInDp;
+            let finalDp = Math.ceil(exactDp / 10) * 10;
+            let roundOffVal = finalDp - exactDp;
+
+            let baseEmi = loan / ten;
+            let monthlyRoiAmt = Math.round(loan * roiRate);
+            let vasPerMonth = Math.round(vasTotal / balTenure);
+            let finalEmi = Math.round((baseEmi < 850 && baseEmi > 0 ? 850 : baseEmi) + monthlyRoiAmt + vasPerMonth);
+
+            // Net Disbursal as per exact user formula
+            let calcPrice = invoiceAmount > 0 ? invoiceAmount : eligibleBase;
+            let netDisbursal = Math.round(calcPrice - dbdRupees - pfAmt - roiInDp - loginFee - dealerContri);
+
+            document.getElementById('cardSchemeTitle').innerText = `${ten}/${adv}`;
+            document.getElementById('cAdvEmi').innerText = `₹${advanceEmiAmt.toLocaleString()} (${adv} EMI)`;
+            document.getElementById('cPriceGap').innerText = `₹${extraSellingGap.toLocaleString()}`;
+            document.getElementById('cLimitBreachDp').innerText = `₹${extraDpFromLimit.toLocaleString()}`;
+            document.getElementById('cDbdVal').innerText = `${dbdRate}% (₹${dbdRupees.toLocaleString()})`;
+            document.getElementById('cPfVal').innerText = `₹${pfAmt.toLocaleString()}`;
+            document.getElementById('cLoginFee').innerText = `₹${loginFee.toLocaleString()} (${custType})`;
+            document.getElementById('cMarginVal').innerText = `₹${margin.toLocaleString()}`;
+            document.getElementById('cDealerContri').innerText = `₹${dealerContri.toLocaleString()}`;
+            document.getElementById('cAdvRoiVal').innerText = `₹${roiInDp.toLocaleString()}`;
+            document.getElementById('cRoundOffVal').innerText = `+₹${roundOffVal.toFixed(2)}`;
+            document.getElementById('cFinalDpVal').innerText = `₹${finalDp.toLocaleString()}`;
+
+            document.getElementById('cBaseEmi').innerText = `₹${Math.round(baseEmi).toLocaleString()}`;
+            document.getElementById('cMonthlyRoi').innerText = `₹${monthlyRoiAmt.toLocaleString()} (${roi}%)`;
+            document.getElementById('cGtlVal').innerText = `₹${gtl.toLocaleString()}`;
+            document.getElementById('cRfcVal').innerText = `₹${rfc.toLocaleString()}`;
+            document.getElementById('cExwVal').innerText = `₹${exw.toLocaleString()}`;
+            document.getElementById('cFinalEmiVal').innerText = `₹${finalEmi.toLocaleString()} x ${balTenure}M`;
+
+            document.getElementById('cDisbursal').innerText = `₹${netDisbursal.toLocaleString()}`;
         }
 
         async function saveEditedSchemeValues() {
@@ -1543,7 +1765,21 @@
             let s = prod.schemes.find(x => x.sId === sId);
             if (!s) return;
 
-            s.customLoan = parseFloat(document.getElementById('editCustomLoan').value) || 0;
+            let rawCustomLoan = parseFloat(document.getElementById('editCustomLoan').value) || 0;
+            
+            if (rawCustomLoan > 0) {
+                let invoiceAmount = parseFloat(prod.invoice) || 0;
+                let sysPrice = parseFloat(prod.systemPrice) || 0;
+                let eligibleBase = (invoiceAmount > 0 && sysPrice > 0) ? Math.min(invoiceAmount, sysPrice) : (invoiceAmount > 0 ? invoiceAmount : sysPrice);
+                let minAllowedLoan = Math.round(Math.max(5000, eligibleBase * 0.5));
+
+                if (rawCustomLoan < minAllowedLoan) {
+                    alert(`Loan amount 50% chya khali jau shakat nahi. Tyala policy nusar ₹${minAllowedLoan.toLocaleString()} var lock kele ahe.`);
+                    rawCustomLoan = minAllowedLoan;
+                }
+            }
+
+            s.customLoan = rawCustomLoan;
             s.tenure = parseInt(document.getElementById('editTen').value) || s.tenure;
             s.advEmi = parseInt(document.getElementById('editAdv').value) || 0;
             s.dbd = parseFloat(document.getElementById('editDbd').value) || 0;
@@ -1557,22 +1793,33 @@
         }
 
         function promptDirectLoanEdit(pId, sId, currentLoan) {
-            let newLoanStr = prompt(`Enter custom Loan Amount for this scheme (Current: ₹${Math.round(currentLoan)}):`, Math.round(currentLoan));
+            let prod = selectedProductList.find(p => p.id === pId);
+            if (!prod) return;
+            let s = prod.schemes.find(x => x.sId === sId);
+            if (!s) return;
+
+            let newLoanStr = prompt(`Enter custom Loan Amount:`, Math.round(currentLoan));
             if (newLoanStr === null) return;
             let newLoan = parseFloat(newLoanStr) || 0;
-            
-            let prod = selectedProductList.find(p => p.id === pId);
-            if (prod) {
-                let s = prod.schemes.find(x => x.sId === sId);
-                if (s) {
-                    s.customLoan = newLoan;
-                    savePersistentCustomProduct(prod);
-                    renderProductTableOnly(pId);
+
+            if (newLoan > 0) {
+                let invoiceAmount = parseFloat(prod.invoice) || 0;
+                let sysPrice = parseFloat(prod.systemPrice) || 0;
+                let eligibleBase = (invoiceAmount > 0 && sysPrice > 0) ? Math.min(invoiceAmount, sysPrice) : (invoiceAmount > 0 ? invoiceAmount : sysPrice);
+                let minAllowedLoan = Math.round(Math.max(5000, eligibleBase * 0.5));
+
+                if (newLoan < minAllowedLoan) {
+                    alert(`Minimum 50% rule lagu ahe. Loan amount ₹${minAllowedLoan.toLocaleString()} var lock keli ahe.`);
+                    newLoan = minAllowedLoan;
                 }
             }
+            
+            s.customLoan = newLoan;
+            savePersistentCustomProduct(prod);
+            renderProductTableOnly(pId);
         }
 
-        /* 📲 WHATSAPP SHAREABLE QUOTE ENGINE */
+        /* 📲 WHATSAPP SHAREABLE QUOTE & LIVE SUMMARY */
         function copySmartScheme(pId, currentRowEl, tenure, adv, dp, emi, months, perDay) {
             let prod = selectedProductList.find(p => p.id === pId);
             if (!prod) return;
@@ -1581,7 +1828,7 @@
             if (!tableElement) return;
 
             let checkedBoxes = tableElement.querySelectorAll('.scheme-checkbox:checked');
-            let price = prod.invoice || "0";
+            let price = prod.invoice || prod.systemPrice || "0";
             let textToCopy = "";
 
             if (checkedBoxes.length > 0) {
@@ -1641,7 +1888,7 @@
                 let arrowIcon = isCol ? "▶" : "▼";
 
                 let categorySelectorHtml = prod.isSheet2 ? `
-                    <div style="grid-column: span 3; background:var(--bajaj-navy); padding:6px; border-radius:4px; border:1px solid var(--border-blue);">
+                    <div style="grid-column: span 2; background:var(--bajaj-navy); padding:6px; border-radius:4px; border:1px solid var(--border-blue);">
                         <label style="color:var(--bajaj-sky);">📂 CATEGORY (SHEET 2):</label>
                         <select onchange="changeCardCategory('${prod.id}', this.value)" style="color:var(--bajaj-sky); font-weight:bold;">
                             ${sheet2CategoriesList.map(c => `<option value="${c}" ${c === prod.category ? 'selected' : ''}>${c}</option>`).join('')}
@@ -1655,9 +1902,9 @@
                         <div class="panel-header-left">
                             <span style="font-size:12px; color:var(--bajaj-sky);">${arrowIcon}</span>
                             <span class="panel-title">📱 #${idx+1} ${prod.name}</span>
-                            <span class="panel-inv-badge">₹${Number(prod.invoice||0).toLocaleString()}</span>
                         </div>
                         <div class="btn-panel-action" onclick="event.stopPropagation()">
+                            <button class="btn-action-sm" style="background:#475569; color:#fff;" onclick="saveFullProfileSnapshot('${prod.id}', 'Manual Snapshot')">💾 SAVE</button>
                             <button class="btn-action-sm btn-add-scheme" onclick="openAddSchemeModal('${prod.id}', '${prod.name.replace(/'/g, "\\'")}')">➕ SCHEME</button>
                             <button class="btn-action-sm btn-quote" onclick="generateQuoteImage('${prod.id}')">📸 QUOTE</button>
                             <button class="btn-action-sm btn-remove" onclick="removeProductFromBasket('${prod.id}')">✖</button>
@@ -1667,10 +1914,19 @@
                     <div id="panel_body_${prod.id}" style="display:${bodyDisplay};">
                         <div class="sub-config-grid">
                             ${categorySelectorHtml}
+                            
+                            <!-- 🏷️ SYSTEM PRICE (LEFT SIDE, EXCEL MRP AUTO-FILLED & EDITABLE) -->
                             <div>
-                                <label>INVOICE (₹)</label>
-                                <input type="number" value="${prod.invoice}" placeholder="0" oninput="updateProductParam('${prod.id}', 'invoice', this.value)">
+                                <label style="color:var(--bajaj-cyan);">SYSTEM PRICE (₹)</label>
+                                <input type="number" value="${prod.systemPrice || ''}" placeholder="System MRP" oninput="updateProductParam('${prod.id}', 'systemPrice', this.value)" style="border-color:var(--bajaj-cyan); color:#38bdf8; font-weight:bold;">
                             </div>
+
+                            <!-- 💵 INVOICE PRICE (RIGHT SIDE) -->
+                            <div>
+                                <label style="color:var(--bajaj-orange);">INVOICE (₹) *</label>
+                                <input type="number" value="${prod.invoice || ''}" placeholder="Enter Price" oninput="updateProductParam('${prod.id}', 'invoice', this.value)" style="border-color:var(--bajaj-orange); color:#fff; font-weight:bold;">
+                            </div>
+
                             <div>
                                 <label style="color:var(--bajaj-mint);">🎯 TARGET DP (₹)</label>
                                 <input type="number" value="${prod.targetDp || 0}" placeholder="0" oninput="updateProductParam('${prod.id}', 'targetDp', this.value)" style="border-color:var(--bajaj-mint); color:#34d399;">
@@ -1701,7 +1957,7 @@
                                 <label>MARGIN (₹)</label>
                                 <input type="number" value="${prod.margin}" placeholder="0" oninput="updateProductParam('${prod.id}', 'margin', this.value)">
                             </div>
-                            <div style="grid-column: span 3;">
+                            <div>
                                 <label>DEALER CONTRI (₹)</label>
                                 <input type="number" value="${prod.dealerContri}" placeholder="0" oninput="updateProductParam('${prod.id}', 'dealerContri', this.value)">
                             </div>
@@ -1718,6 +1974,7 @@
                                         <th>EMI</th>
                                         <th>M</th>
                                         <th>DAY</th>
+                                        <th>DISBURSAL</th>
                                         <th>ACTION</th>
                                     </tr>
                                 </thead>
@@ -1732,7 +1989,7 @@
             selectedProductList.forEach(p => renderProductTableOnly(p.id));
         }
 
-        /* 🎯 REFINED ENGINE */
+        /* 🎯 CENTRAL CALCULATION & VERIFICATION ENGINE */
         function renderProductTableOnly(pId) {
             let prod = selectedProductList.find(p => p.id === pId);
             if (!prod) return;
@@ -1747,6 +2004,12 @@
             let emiCap = parseFloat(document.getElementById('cappingVal').value) || 0;
 
             let invoiceAmount = parseFloat(prod.invoice) || 0;
+            let systemPrice = parseFloat(prod.systemPrice) || 0;
+            
+            // Difference Logic: If invoice > systemPrice, gap goes to DP; else 0
+            let extraSellingGap = (invoiceAmount > systemPrice && systemPrice > 0) ? (invoiceAmount - systemPrice) : 0;
+            let eligibleBase = (invoiceAmount > 0 && systemPrice > 0) ? Math.min(invoiceAmount, systemPrice) : (invoiceAmount > 0 ? invoiceAmount : systemPrice);
+
             let targetDpAmount = parseFloat(prod.targetDp) || 0;
             let margin = parseFloat(prod.margin) || 0;
             let dealerContri = parseFloat(prod.dealerContri) || 0;
@@ -1770,12 +2033,12 @@
             });
 
             if (eligibleSchemes.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" style="color:#f87171; padding:10px;">No schemes found under Max LTV (${maxLtv}%).</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="9" style="color:#f87171; padding:10px;">No schemes found under Max LTV (${maxLtv}%).</td></tr>`;
                 return;
             }
 
             let calculatedRows = eligibleSchemes.map(s => {
-                let price = invoiceAmount > 0 ? invoiceAmount : (s.mrp > 0 ? s.mrp : (approvedLimit > 0 ? approvedLimit : 30000));
+                let price = eligibleBase > 0 ? eligibleBase : (s.mrp > 0 ? s.mrp : (approvedLimit > 0 ? approvedLimit : 30000));
                 let inst = s.tenure - s.advEmi;
                 if (inst < 1) inst = 1;
 
@@ -1806,6 +2069,7 @@
                     }
                 }
 
+                // EXACT ORIGINAL NBFC FORMULA
                 if (approvedLimit > 0) {
                     let nbfcMaxL = (approvedLimit * s.tenure) / inst;
                     loan = Math.min(loan, nbfcMaxL);
@@ -1813,19 +2077,23 @@
 
                 loan = Math.min(price, Math.max(0, loan));
 
+                // 50% POLICY CLAMPING
                 let minAllowedLoan = price * 0.50;
                 if (loan < minAllowedLoan) {
                     loan = minAllowedLoan;
                 }
 
+                s.currentCalculatedLoan = loan;
+
                 let insTotal = gtlVal + rfcVal + exwVal;
 
                 let baseEmi = loan / s.tenure;
                 let roiInEmi = loan * roiRate;
+                
+                // Base EMI Floor = 850
                 let emi = baseEmi + (insTotal / inst) + roiInEmi;
-
-                if (baseEmi > 0 && baseEmi < 900) {
-                    emi = 900 + (insTotal / inst) + roiInEmi;
+                if (baseEmi > 0 && baseEmi < 850) {
+                    emi = 850 + (insTotal / inst) + roiInEmi;
                 }
 
                 if ((!s.customLoan || s.customLoan <= 0) && targetDpAmount <= 0 && emiCap > 0 && emi > emiCap) {
@@ -1834,14 +2102,21 @@
                     loan = Math.min(price, Math.max(0, loan));
                     baseEmi = loan / s.tenure;
                     roiInEmi = loan * roiRate;
-                    emi = (baseEmi < 900 && baseEmi > 0 ? 900 : baseEmi) + (insTotal / inst) + roiInEmi;
+                    emi = (baseEmi < 850 && baseEmi > 0 ? 850 : baseEmi) + (insTotal / inst) + roiInEmi;
+                    s.currentCalculatedLoan = loan;
                 }
 
                 let roiInDp = loan * roiRateDP;
-                let dpExact = price - loan + ((loan / s.tenure) * s.advEmi) + (loan * dbdRate) + s.pf + totalFees + roiInDp;
+                let dbdRupees = Math.round(loan * dbdRate);
+
+                let dpExact = price - loan + ((loan / s.tenure) * s.advEmi) + dbdRupees + s.pf + totalFees + roiInDp + extraSellingGap;
                 let dp = Math.ceil(dpExact / 10) * 10;
 
                 let perDay = emi / 30;
+
+                // EXACT NET DISBURSAL FORMULA
+                let calcPrice = invoiceAmount > 0 ? invoiceAmount : eligibleBase;
+                let netDisbursal = Math.round(calcPrice - dbdRupees - s.pf - roiInDp - baseFee - dealerContri);
 
                 return {
                     scheme: s,
@@ -1850,6 +2125,8 @@
                     emi: emi,
                     months: inst,
                     perDay: perDay,
+                    netDisbursal: netDisbursal,
+                    dbdRupees: dbdRupees,
                     disabled: s.disabled,
                     sId: s.sId,
                     isCustom: s.isCustom,
@@ -1884,6 +2161,7 @@
                         <td style="color:var(--bajaj-cyan); font-weight:900;">₹${Math.round(row.emi).toLocaleString()}</td>
                         <td style="color:#e2e8f0;">${row.months}</td>
                         <td style="color:#fb923c;">₹${Math.round(row.perDay).toLocaleString()}</td>
+                        <td style="color:#4ade80; font-weight:800;" title="DBD Cut (with GST): ₹${row.dbdRupees}">₹${row.netDisbursal.toLocaleString()}</td>
                         <td>
                             <div class="action-btn-group">
                                 <button class="action-icon-btn btn-copy-mini" title="Copy Scheme" onclick="copySmartScheme('${prod.id}', this, '${s.tenure}', '${s.advEmi}', '${Math.round(row.dp)}', '${Math.round(row.emi)}', '${row.months}', '${Math.round(row.perDay)}')">📋</button>
@@ -1896,7 +2174,7 @@
             }).join('');
         }
 
-        /* ✍️ असली हैंडराइटिंग (BALL-PEN INK ON WHITE PAPER) QUOTE GENERATOR */
+        /* ✍️ असली हैंडराइटिंग QUOTE GENERATOR */
         function generateQuoteImage(pId) {
             let prod = selectedProductList.find(p => p.id === pId);
             if (!prod) return;
@@ -1912,21 +2190,19 @@
             let approvedLimit = document.getElementById('approvedVal').value || "0";
             let maxLtv = document.getElementById('maxLtvVal').value || "100";
             let capping = document.getElementById('cappingVal').value || "NONE";
-            let price = prod.invoice || "0";
+            let price = prod.invoice || prod.systemPrice || "0";
 
-            // कागज की पर्ची वाला कंटेनर (Handwriting Font & Real Blue Ink Color)
             let quoteDiv = document.createElement('div');
             quoteDiv.style.width = "480px";
             quoteDiv.style.padding = "24px 20px";
             quoteDiv.style.background = "#ffffff";
-            quoteDiv.style.color = "#1a365d"; // असली नीली बॉल-पेन वाली स्याही
+            quoteDiv.style.color = "#1a365d";
             quoteDiv.style.fontFamily = "'Architects Daughter', 'Caveat', cursive, sans-serif";
             quoteDiv.style.position = "absolute";
             quoteDiv.style.top = "-9999px";
-            quoteDiv.style.boxSizing = "border-box";
+            quoteDiv.boxSizing = "border-box";
 
             quoteDiv.innerHTML = `
-                <!-- 1. Top Header Box (हाथ से खींचे हुए बॉक्स का लुक) -->
                 <div style="border: 2px solid #1e3a8a; padding: 12px 14px; margin-bottom: 16px; background: #ffffff; border-radius: 2px;">
                     <div style="text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 1px; color: #1e3a8a; margin-bottom: 8px;">
                         <span style="border-bottom: 2px solid #1e3a8a; padding-bottom: 2px; text-decoration: underline;">BAJAJ FINSERV LOAN OFFER</span>
@@ -1945,7 +2221,6 @@
                     </div>
                 </div>
 
-                <!-- 2. Product Name & Price Section (हाथ से लिखा हुआ हेडिंग) -->
                 <div style="margin-bottom: 14px; padding: 0 4px;">
                     <div style="font-size: 19px; font-weight: bold; color: #1e3a8a; text-transform: uppercase; letter-spacing: 0.5px;">
                         ${prod.name}
@@ -1955,7 +2230,6 @@
                     </div>
                 </div>
 
-                <!-- 3. 5 Columns Matrix Grid Table (हाथ से खींची हुई टेबल लाइन्स) -->
                 <table style="width: 100%; border-collapse: collapse; font-size: 15px; text-align: center; border: 2px solid #1e3a8a;">
                     <thead>
                         <tr style="border-bottom: 2px solid #1e3a8a; color: #1e3a8a; font-weight: bold; background: #ffffff;">
@@ -1986,7 +2260,6 @@
 
             document.body.appendChild(quoteDiv);
 
-            // फॉन्ट लोड होने के बाद हाई-क्वालिटी स्केल 3 के साथ रेंडर करें
             setTimeout(() => {
                 html2canvas(quoteDiv, { scale: 3, useCORS: true, backgroundColor: "#ffffff" }).then(canvas => {
                     document.body.removeChild(quoteDiv);
@@ -1998,7 +2271,7 @@
                     currentQuoteTextSummary = `📱 *${prod.name}*\n💵 *Price:* ₹${Number(price).toLocaleString()}\n🎉 *BAJAJ FINSERV LOAN OFFER*\n\n(Quote image attached)`;
                     
                     document.getElementById('imageViewerModal').style.display = 'flex';
-                    saveFullProfileSnapshot(prod.id, `📱 ${prod.name} (₹${Number(price).toLocaleString()}) - Quote Generated`);
+                    saveFullProfileSnapshot(prod.id, `📱 ${prod.name} (₹${Number(price).toLocaleString()}) - Quote Generated`, prod.customerName || "WALK-IN");
                 });
             }, 100);
         }
@@ -2030,7 +2303,6 @@
             window.open(`https://api.whatsapp.com/send?text=${encodedText}`, '_blank');
         }
 
-        /* 📥 IMAGE DOWNLOAD DIRECT */
         function downloadQuoteImageDirect() {
             if (!currentQuoteDataBlob) return;
             let a = document.createElement('a');
@@ -2051,4 +2323,3 @@
     </script>
 </body>
 </html>
-
