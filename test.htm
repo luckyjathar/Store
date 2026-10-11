@@ -3,11 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pro Financial Portal - Fast Catalog</title>
+    <title>Pro Financial Portal - Fast Catalog & Quote Engine</title>
+
+    <!-- Google Handwriting Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
+
+    <!-- SheetJS CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <!-- html2canvas CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
@@ -58,11 +64,17 @@
         /* MODEL CARDS */
         .model-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 6px; margin-bottom: 8px; overflow: hidden; }
         .model-head {
-            background: #042947; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; cursor: pointer;
+            background: #042947; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; cursor: pointer;
         }
         .model-name { font-size: 13px; font-weight: 900; color: var(--orange); }
         .model-price { font-size: 11px; font-weight: bold; color: var(--cyan); }
         
+        .head-actions { display: flex; gap: 6px; align-items: center; }
+        .btn-quote-head {
+            background: var(--blue); color: #fff; border: none; padding: 4px 8px;
+            border-radius: 4px; font-size: 10px; font-weight: 900; cursor: pointer;
+        }
+
         .model-body { display: none; padding: 8px; background: #021626; border-top: 1px solid var(--border); }
         .param-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 8px; }
         .param-box label { font-size: 9px; font-weight: bold; color: var(--muted); display: block; }
@@ -72,31 +84,46 @@
         table { width: 100%; border-collapse: collapse; font-size: 11px; text-align: center; white-space: nowrap; }
         th { background: var(--navy); color: #fff; padding: 5px 3px; border: 1px solid var(--border); font-weight: 800; }
         td { padding: 5px 3px; border: 1px solid #083454; font-weight: 700; }
-        .btn-sm { border: none; padding: 2px 5px; border-radius: 3px; font-size: 9px; font-weight: bold; cursor: pointer; }
+        
+        .scheme-check { width: 14px; height: 14px; cursor: pointer; accent-color: var(--sky); }
+        .btn-sm { border: none; padding: 3px 6px; border-radius: 3px; font-size: 9px; font-weight: bold; cursor: pointer; }
+        .btn-copy-mini { background: var(--blue); color: white; }
+
+        /* MODAL STYLES */
+        .modal-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0, 15, 28, 0.9); z-index: 999;
+            justify-content: center; align-items: center; padding: 12px;
+        }
+        .modal-content {
+            background: var(--card-bg); border: 2px solid var(--blue);
+            border-radius: 8px; padding: 12px; max-width: 500px; width: 100%;
+            max-height: 92vh; overflow-y: auto; text-align: center;
+        }
     </style>
 </head>
 <body>
 
 <div class="main-wrapper">
-    <!-- STICKY CRITERIA -->
+    <!-- 1. STICKY CRITERIA -->
     <div class="sticky-criteria">
         <div class="crit-header">
-            <span class="crit-title">⚡ GLOBAL CRITERIA</span>
+            <span class="crit-title">⚡ CRITERIA (ALL MODELS)</span>
             <span id="syncBadge" class="badge" onclick="loadData(true)">SYNCING...</span>
         </div>
         <div class="crit-grid">
             <div class="crit-box">
                 <label>TYPE</label>
                 <select class="crit-in" id="cType" onchange="debouncedUpdate()">
-                    <option value="NEW">NEW</option>
-                    <option value="EMI CARD" selected>EMI CARD</option>
+                    <option value="NEW" selected>NEW</option>
+                    <option value="EMI CARD">EMI CARD</option>
                     <option value="VIRTUAL CARD">VIRTUAL</option>
                     <option value="W/O CARD">W/O CARD</option>
                 </select>
             </div>
             <div class="crit-box">
                 <label>APPROVED</label>
-                <input type="number" class="crit-in" id="cApp" placeholder="-" oninput="debouncedUpdate()">
+                <input type="number" class="crit-in" id="cApp" placeholder="Full" oninput="debouncedUpdate()">
             </div>
             <div class="crit-box">
                 <label>MAX LTV%</label>
@@ -104,25 +131,54 @@
             </div>
             <div class="crit-box">
                 <label>CAP (₹)</label>
-                <input type="number" class="crit-in" id="cCap" placeholder="-" oninput="debouncedUpdate()">
+                <input type="number" class="crit-in" id="cCap" placeholder="None" oninput="debouncedUpdate()">
             </div>
         </div>
     </div>
 
-    <!-- SEARCH FILTER -->
+    <!-- 2. SEARCH BAR -->
     <div class="search-box">
-        <input type="text" id="searchIn" class="search-in" placeholder="🔍 Search model..." oninput="filterModels(this.value)">
+        <input type="text" id="searchIn" class="search-in" placeholder="🔍 Search model by name..." oninput="filterModels(this.value)">
     </div>
 
-    <!-- MODEL CONTAINER (FAST LAZY RENDER) -->
-    <div id="catalogList"></div>
+    <!-- 3. MODEL CATALOG (FAST LAZY RENDER) -->
+    <div id="catalogList">
+        <div style="text-align:center; padding:30px; color:var(--muted); font-size:12px;">Models load होत आहेत...</div>
+    </div>
+</div>
+
+<!-- 📸 QUOTE IMAGE PREVIEW MODAL -->
+<div id="imageViewerModal" class="modal-overlay">
+    <div class="modal-content">
+        <div style="font-size:12px; font-weight:800; color:var(--sky); margin-bottom:8px;">
+            📸 GENERATED QUOTE SLIP
+        </div>
+        <img id="generatedQuoteImg" src="" alt="Customer Quote" style="width:100%; border-radius:6px; margin-bottom:10px; display:block; box-shadow:0 4px 15px rgba(0,0,0,0.5);">
+        
+        <div style="display:flex; gap:6px; margin-bottom:8px;">
+            <button onclick="shareQuoteWhatsApp()" style="flex:1; background:#25D366; color:white; border:none; padding:10px; border-radius:4px; font-weight:bold; font-size:12px; cursor:pointer;">
+                📲 WHATSAPP
+            </button>
+            <button onclick="copyImageToClipboard()" style="flex:1; background:var(--orange); color:white; border:none; padding:10px; border-radius:4px; font-weight:bold; font-size:12px; cursor:pointer;">
+                📋 COPY IMAGE
+            </button>
+            <button onclick="downloadQuoteDirect()" style="flex:1; background:var(--blue); color:white; border:none; padding:10px; border-radius:4px; font-weight:bold; font-size:12px; cursor:pointer;">
+                📥 DOWNLOAD
+            </button>
+        </div>
+        <button onclick="document.getElementById('imageViewerModal').style.display='none'" style="width:100%; background:#dc2626; color:white; border:none; padding:7px; border-radius:4px; font-weight:bold; font-size:11px; cursor:pointer;">
+            CLOSE ✖
+        </button>
+    </div>
 </div>
 
 <script>
     const EXCEL_URL = "https://raw.githubusercontent.com/luckyjathar/testcalculator/main/master_data.xlsx";
     let catalog = [];
     let debounceTimer = null;
-    let activeOpenIndex = null; // फक्त उघडलेले मॉडेल लक्षात ठेवण्यासाठी
+    let activeOpenIndex = null;
+    let currentQuoteBlob = null;
+    let currentQuoteText = "";
 
     async function loadData(force = false) {
         const badge = document.getElementById('syncBadge');
@@ -169,21 +225,22 @@
         }
     }
 
-    // १. हलकी यादी रेंडर करणे (शेकडो DOM एलिमेंट्स न बनवता)
     function renderCatalogList() {
         const list = document.getElementById('catalogList');
         list.innerHTML = catalog.map((m, idx) => `
             <div class="model-card" id="mcard_${idx}">
                 <div class="model-head" onclick="toggleModel(${idx})">
                     <span class="model-name">📱 ${m.name}</span>
-                    <span class="model-price">₹${m.mrp.toLocaleString()} ▼</span>
+                    <div class="head-actions" onclick="event.stopPropagation()">
+                        <span class="model-price">₹${m.mrp.toLocaleString()}</span>
+                        <button class="btn-quote-head" onclick="generateQuoteForModel(${idx})">📸 QUOTE</button>
+                    </div>
                 </div>
                 <div class="model-body" id="mbody_${idx}"></div>
             </div>
         `).join('');
     }
 
-    // २. फक्त क्लिक केल्यावरच कॅल्क्युलेशन धावणे (Zero Hang!)
     function toggleModel(idx) {
         const body = document.getElementById(`mbody_${idx}`);
         if (body.style.display === 'block') {
@@ -192,7 +249,6 @@
             return;
         }
 
-        // आधीचे उघडे असलेले बंद करा (रॅम सेव्ह करण्यासाठी)
         if (activeOpenIndex !== null && activeOpenIndex !== idx) {
             let prev = document.getElementById(`mbody_${activeOpenIndex}`);
             if (prev) prev.style.display = 'none';
@@ -203,7 +259,6 @@
         renderModelDetails(idx);
     }
 
-    // ३. एकाच मॉडेलचे तपशील आणि स्कीम्स कॅल्क्युलेट करणे
     function renderModelDetails(idx) {
         let m = catalog[idx];
         const body = document.getElementById(`mbody_${idx}`);
@@ -223,12 +278,14 @@
                 <table>
                     <thead>
                         <tr>
+                            <th>☑</th>
                             <th>SCHEME</th>
                             <th>LOAN</th>
                             <th>DP</th>
                             <th>EMI</th>
                             <th>M</th>
-                            <th>DISBURSAL</th>
+                            <th>DAY</th>
+                            <th>ACTION</th>
                         </tr>
                     </thead>
                     <tbody id="tbl_${idx}"></tbody>
@@ -243,6 +300,25 @@
         const tbody = document.getElementById(`tbl_${idx}`);
         if (!tbody) return;
 
+        let rows = getCalculatedRowsForModel(m);
+
+        tbody.innerHTML = rows.map((r, sIdx) => `
+            <tr>
+                <td><input type="checkbox" class="scheme-check" checked data-sidx="${sIdx}"></td>
+                <td style="color:var(--sky); font-weight:bold;">${r.tenure}/${r.adv}</td>
+                <td style="color:#34d399;">₹${Math.round(r.loan).toLocaleString()}</td>
+                <td style="color:var(--orange); font-weight:bold;">₹${r.dp.toLocaleString()}</td>
+                <td style="color:var(--cyan); font-weight:bold;">₹${r.emi.toLocaleString()}</td>
+                <td>${r.inst}M</td>
+                <td style="color:#fb923c;">₹${r.perDay.toLocaleString()}</td>
+                <td>
+                    <button class="btn-sm btn-copy-mini" onclick="copySingleScheme('${m.name}', ${m.invPrice}, '${r.tenure}/${r.adv}', ${r.dp}, ${r.emi}, ${r.inst}, ${r.perDay})">📋</button>
+                </td>
+            </tr>
+        `).join('') || `<tr><td colspan="8" style="color:#f87171; padding:6px;">No eligible schemes.</td></tr>`;
+    }
+
+    function getCalculatedRowsForModel(m) {
         let custType = document.getElementById('cType').value;
         let app = parseFloat(document.getElementById('cApp').value) || 0;
         let ltv = Math.min(100, Math.max(0, parseFloat(document.getElementById('cLtv').value) || 100));
@@ -252,12 +328,11 @@
         let extraGap = (m.invPrice > m.sysPrice) ? (m.invPrice - m.sysPrice) : 0;
         let loginFee = (custType === 'EMI CARD' || custType === 'VIRTUAL CARD') ? 270 : (custType === 'W/O CARD' ? 320 : 850);
 
-        let rows = m.schemes.filter(s => ((s.tenure - s.adv) / s.tenure) * 100 <= ltv).map(s => {
+        return m.schemes.filter(s => ((s.tenure - s.adv) / s.tenure) * 100 <= ltv).map(s => {
             let inst = s.tenure - s.adv || 1;
             let loan = basePrice;
             if (app > 0) loan = Math.min(loan, (app * s.tenure) / inst);
             
-            // 50% Policy Floor
             let minLoan = basePrice * 0.50;
             if (loan < minLoan) loan = minLoan;
 
@@ -266,21 +341,10 @@
             let finalEmi = Math.round(baseEmi < 850 ? 850 : baseEmi);
 
             let dp = Math.ceil((basePrice - loan + (baseEmi * s.adv) + dbdRs + s.pf + loginFee + extraGap) / 10) * 10;
-            let disbursal = Math.round(m.invPrice - dbdRs - s.pf - loginFee);
+            let perDay = Math.round(finalEmi / 30);
 
-            return `
-                <tr>
-                    <td style="color:var(--sky); font-weight:bold;">${s.tenure}/${s.adv}</td>
-                    <td style="color:#34d399;">₹${Math.round(loan).toLocaleString()}</td>
-                    <td style="color:var(--orange); font-weight:bold;">₹${dp.toLocaleString()}</td>
-                    <td style="color:var(--cyan); font-weight:bold;">₹${finalEmi.toLocaleString()}</td>
-                    <td>${inst}</td>
-                    <td style="color:#4ade80;">₹${disbursal.toLocaleString()}</td>
-                </tr>
-            `;
-        }).join('');
-
-        tbody.innerHTML = rows || `<tr><td colspan="6" style="color:#f87171; padding:6px;">No schemes under ${ltv}% LTV</td></tr>`;
+            return { tenure: s.tenure, adv: s.adv, loan, dp, emi: finalEmi, inst, perDay };
+        }).sort((a,b) => a.dp - b.dp || a.emi - b.emi);
     }
 
     function updatePrice(idx, field, val) {
@@ -301,6 +365,131 @@
             let el = document.getElementById(`mcard_${idx}`);
             if (el) el.style.display = (!val || m.name.includes(val)) ? 'block' : 'none';
         });
+    }
+
+    /* 📸 DIRECT QUOTE IMAGE GENERATOR FOR ANY MODEL */
+    function generateQuoteForModel(idx) {
+        let m = catalog[idx];
+        if (!m) return;
+
+        let rows = getCalculatedRowsForModel(m);
+        if (rows.length === 0) {
+            alert("No schemes available to generate quote!");
+            return;
+        }
+
+        let custType = document.getElementById('cType').value;
+        let app = document.getElementById('cApp').value || "FULL LIMIT";
+        let ltv = document.getElementById('cLtv').value || "100";
+        let price = m.invPrice || m.sysPrice;
+
+        let quoteDiv = document.createElement('div');
+        quoteDiv.style.width = "480px";
+        quoteDiv.style.padding = "20px";
+        quoteDiv.style.background = "#ffffff";
+        quoteDiv.style.color = "#1a365d";
+        quoteDiv.style.fontFamily = "'Architects Daughter', 'Caveat', cursive, sans-serif";
+        quoteDiv.style.position = "absolute";
+        quoteDiv.style.top = "-9999px";
+        quoteDiv.style.boxSizing = "border-box";
+
+        quoteDiv.innerHTML = `
+            <div style="border: 2px solid #1e3a8a; padding: 10px 14px; margin-bottom: 14px; background: #ffffff;">
+                <div style="text-align: center; font-size: 22px; font-weight: bold; text-decoration: underline; color: #1e3a8a; margin-bottom: 6px;">
+                    BAJAJ FINSERV LOAN OFFER
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 14px; font-weight: bold;">
+                    <span>CUSTOMER: ${custType}</span>
+                    <span>APPROVED: ${app === 'FULL LIMIT' ? app : '₹' + Number(app).toLocaleString()}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 14px; font-weight: bold;">
+                    <span>MAX LTV: ${ltv}%</span>
+                    <span>INVOICE PRICE: ₹${Number(price).toLocaleString()}</span>
+                </div>
+            </div>
+
+            <div style="font-size: 18px; font-weight: bold; color: #1e3a8a; margin-bottom: 10px; text-transform: uppercase;">
+                📱 ${m.name}
+            </div>
+
+            <table style="width: 100%; border-collapse: collapse; font-size: 15px; text-align: center; border: 2px solid #1e3a8a;">
+                <thead>
+                    <tr style="border-bottom: 2px solid #1e3a8a; background: #ffffff; color: #1e3a8a;">
+                        <th style="padding: 6px; border-right: 1.5px solid #1e3a8a;">SCHEME</th>
+                        <th style="padding: 6px; border-right: 1.5px solid #1e3a8a;">DOWN PAYMENT</th>
+                        <th style="padding: 6px; border-right: 1.5px solid #1e3a8a;">MONTHLY EMI</th>
+                        <th style="padding: 6px; border-right: 1.5px solid #1e3a8a;">MONTHS</th>
+                        <th style="padding: 6px;">PER DAY</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${rows.slice(0, 6).map(r => `
+                        <tr style="border-bottom: 1.5px solid #1e3a8a; font-weight: bold; color: #1a365d;">
+                            <td style="padding: 6px; border-right: 1.5px solid #1e3a8a;">${r.tenure}/${r.adv}</td>
+                            <td style="padding: 6px; border-right: 1.5px solid #1e3a8a; text-align: right;">₹${r.dp.toLocaleString()}</td>
+                            <td style="padding: 6px; border-right: 1.5px solid #1e3a8a; text-align: right;">₹${r.emi.toLocaleString()}</td>
+                            <td style="padding: 6px; border-right: 1.5px solid #1e3a8a;">${r.inst}M</td>
+                            <td style="padding: 6px; text-align: right;">₹${r.perDay.toLocaleString()}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+            <div style="margin-top: 10px; font-size: 12px; font-weight: bold; color: #475569; text-align: center;">
+                * All processing and login fees included. Zero Hidden Charges.
+            </div>
+        `;
+
+        document.body.appendChild(quoteDiv);
+
+        setTimeout(() => {
+            html2canvas(quoteDiv, { scale: 3, useCORS: true, backgroundColor: "#ffffff" }).then(canvas => {
+                document.body.removeChild(quoteDiv);
+                let imgData = canvas.toDataURL("image/png");
+                document.getElementById('generatedQuoteImg').src = imgData;
+                currentQuoteBlob = imgData;
+                currentQuoteText = `📱 *${m.name}*\n💵 *Price:* ₹${Number(price).toLocaleString()}\n🎉 *Bajaj Finserv Special Loan Offers*\n\n(Quote Image Attached)`;
+                document.getElementById('imageViewerModal').style.display = 'flex';
+            });
+        }, 100);
+    }
+
+    function shareQuoteWhatsApp() {
+        if (navigator.share && currentQuoteBlob) {
+            fetch(currentQuoteBlob).then(r => r.blob()).then(blob => {
+                const file = new File([blob], "Bajaj_Quote.png", { type: "image/png" });
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    navigator.share({ files: [file], text: currentQuoteText });
+                } else {
+                    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(currentQuoteText)}`, '_blank');
+                }
+            });
+        } else {
+            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(currentQuoteText)}`, '_blank');
+        }
+    }
+
+    function copyImageToClipboard() {
+        if (!currentQuoteBlob || !navigator.clipboard) return;
+        fetch(currentQuoteBlob).then(r => r.blob()).then(blob => {
+            navigator.clipboard.write([
+                new ClipboardItem({ 'image/png': blob })
+            ]).then(() => alert("Quote Image Clipboard वर Copy झाली! ✅\nआता थेट WhatsApp चॅटमध्ये Paste करा."));
+        }).catch(() => alert("Direct Image Copy Not Supported on this browser. Use Download or WhatsApp button."));
+    }
+
+    function downloadQuoteDirect() {
+        if (!currentQuoteBlob) return;
+        let a = document.createElement('a');
+        a.href = currentQuoteBlob;
+        a.download = `Bajaj_Quote_${Date.now()}.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+
+    function copySingleScheme(name, price, s, dp, emi, m, day) {
+        let text = `📱 *${name}*\n💵 *Price:* ₹${Number(price).toLocaleString()}\n\n✅ *Scheme:* ${s}\n💰 *DP:* ₹${Number(dp).toLocaleString()}\n🗓️ *EMI:* ₹${Number(emi).toLocaleString()} x ${m}M\n✨ *Per Day:* ₹${Number(day).toLocaleString()}`;
+        navigator.clipboard.writeText(text).then(() => alert("Scheme Copied! ✅"));
     }
 
     window.onload = () => loadData(false);
