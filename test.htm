@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pro Financial Portal - Fast Catalog & Quote Engine</title>
+    <title>Pro Financial Portal - Complete Catalog & Quote Engine</title>
 
     <!-- Google Handwriting Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
 
-    <!-- SheetJS CDN -->
+    <!-- SheetJS CDN for Master Excel Reading -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
-    <!-- html2canvas CDN -->
+    <!-- html2canvas CDN for High-Quality Quote Slip Generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
@@ -35,7 +35,7 @@
         body { background: var(--navy-dark); color: var(--text); padding: 8px; padding-bottom: 80px; display: flex; justify-content: center; }
         .main-wrapper { width: 100%; max-width: 580px; display: flex; flex-direction: column; gap: 10px; }
 
-        /* CRITERIA BAR */
+        /* 1. STICKY CRITERIA BAR */
         .sticky-criteria {
             position: sticky; top: 4px; z-index: 100;
             background: var(--card-bg); border: 2px solid var(--border); border-radius: 8px;
@@ -54,14 +54,14 @@
         .crit-box label { font-size: 9px; font-weight: 800; color: var(--muted); display: block; margin-bottom: 2px; }
         .crit-in { width: 100%; background: var(--card-bg); border: 1px solid var(--border); color: #fff; padding: 5px; border-radius: 4px; font-size: 11px; font-weight: bold; text-align: center; }
 
-        /* SEARCH BAR */
+        /* 2. SEARCH BOX */
         .search-box {
             background: var(--card-bg); border: 1px solid var(--border); border-radius: 6px; padding: 6px 10px;
-            display: flex; gap: 8px; align-items: center;
+            display: flex; gap: 8px; align-items: center; position: sticky; top: 96px; z-index: 90;
         }
         .search-in { flex: 1; padding: 6px 10px; background: #021a2d; border: 1px solid var(--border); color: #fff; border-radius: 4px; font-size: 12px; font-weight: bold; outline: none; }
 
-        /* MODEL CARDS */
+        /* 3. MODEL CARDS */
         .model-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 6px; margin-bottom: 8px; overflow: hidden; }
         .model-head {
             background: #042947; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; cursor: pointer;
@@ -74,6 +74,7 @@
             background: var(--blue); color: #fff; border: none; padding: 4px 8px;
             border-radius: 4px; font-size: 10px; font-weight: 900; cursor: pointer;
         }
+        .btn-quote-head:hover { background: #008bf5; }
 
         .model-body { display: none; padding: 8px; background: #021626; border-top: 1px solid var(--border); }
         .param-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 8px; }
@@ -85,14 +86,13 @@
         th { background: var(--navy); color: #fff; padding: 5px 3px; border: 1px solid var(--border); font-weight: 800; }
         td { padding: 5px 3px; border: 1px solid #083454; font-weight: 700; }
         
-        .scheme-check { width: 14px; height: 14px; cursor: pointer; accent-color: var(--sky); }
         .btn-sm { border: none; padding: 3px 6px; border-radius: 3px; font-size: 9px; font-weight: bold; cursor: pointer; }
         .btn-copy-mini { background: var(--blue); color: white; }
 
-        /* MODAL STYLES */
+        /* 4. MODAL STYLES */
         .modal-overlay {
             display: none; position: fixed; inset: 0;
-            background: rgba(0, 15, 28, 0.9); z-index: 999;
+            background: rgba(0, 15, 28, 0.92); z-index: 999;
             justify-content: center; align-items: center; padding: 12px;
         }
         .modal-content {
@@ -105,10 +105,10 @@
 <body>
 
 <div class="main-wrapper">
-    <!-- 1. STICKY CRITERIA -->
+    <!-- 1. STICKY CRITERIA (ALL MODELS DYNAMIC CONTROL) -->
     <div class="sticky-criteria">
         <div class="crit-header">
-            <span class="crit-title">⚡ CRITERIA (ALL MODELS)</span>
+            <span class="crit-title">⚡ GLOBAL CRITERIA</span>
             <span id="syncBadge" class="badge" onclick="loadData(true)">SYNCING...</span>
         </div>
         <div class="crit-grid">
@@ -136,12 +136,12 @@
         </div>
     </div>
 
-    <!-- 2. SEARCH BAR -->
+    <!-- 2. SMART SEARCH BOX -->
     <div class="search-box">
-        <input type="text" id="searchIn" class="search-in" placeholder="🔍 Search model by name..." oninput="filterModels(this.value)">
+        <input type="text" id="searchIn" class="search-in" placeholder="🔍 Search model name, brand or scheme (e.g. 10/2)..." oninput="filterModels(this.value)">
     </div>
 
-    <!-- 3. MODEL CATALOG (FAST LAZY RENDER) -->
+    <!-- 3. MODEL CATALOG CONTAINER -->
     <div id="catalogList">
         <div style="text-align:center; padding:30px; color:var(--muted); font-size:12px;">Models load होत आहेत...</div>
     </div>
@@ -180,6 +180,14 @@
     let currentQuoteBlob = null;
     let currentQuoteText = "";
 
+    function findVal(row, keys) {
+        let foundKey = Object.keys(row).find(k => {
+            let clean = k.toUpperCase().replace(/[\s\_\-\.]/g, '');
+            return keys.some(exp => clean === exp.replace(/[\s\_\-\.]/g, ''));
+        });
+        return foundKey ? row[foundKey] : null;
+    }
+
     async function loadData(force = false) {
         const badge = document.getElementById('syncBadge');
         badge.innerText = "LOADING...";
@@ -191,12 +199,17 @@
 
             let map = new Map();
             sheet.forEach(r => {
-                let name = String(r.MODEL || r.BRANDMODEL || "").toUpperCase().trim();
-                let mrp = parseFloat(r.MRP || r.PRICE) || 0;
+                let name = String(findVal(r, ['MODEL', 'BRANDMODEL', 'ASSET']) || "").toUpperCase().trim();
+                let mrp = parseFloat(findVal(r, ['MRP', 'PRICE', 'M.R.P'])) || 0;
                 if (!name || name === "NON TIEUP" || mrp <= 0) return;
 
-                let tenure = parseInt(r.TOTALTENURE || r.TENURE) || 0;
-                let adv = parseInt(r.ADVANCEEMI || r.ADV) || 0;
+                let tenure = parseInt(findVal(r, ['TOTALTENURE', 'TENURE', 'TA'])) || 0;
+                let adv = parseInt(findVal(r, ['ADVANCEEMI', 'ADV', 'ADVEMI'])) || 0;
+                if (tenure === 0) {
+                    let schemeText = String(findVal(r, ['SCHEME', 'SCHEMENAME']) || "");
+                    let parts = schemeText.split(/[\/\_\-\s]+/);
+                    if (parts.length >= 2) { tenure = parseInt(parts[0]) || 0; adv = parseInt(parts[1]) || 0; }
+                }
                 if (tenure <= 0) return;
 
                 if (!map.has(name)) {
@@ -211,9 +224,9 @@
                 map.get(name).schemes.push({
                     tenure: tenure,
                     adv: adv,
-                    dbd: parseFloat(r.DBD) || 0,
-                    pf: parseInt(r.PF) || 0,
-                    roi: parseFloat(r.ROI) || 0
+                    dbd: parseFloat(findVal(r, ['DBD', 'DBD%'])) || 0,
+                    pf: parseInt(findVal(r, ['PF', 'PROCESSINGFEE'])) || 0,
+                    roi: parseFloat(findVal(r, ['ROI', 'ROI%'])) || 0
                 });
             });
 
@@ -278,7 +291,6 @@
                 <table>
                     <thead>
                         <tr>
-                            <th>☑</th>
                             <th>SCHEME</th>
                             <th>LOAN</th>
                             <th>DP</th>
@@ -302,9 +314,8 @@
 
         let rows = getCalculatedRowsForModel(m);
 
-        tbody.innerHTML = rows.map((r, sIdx) => `
+        tbody.innerHTML = rows.map((r) => `
             <tr>
-                <td><input type="checkbox" class="scheme-check" checked data-sidx="${sIdx}"></td>
                 <td style="color:var(--sky); font-weight:bold;">${r.tenure}/${r.adv}</td>
                 <td style="color:#34d399;">₹${Math.round(r.loan).toLocaleString()}</td>
                 <td style="color:var(--orange); font-weight:bold;">₹${r.dp.toLocaleString()}</td>
@@ -315,7 +326,7 @@
                     <button class="btn-sm btn-copy-mini" onclick="copySingleScheme('${m.name}', ${m.invPrice}, '${r.tenure}/${r.adv}', ${r.dp}, ${r.emi}, ${r.inst}, ${r.perDay})">📋</button>
                 </td>
             </tr>
-        `).join('') || `<tr><td colspan="8" style="color:#f87171; padding:6px;">No eligible schemes.</td></tr>`;
+        `).join('') || `<tr><td colspan="7" style="color:#f87171; padding:6px;">No eligible schemes.</td></tr>`;
     }
 
     function getCalculatedRowsForModel(m) {
@@ -333,12 +344,23 @@
             let loan = basePrice;
             if (app > 0) loan = Math.min(loan, (app * s.tenure) / inst);
             
+            // 50% Policy Clamping
             let minLoan = basePrice * 0.50;
             if (loan < minLoan) loan = minLoan;
 
             let dbdRs = Math.round(loan * (s.dbd * 1.18 / 100));
             let baseEmi = loan / s.tenure;
             let finalEmi = Math.round(baseEmi < 850 ? 850 : baseEmi);
+
+            // EMI Capping Adjustment
+            if (cap > 0 && finalEmi > cap) {
+                loan = cap / (1 / s.tenure);
+                if (loan < minLoan) loan = minLoan;
+                loan = Math.min(basePrice, Math.max(0, loan));
+                baseEmi = loan / s.tenure;
+                finalEmi = Math.round(baseEmi < 850 ? 850 : baseEmi);
+                dbdRs = Math.round(loan * (s.dbd * 1.18 / 100));
+            }
 
             let dp = Math.ceil((basePrice - loan + (baseEmi * s.adv) + dbdRs + s.pf + loginFee + extraGap) / 10) * 10;
             let perDay = Math.round(finalEmi / 30);
@@ -359,22 +381,65 @@
         }, 200);
     }
 
-    function filterModels(q) {
-        let val = q.trim().toUpperCase();
+    /* 🔍 FAST MULTI-KEYWORD & REVERSE SCHEME SEARCH */
+    function filterModels(query) {
+        let rawQuery = query.trim().toUpperCase();
+        const listContainer = document.getElementById('catalogList');
+
+        if (!rawQuery) {
+            catalog.forEach((m, idx) => {
+                let el = document.getElementById(`mcard_${idx}`);
+                if (el) el.style.display = 'block';
+            });
+            let noResult = document.getElementById('noSearchMsg');
+            if (noResult) noResult.style.display = 'none';
+            return;
+        }
+
+        let searchTerms = rawQuery.split(/\s+/).filter(t => t.length > 0);
+        let matchCount = 0;
+
         catalog.forEach((m, idx) => {
             let el = document.getElementById(`mcard_${idx}`);
-            if (el) el.style.display = (!val || m.name.includes(val)) ? 'block' : 'none';
+            if (!el) return;
+
+            let modelText = (m.name + " " + m.mrp).toUpperCase();
+            let schemesText = m.schemes.map(s => `${s.tenure}/${s.adv}`).join(" ");
+            let fullSearchData = `${modelText} ${schemesText}`;
+
+            let isMatch = searchTerms.every(term => fullSearchData.includes(term));
+
+            if (isMatch) {
+                el.style.display = 'block';
+                matchCount++;
+            } else {
+                el.style.display = 'none';
+            }
         });
+
+        let noResultEl = document.getElementById('noSearchMsg');
+        if (matchCount === 0) {
+            if (!noResultEl) {
+                noResultEl = document.createElement('div');
+                noResultEl.id = 'noSearchMsg';
+                noResultEl.style.cssText = 'text-align:center; padding:20px; color:#f87171; font-size:12px; font-weight:bold;';
+                listContainer.appendChild(noResultEl);
+            }
+            noResultEl.innerText = `"${query}" शी संबंधित कोणतेही मॉडेल किंवा स्कीम सापडली नाही.`;
+            noResultEl.style.display = 'block';
+        } else if (noResultEl) {
+            noResultEl.style.display = 'none';
+        }
     }
 
-    /* 📸 DIRECT QUOTE IMAGE GENERATOR FOR ANY MODEL */
+    /* 📸 DIRECT QUOTE IMAGE GENERATOR */
     function generateQuoteForModel(idx) {
         let m = catalog[idx];
         if (!m) return;
 
         let rows = getCalculatedRowsForModel(m);
         if (rows.length === 0) {
-            alert("No schemes available to generate quote!");
+            alert("या मॉडेलसाठी कोणतीही स्कीम उपलब्ध नाही!");
             return;
         }
 
@@ -473,7 +538,7 @@
         fetch(currentQuoteBlob).then(r => r.blob()).then(blob => {
             navigator.clipboard.write([
                 new ClipboardItem({ 'image/png': blob })
-            ]).then(() => alert("Quote Image Clipboard वर Copy झाली! ✅\nआता थेट WhatsApp चॅटमध्ये Paste करा."));
+            ]).then(() => alert("Quote Image Clipboard वर Copy झाली! ✅\nआता थेट WhatsApp चॅटमध्ये Paste (Ctrl+V) करा."));
         }).catch(() => alert("Direct Image Copy Not Supported on this browser. Use Download or WhatsApp button."));
     }
 
