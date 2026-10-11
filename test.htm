@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pro Financial Portal - Category, Brand & Model Filters</title>
+    <title>Pro Financial Portal - Pure Quote Engine</title>
 
     <!-- Google Handwriting Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -104,20 +104,17 @@
         table { width: 100%; border-collapse: collapse; font-size: 11px; text-align: center; white-space: nowrap; }
         th { background: var(--navy); color: #fff; padding: 5px 3px; border: 1px solid var(--border); font-weight: 800; }
         td { padding: 5px 3px; border: 1px solid #083454; font-weight: 700; }
-        
-        .btn-sm { border: none; padding: 3px 6px; border-radius: 3px; font-size: 9px; font-weight: bold; cursor: pointer; }
-        .btn-copy-mini { background: var(--blue); color: white; }
 
-        /* 4. MODAL STYLES */
+        /* 4. PURE MODAL STYLES */
         .modal-overlay {
             display: none; position: fixed; inset: 0;
             background: rgba(0, 15, 28, 0.92); z-index: 999;
-            justify-content: center; align-items: center; padding: 12px;
+            justify-content: center; align-items: center; padding: 10px;
         }
         .modal-content {
             background: var(--card-bg); border: 2px solid var(--blue);
-            border-radius: 8px; padding: 12px; max-width: 500px; width: 100%;
-            max-height: 92vh; overflow-y: auto; text-align: center;
+            border-radius: 8px; padding: 10px; max-width: 520px; width: 100%;
+            max-height: 94vh; overflow-y: auto; text-align: center;
         }
     </style>
 </head>
@@ -178,7 +175,7 @@
             </div>
         </div>
         <div class="search-row">
-            <input type="text" id="searchIn" class="search-in" placeholder="🔍 Quick search keyword or scheme (10/2)..." oninput="applyAllFilters()">
+            <input type="text" id="searchIn" class="search-in" placeholder="🔍 Quick search model, brand or scheme (10/2)..." oninput="applyAllFilters()">
             <button class="btn-reset" onclick="resetAllFilters()">RESET</button>
         </div>
     </div>
@@ -189,26 +186,11 @@
     </div>
 </div>
 
-<!-- 📸 QUOTE IMAGE PREVIEW MODAL -->
+<!-- 📸 PURE QUOTE IMAGE PREVIEW MODAL -->
 <div id="imageViewerModal" class="modal-overlay">
     <div class="modal-content">
-        <div style="font-size:12px; font-weight:800; color:var(--sky); margin-bottom:8px;">
-            📸 GENERATED QUOTE SLIP
-        </div>
-        <img id="generatedQuoteImg" src="" alt="Customer Quote" style="width:100%; border-radius:6px; margin-bottom:10px; display:block; box-shadow:0 4px 15px rgba(0,0,0,0.5);">
-        
-        <div style="display:flex; gap:6px; margin-bottom:8px;">
-            <button onclick="shareQuoteWhatsApp()" style="flex:1; background:#25D366; color:white; border:none; padding:10px; border-radius:4px; font-weight:bold; font-size:12px; cursor:pointer;">
-                📲 WHATSAPP
-            </button>
-            <button onclick="copyImageToClipboard()" style="flex:1; background:var(--orange); color:white; border:none; padding:10px; border-radius:4px; font-weight:bold; font-size:12px; cursor:pointer;">
-                📋 COPY IMAGE
-            </button>
-            <button onclick="downloadQuoteDirect()" style="flex:1; background:var(--blue); color:white; border:none; padding:10px; border-radius:4px; font-weight:bold; font-size:12px; cursor:pointer;">
-                📥 DOWNLOAD
-            </button>
-        </div>
-        <button onclick="document.getElementById('imageViewerModal').style.display='none'" style="width:100%; background:#dc2626; color:white; border:none; padding:7px; border-radius:4px; font-weight:bold; font-size:11px; cursor:pointer;">
+        <img id="generatedQuoteImg" src="" alt="Customer Quote" style="width:100%; border-radius:4px; margin-bottom:8px; display:block; box-shadow:0 4px 15px rgba(0,0,0,0.5);">
+        <button onclick="document.getElementById('imageViewerModal').style.display='none'" style="width:100%; background:#dc2626; color:white; border:none; padding:9px; border-radius:4px; font-weight:bold; font-size:12px; cursor:pointer;">
             CLOSE ✖
         </button>
     </div>
@@ -219,8 +201,6 @@
     let catalog = [];
     let debounceTimer = null;
     let activeOpenIndex = null;
-    let currentQuoteBlob = null;
-    let currentQuoteText = "";
 
     function findVal(row, keys) {
         let foundKey = Object.keys(row).find(k => {
@@ -286,7 +266,6 @@
         }
     }
 
-    /* 🏷️ POPULATE CATEGORY, BRAND & MODEL DROPDOWNS */
     function populateDropdownFilters() {
         const catSelect = document.getElementById('selCategory');
         let categories = Array.from(new Set(catalog.map(m => m.category))).sort();
@@ -345,7 +324,6 @@
         applyAllFilters();
     }
 
-    /* 🔍 CENTRAL FILTER LOGIC */
     function applyAllFilters() {
         const selCat = document.getElementById('selCategory').value;
         const selBrand = document.getElementById('selBrand').value;
@@ -457,7 +435,6 @@
                             <th>EMI</th>
                             <th>M</th>
                             <th>DAY</th>
-                            <th>ACTION</th>
                         </tr>
                     </thead>
                     <tbody id="tbl_${idx}"></tbody>
@@ -482,11 +459,8 @@
                 <td style="color:var(--cyan); font-weight:bold;">₹${r.emi.toLocaleString()}</td>
                 <td>${r.inst}M</td>
                 <td style="color:#fb923c;">₹${r.perDay.toLocaleString()}</td>
-                <td>
-                    <button class="btn-sm btn-copy-mini" onclick="copySingleScheme('${m.name}', ${m.invPrice}, '${r.tenure}/${r.adv}', ${r.dp}, ${r.emi}, ${r.inst}, ${r.perDay})">📋</button>
-                </td>
             </tr>
-        `).join('') || `<tr><td colspan="7" style="color:#f87171; padding:6px;">No eligible schemes.</td></tr>`;
+        `).join('') || `<tr><td colspan="6" style="color:#f87171; padding:6px;">No eligible schemes.</td></tr>`;
     }
 
     function getCalculatedRowsForModel(m) {
@@ -539,7 +513,7 @@
         }, 200);
     }
 
-    /* 📸 DIRECT QUOTE IMAGE GENERATOR */
+    /* 📸 DIRECT COMPLETE QUOTE IMAGE GENERATOR (NO TRUNCATION) */
     function generateQuoteForModel(idx) {
         let m = catalog[idx];
         if (!m) return;
@@ -595,7 +569,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    ${rows.slice(0, 6).map(r => `
+                    ${rows.map(r => `
                         <tr style="border-bottom: 1.5px solid #1e3a8a; font-weight: bold; color: #1a365d;">
                             <td style="padding: 6px; border-right: 1.5px solid #1e3a8a;">${r.tenure}/${r.adv}</td>
                             <td style="padding: 6px; border-right: 1.5px solid #1e3a8a; text-align: right;">₹${r.dp.toLocaleString()}</td>
@@ -618,50 +592,9 @@
                 document.body.removeChild(quoteDiv);
                 let imgData = canvas.toDataURL("image/png");
                 document.getElementById('generatedQuoteImg').src = imgData;
-                currentQuoteBlob = imgData;
-                currentQuoteText = `📱 *${m.name}*\n💵 *Price:* ₹${Number(price).toLocaleString()}\n🎉 *Bajaj Finserv Special Loan Offers*\n\n(Quote Image Attached)`;
                 document.getElementById('imageViewerModal').style.display = 'flex';
             });
         }, 100);
-    }
-
-    function shareQuoteWhatsApp() {
-        if (navigator.share && currentQuoteBlob) {
-            fetch(currentQuoteBlob).then(r => r.blob()).then(blob => {
-                const file = new File([blob], "Bajaj_Quote.png", { type: "image/png" });
-                if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                    navigator.share({ files: [file], text: currentQuoteText });
-                } else {
-                    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(currentQuoteText)}`, '_blank');
-                }
-            });
-        } else {
-            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(currentQuoteText)}`, '_blank');
-        }
-    }
-
-    function copyImageToClipboard() {
-        if (!currentQuoteBlob || !navigator.clipboard) return;
-        fetch(currentQuoteBlob).then(r => r.blob()).then(blob => {
-            navigator.clipboard.write([
-                new ClipboardItem({ 'image/png': blob })
-            ]).then(() => alert("Quote Image Clipboard वर Copy झाली! ✅\nआता थेट WhatsApp वर Paste करा."));
-        }).catch(() => alert("Direct Image Copy Not Supported on this browser. Use Download or WhatsApp button."));
-    }
-
-    function downloadQuoteDirect() {
-        if (!currentQuoteBlob) return;
-        let a = document.createElement('a');
-        a.href = currentQuoteBlob;
-        a.download = `Bajaj_Quote_${Date.now()}.png`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-    }
-
-    function copySingleScheme(name, price, s, dp, emi, m, day) {
-        let text = `📱 *${name}*\n💵 *Price:* ₹${Number(price).toLocaleString()}\n\n✅ *Scheme:* ${s}\n💰 *DP:* ₹${Number(dp).toLocaleString()}\n🗓️ *EMI:* ₹${Number(emi).toLocaleString()} x ${m}M\n✨ *Per Day:* ₹${Number(day).toLocaleString()}`;
-        navigator.clipboard.writeText(text).then(() => alert("Scheme Copied! ✅"));
     }
 
     window.onload = () => loadData(false);
